@@ -7,6 +7,7 @@ const navItems = [
   { href: "/platform-admin/schools", label: "Schools", icon: Building2 },
   { href: "/platform-admin/ai-controls", label: "AI Controls", icon: Zap },
   { href: "/platform-admin/audit-logs", label: "Audit Logs", icon: ScrollText },
+  { href: "/platform-admin/compliance", label: "Compliance", icon: Settings },
 ];
 
 export function PlatformAdminHeader() {

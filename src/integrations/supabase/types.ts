@@ -14,6 +14,67 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_action_traces: {
+        Row: {
+          agent_name: string
+          audit_log_id: string
+          class_id: string | null
+          created_at: string
+          data_sources: string[] | null
+          id: string
+          purpose: string
+          student_id: string | null
+          teacher_responded_at: string | null
+          teacher_response: string | null
+        }
+        Insert: {
+          agent_name: string
+          audit_log_id: string
+          class_id?: string | null
+          created_at?: string
+          data_sources?: string[] | null
+          id?: string
+          purpose: string
+          student_id?: string | null
+          teacher_responded_at?: string | null
+          teacher_response?: string | null
+        }
+        Update: {
+          agent_name?: string
+          audit_log_id?: string
+          class_id?: string | null
+          created_at?: string
+          data_sources?: string[] | null
+          id?: string
+          purpose?: string
+          student_id?: string | null
+          teacher_responded_at?: string | null
+          teacher_response?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_action_traces_audit_log_id_fkey"
+            columns: ["audit_log_id"]
+            isOneToOne: false
+            referencedRelation: "audit_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_action_traces_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_action_traces_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_versions: {
         Row: {
           breaking_change: boolean
@@ -102,6 +163,84 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      audit_integrity_alerts: {
+        Row: {
+          alert_type: string
+          details: Json | null
+          detected_at: string
+          environment: string
+          id: string
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          alert_type: string
+          details?: Json | null
+          detected_at?: string
+          environment: string
+          id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          alert_type?: string
+          details?: Json | null
+          detected_at?: string
+          environment?: string
+          id?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_type: Database["public"]["Enums"]["audit_actor_type"]
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          entry_hash: string
+          environment: string
+          id: string
+          metadata: Json | null
+          previous_hash: string | null
+          summary: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_type: Database["public"]["Enums"]["audit_actor_type"]
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          entry_hash: string
+          environment?: string
+          id?: string
+          metadata?: Json | null
+          previous_hash?: string | null
+          summary: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_type?: Database["public"]["Enums"]["audit_actor_type"]
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          entry_hash?: string
+          environment?: string
+          id?: string
+          metadata?: Json | null
+          previous_hash?: string | null
+          summary?: string
+        }
+        Relationships: []
       }
       billing_events: {
         Row: {
@@ -213,6 +352,47 @@ export type Database = {
             foreignKeyName: "classes_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_settings: {
+        Row: {
+          compliance_mode: Database["public"]["Enums"]["compliance_mode"]
+          disable_auto_generation: boolean
+          id: string
+          require_confirmation_steps: boolean
+          require_teacher_approval: boolean
+          school_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          compliance_mode?: Database["public"]["Enums"]["compliance_mode"]
+          disable_auto_generation?: boolean
+          id?: string
+          require_confirmation_steps?: boolean
+          require_teacher_approval?: boolean
+          school_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          compliance_mode?: Database["public"]["Enums"]["compliance_mode"]
+          disable_auto_generation?: boolean
+          id?: string
+          require_confirmation_steps?: boolean
+          require_teacher_approval?: boolean
+          school_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_settings_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
@@ -1367,6 +1547,34 @@ export type Database = {
       }
     }
     Functions: {
+      create_audit_log: {
+        Args: {
+          p_action: string
+          p_actor_id: string
+          p_actor_type: Database["public"]["Enums"]["audit_actor_type"]
+          p_entity_id: string
+          p_entity_type: string
+          p_environment?: string
+          p_metadata?: Json
+          p_summary: string
+        }
+        Returns: string
+      }
+      generate_audit_hash: {
+        Args: {
+          p_action: string
+          p_actor_id: string
+          p_actor_type: string
+          p_created_at: string
+          p_entity_id: string
+          p_entity_type: string
+          p_environment: string
+          p_metadata: Json
+          p_previous_hash: string
+          p_summary: string
+        }
+        Returns: string
+      }
       get_or_create_usage_metrics: {
         Args: { p_school_id: string }
         Returns: string
@@ -1376,8 +1584,18 @@ export type Database = {
         Returns: Json
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      verify_audit_chain: {
+        Args: { p_environment: string }
+        Returns: {
+          actual_hash: string
+          broken_at: string
+          expected_hash: string
+          is_valid: boolean
+        }[]
+      }
     }
     Enums: {
+      audit_actor_type: "system" | "admin" | "teacher" | "ai_agent"
       billing_event_type:
         | "manual_activation"
         | "plan_change"
@@ -1389,6 +1607,7 @@ export type Database = {
         | "stripe_payment"
         | "stripe_refund"
       billing_status: "active" | "trial" | "suspended"
+      compliance_mode: "standard" | "strict"
       confidence_trend: "increasing" | "stable" | "declining"
       platform_audit_action:
         | "plan_activated"
@@ -1535,6 +1754,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      audit_actor_type: ["system", "admin", "teacher", "ai_agent"],
       billing_event_type: [
         "manual_activation",
         "plan_change",
@@ -1547,6 +1767,7 @@ export const Constants = {
         "stripe_refund",
       ],
       billing_status: ["active", "trial", "suspended"],
+      compliance_mode: ["standard", "strict"],
       confidence_trend: ["increasing", "stable", "declining"],
       platform_audit_action: [
         "plan_activated",
