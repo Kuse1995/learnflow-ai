@@ -4,3 +4,4 @@ export { default as TeacherClasses } from "./TeacherClasses";
 export { default as TeacherClassDetail } from "./TeacherClassDetail";
 export { default as TeacherUploads } from "./TeacherUploads";
 export { default as TeacherInsights } from "./TeacherInsights";
+export { default as TeacherActions } from "./TeacherActions";

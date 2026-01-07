@@ -12,6 +12,7 @@ import {
   TeacherClassDetail,
   TeacherUploads,
   TeacherInsights,
+  TeacherActions,
 } from "./pages/teacher";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/teacher/attendance" element={<TeacherAttendance />} />
           <Route path="/teacher/classes" element={<TeacherClasses />} />
           <Route path="/teacher/classes/:classId" element={<TeacherClassDetail />} />
+          <Route path="/teacher/classes/:classId/actions" element={<TeacherActions />} />
           <Route path="/teacher/uploads" element={<TeacherUploads />} />
           <Route path="/teacher/insights" element={<TeacherInsights />} />
           

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight, Brain, Lightbulb } from "lucide-react";
+import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight, Brain, Lightbulb, PenLine } from "lucide-react";
 import { toast } from "sonner";
 import { TeacherLayout } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -102,8 +102,8 @@ export default function TeacherClassDetail() {
             </div>
           </div>
 
-          {/* Teaching Suggestions Button */}
-          <div className="mt-4">
+          {/* Action Buttons */}
+          <div className="mt-4 flex items-center gap-2 flex-wrap">
             <TeachingSuggestionsViewer
               classId={classData.id}
               className={classData.name}
@@ -114,6 +114,15 @@ export default function TeacherClassDetail() {
                 </Button>
               }
             />
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => navigate(`/teacher/classes/${classData.id}/actions`)}
+            >
+              <PenLine className="h-4 w-4" />
+              Teaching Actions
+            </Button>
           </div>
         </header>
 
