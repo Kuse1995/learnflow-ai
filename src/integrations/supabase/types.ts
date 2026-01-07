@@ -130,6 +130,42 @@ export type Database = {
           },
         ]
       }
+      upload_students: {
+        Row: {
+          created_at: string
+          id: string
+          student_id: string
+          upload_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          student_id: string
+          upload_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          student_id?: string
+          upload_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upload_students_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upload_students_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       uploads: {
         Row: {
           class_id: string
