@@ -76,5 +76,20 @@ export {
   useDuplicateLessonSuggestion,
 } from "./useLessonDifferentiation";
 
+// Practice
+export {
+  useGeneratePractice,
+  useStartPracticeSession,
+  useCompletePracticeSession,
+} from "./usePractice";
+
+// Practice awareness (teacher view)
+export {
+  useClassPracticeAwareness,
+  formatPracticeLevel,
+  formatPlanStatus,
+  formatGentleNudge,
+} from "./usePracticeAwareness";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";

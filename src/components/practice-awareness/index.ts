@@ -1,0 +1,1 @@
+export { PracticeAwarenessTable } from "./PracticeAwarenessTable";
