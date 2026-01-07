@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.generate-learning-path]
 verify_jwt = false
+
+[functions.append-learning-timeline-event]
+verify_jwt = false
