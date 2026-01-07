@@ -243,8 +243,8 @@ async function logAuditEvent(
   newState?: Record<string, unknown>,
   reason?: string
 ) {
-  const { error } = await supabase.from("platform_audit_logs").insert({
-    action: action as string,
+  const { error } = await supabase.from("platform_audit_logs").insert([{
+    action: action as "plan_activated" | "plan_changed" | "school_suspended" | "school_reinstated" | "subscription_extended" | "ai_toggle_changed" | "ai_kill_switch_activated" | "ai_kill_switch_deactivated" | "super_admin_action" | "override_applied" | "school_archived",
     actor_id: actorId,
     target_school_id: targetSchoolId || null,
     target_subscription_id: targetSubscriptionId || null,
@@ -252,7 +252,7 @@ async function logAuditEvent(
     new_state: newState || null,
     reason: reason || null,
     user_agent: navigator.userAgent,
-  });
+  }]);
 
   if (error) {
     console.error("Failed to log audit event:", error);
