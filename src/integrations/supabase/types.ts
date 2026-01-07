@@ -242,6 +242,138 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_schedules: {
+        Row: {
+          backup_type: Database["public"]["Enums"]["backup_type"]
+          created_at: string
+          enabled: boolean
+          id: string
+          last_run_at: string | null
+          next_run_at: string | null
+          schedule_type: string
+          school_id: string | null
+          scope: Database["public"]["Enums"]["backup_scope"]
+          updated_at: string
+        }
+        Insert: {
+          backup_type: Database["public"]["Enums"]["backup_type"]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_run_at?: string | null
+          next_run_at?: string | null
+          schedule_type: string
+          school_id?: string | null
+          scope?: Database["public"]["Enums"]["backup_scope"]
+          updated_at?: string
+        }
+        Update: {
+          backup_type?: Database["public"]["Enums"]["backup_type"]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_run_at?: string | null
+          next_run_at?: string | null
+          schedule_type?: string
+          school_id?: string | null
+          scope?: Database["public"]["Enums"]["backup_scope"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backup_schedules_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      backups: {
+        Row: {
+          app_version: string | null
+          backup_type: Database["public"]["Enums"]["backup_type"]
+          class_id: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          environment: string
+          error_message: string | null
+          file_size_bytes: number | null
+          file_url: string | null
+          id: string
+          record_counts: Json | null
+          school_id: string | null
+          scope: Database["public"]["Enums"]["backup_scope"]
+          started_at: string | null
+          status: Database["public"]["Enums"]["backup_status"]
+          student_id: string | null
+          version_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          backup_type: Database["public"]["Enums"]["backup_type"]
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          environment?: string
+          error_message?: string | null
+          file_size_bytes?: number | null
+          file_url?: string | null
+          id?: string
+          record_counts?: Json | null
+          school_id?: string | null
+          scope: Database["public"]["Enums"]["backup_scope"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["backup_status"]
+          student_id?: string | null
+          version_id: string
+        }
+        Update: {
+          app_version?: string | null
+          backup_type?: Database["public"]["Enums"]["backup_type"]
+          class_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          environment?: string
+          error_message?: string | null
+          file_size_bytes?: number | null
+          file_url?: string | null
+          id?: string
+          record_counts?: Json | null
+          school_id?: string | null
+          scope?: Database["public"]["Enums"]["backup_scope"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["backup_status"]
+          student_id?: string | null
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backups_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backups_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backups_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_events: {
         Row: {
           amount: number | null
@@ -616,6 +748,50 @@ export type Database = {
           },
         ]
       }
+      offline_export_queue: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          data: Json
+          export_type: string
+          id: string
+          last_attempt_at: string | null
+          retry_count: number
+          school_id: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          data: Json
+          export_type: string
+          id?: string
+          last_attempt_at?: string | null
+          retry_count?: number
+          school_id: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          data?: Json
+          export_type?: string
+          id?: string
+          last_attempt_at?: string | null
+          retry_count?: number
+          school_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offline_export_queue_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_insight_summaries: {
         Row: {
           approved_at: string | null
@@ -866,6 +1042,95 @@ export type Database = {
           {
             foreignKeyName: "practice_sessions_student_id_fkey"
             columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restore_jobs: {
+        Row: {
+          backup_id: string
+          completed_at: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          impact_summary: Json | null
+          initiated_by: string
+          preview_summary: Json | null
+          records_restored: Json | null
+          scope: Database["public"]["Enums"]["backup_scope"]
+          started_at: string | null
+          status: Database["public"]["Enums"]["restore_status"]
+          target_class_id: string | null
+          target_school_id: string | null
+          target_student_id: string | null
+        }
+        Insert: {
+          backup_id: string
+          completed_at?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          impact_summary?: Json | null
+          initiated_by: string
+          preview_summary?: Json | null
+          records_restored?: Json | null
+          scope: Database["public"]["Enums"]["backup_scope"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["restore_status"]
+          target_class_id?: string | null
+          target_school_id?: string | null
+          target_student_id?: string | null
+        }
+        Update: {
+          backup_id?: string
+          completed_at?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          impact_summary?: Json | null
+          initiated_by?: string
+          preview_summary?: Json | null
+          records_restored?: Json | null
+          scope?: Database["public"]["Enums"]["backup_scope"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["restore_status"]
+          target_class_id?: string | null
+          target_school_id?: string | null
+          target_student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restore_jobs_backup_id_fkey"
+            columns: ["backup_id"]
+            isOneToOne: false
+            referencedRelation: "backups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restore_jobs_target_class_id_fkey"
+            columns: ["target_class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restore_jobs_target_school_id_fkey"
+            columns: ["target_school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restore_jobs_target_student_id_fkey"
+            columns: ["target_student_id"]
             isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
@@ -1293,6 +1558,42 @@ export type Database = {
           },
         ]
       }
+      system_recovery_mode: {
+        Row: {
+          activated_at: string | null
+          activated_by: string | null
+          emergency_admin_enabled: boolean
+          expected_resolution: string | null
+          id: string
+          is_active: boolean
+          read_only_mode: boolean
+          reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
+          emergency_admin_enabled?: boolean
+          expected_resolution?: string | null
+          id?: string
+          is_active?: boolean
+          read_only_mode?: boolean
+          reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          activated_by?: string | null
+          emergency_admin_enabled?: boolean
+          expected_resolution?: string | null
+          id?: string
+          is_active?: boolean
+          read_only_mode?: boolean
+          reason?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       teacher_action_logs: {
         Row: {
           action_taken: string
@@ -1575,6 +1876,7 @@ export type Database = {
         }
         Returns: string
       }
+      generate_backup_version_id: { Args: never; Returns: string }
       get_or_create_usage_metrics: {
         Args: { p_school_id: string }
         Returns: string
@@ -1596,6 +1898,9 @@ export type Database = {
     }
     Enums: {
       audit_actor_type: "system" | "admin" | "teacher" | "ai_agent"
+      backup_scope: "system" | "school" | "class" | "student"
+      backup_status: "pending" | "in_progress" | "completed" | "failed"
+      backup_type: "full" | "incremental" | "manual"
       billing_event_type:
         | "manual_activation"
         | "plan_change"
@@ -1625,6 +1930,14 @@ export type Database = {
         | "deployment_initiated"
         | "rollback_executed"
         | "environment_changed"
+      restore_status:
+        | "pending"
+        | "previewing"
+        | "confirmed"
+        | "in_progress"
+        | "completed"
+        | "failed"
+        | "cancelled"
       saas_plan: "basic" | "standard" | "premium" | "enterprise"
       subscription_status: "active" | "suspended" | "expired" | "pending"
     }
@@ -1755,6 +2068,9 @@ export const Constants = {
   public: {
     Enums: {
       audit_actor_type: ["system", "admin", "teacher", "ai_agent"],
+      backup_scope: ["system", "school", "class", "student"],
+      backup_status: ["pending", "in_progress", "completed", "failed"],
+      backup_type: ["full", "incremental", "manual"],
       billing_event_type: [
         "manual_activation",
         "plan_change",
@@ -1785,6 +2101,15 @@ export const Constants = {
         "deployment_initiated",
         "rollback_executed",
         "environment_changed",
+      ],
+      restore_status: [
+        "pending",
+        "previewing",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "failed",
+        "cancelled",
       ],
       saas_plan: ["basic", "standard", "premium", "enterprise"],
       subscription_status: ["active", "suspended", "expired", "pending"],
