@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { format } from "date-fns";
 import { 
   User, 
@@ -10,7 +11,8 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
-  Clock
+  Clock,
+  HandHelping
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,25 +20,35 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { DataReadinessIndicator } from "@/components/ui/data-readiness-indicator";
+import { AdaptiveSupportPlanViewer } from "@/components/adaptive-support";
 import { useStudentLearningProfile, type StudentLearningProfile } from "@/hooks/useStudentLearningProfile";
 import { useStudentDataReadiness } from "@/hooks/useDataReadiness";
+import { useStudentAdaptiveSupportPlan, useGenerateAdaptiveSupportPlan, useCanGenerateAdaptiveSupportPlan } from "@/hooks/useAdaptiveSupportPlans";
+import { toast } from "sonner";
 
 interface LearningProfileViewerProps {
   studentId: string | null;
   studentName?: string;
+  classId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export function LearningProfileViewer({ 
   studentId, 
-  studentName, 
+  studentName,
+  classId,
   open, 
   onOpenChange 
 }: LearningProfileViewerProps) {
   const { data: profile, isLoading } = useStudentLearningProfile(studentId || undefined);
   const { data: readiness, isLoading: isLoadingReadiness } = useStudentDataReadiness(studentId || undefined);
+  const { data: supportPlan, isLoading: isLoadingPlan } = useStudentAdaptiveSupportPlan(
+    studentId || undefined,
+    classId
+  );
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -62,6 +74,17 @@ export function LearningProfileViewer({
                 profile={profile} 
                 readiness={readiness}
                 isLoadingReadiness={isLoadingReadiness}
+              />
+            )}
+
+            {/* Adaptive Support Plan Section */}
+            {studentId && classId && (
+              <AdaptiveSupportPlanSection
+                studentId={studentId}
+                classId={classId}
+                studentName={studentName || "Student"}
+                plan={supportPlan}
+                isLoading={isLoadingPlan}
               />
             )}
           </div>
@@ -309,5 +332,90 @@ function ConfidenceTrendDisplay({ trend }: ConfidenceTrendDisplayProps) {
         <p className="text-xs text-muted-foreground mt-1">{config.description}</p>
       </div>
     </div>
+  );
+}
+
+// Adaptive Support Plan Section
+interface AdaptiveSupportPlanSectionProps {
+  studentId: string;
+  classId: string;
+  studentName: string;
+  plan: import("@/hooks/useAdaptiveSupportPlans").AdaptiveSupportPlan | null | undefined;
+  isLoading: boolean;
+}
+
+function AdaptiveSupportPlanSection({
+  studentId,
+  classId,
+  studentName,
+  plan,
+  isLoading,
+}: AdaptiveSupportPlanSectionProps) {
+  const generateMutation = useGenerateAdaptiveSupportPlan();
+  const { data: canGenerateCheck } = useCanGenerateAdaptiveSupportPlan(studentId, classId);
+
+  const handleGenerate = async () => {
+    try {
+      await generateMutation.mutateAsync({ studentId, classId });
+      toast.success("Adaptive support plan generated");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to generate support plan");
+    }
+  };
+
+  const canGenerate = canGenerateCheck?.canGenerate !== false;
+
+  if (isLoading) {
+    return (
+      <section>
+        <Separator className="my-6" />
+        <div className="flex items-center gap-2 mb-4">
+          <HandHelping className="h-4 w-4 text-muted-foreground" />
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Adaptive Support Plan
+          </h3>
+        </div>
+        <Skeleton className="h-32 w-full rounded-xl" />
+      </section>
+    );
+  }
+
+  return (
+    <section>
+      <Separator className="my-6" />
+      <div className="flex items-center gap-2 mb-4">
+        <HandHelping className="h-4 w-4 text-muted-foreground" />
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Adaptive Support Plan
+        </h3>
+      </div>
+
+      {!plan ? (
+        <Card className="border-dashed">
+          <CardContent className="py-8 text-center">
+            <p className="text-sm text-muted-foreground mb-4">
+              No support plan has been generated for {studentName} yet.
+            </p>
+            <Button
+              onClick={handleGenerate}
+              disabled={!canGenerate || generateMutation.isPending}
+            >
+              {generateMutation.isPending ? "Generating..." : "Generate support plan"}
+            </Button>
+            {!canGenerate && canGenerateCheck?.reason && (
+              <p className="text-xs text-amber-600 mt-3 max-w-xs mx-auto">
+                {canGenerateCheck.reason}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <AdaptiveSupportPlanViewer
+          plan={plan}
+          studentName={studentName}
+          showAcknowledge={true}
+        />
+      )}
+    </section>
   );
 }
