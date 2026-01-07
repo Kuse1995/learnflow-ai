@@ -51,6 +51,66 @@ export function useCreateActionLog() {
   });
 }
 
+interface UpdateActionLogInput {
+  logId: string;
+  classId: string;
+  updates: {
+    topic?: string | null;
+    action_taken?: string;
+    reflection_notes?: string | null;
+  };
+}
+
+/**
+ * Hook to update a teacher action log
+ */
+export function useUpdateActionLog() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ logId, updates }: UpdateActionLogInput) => {
+      const { data, error } = await supabase
+        .from("teacher_action_logs")
+        .update(updates)
+        .eq("id", logId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["teacher-action-logs", "class", variables.classId] });
+    },
+  });
+}
+
+interface DeleteActionLogInput {
+  logId: string;
+  classId: string;
+}
+
+/**
+ * Hook to delete a teacher action log
+ */
+export function useDeleteActionLog() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ logId }: DeleteActionLogInput) => {
+      const { error } = await supabase
+        .from("teacher_action_logs")
+        .delete()
+        .eq("id", logId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["teacher-action-logs", "class", variables.classId] });
+    },
+  });
+}
+
 /**
  * Hook to fetch action logs for a class
  */
