@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { ShieldAlert, Building2, Zap, ScrollText, Settings, HardDrive } from "lucide-react";
+import { ShieldAlert, Building2, Zap, ScrollText, Settings, HardDrive, BarChart3, ShieldCheck } from "lucide-react";
 
 const navItems = [
   { href: "/platform-admin", label: "Dashboard", icon: ShieldAlert },
@@ -9,6 +9,8 @@ const navItems = [
   { href: "/platform-admin/audit-logs", label: "Audit Logs", icon: ScrollText },
   { href: "/platform-admin/compliance", label: "Compliance", icon: Settings },
   { href: "/platform-admin/backups", label: "Backups", icon: HardDrive },
+  { href: "/platform-admin/usage", label: "Usage", icon: BarChart3 },
+  { href: "/platform-admin/security", label: "Security", icon: ShieldCheck },
 ];
 
 export function PlatformAdminHeader() {

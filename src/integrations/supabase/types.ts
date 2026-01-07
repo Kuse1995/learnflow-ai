@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_abuse_attempts: {
+        Row: {
+          attempt_type: string
+          blocked: boolean | null
+          class_id: string | null
+          created_at: string
+          details: Json | null
+          feature_type: string
+          id: string
+          input_hash: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attempt_type: string
+          blocked?: boolean | null
+          class_id?: string | null
+          created_at?: string
+          details?: Json | null
+          feature_type: string
+          id?: string
+          input_hash?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attempt_type?: string
+          blocked?: boolean | null
+          class_id?: string | null
+          created_at?: string
+          details?: Json | null
+          feature_type?: string
+          id?: string
+          input_hash?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_abuse_attempts_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_action_traces: {
         Row: {
           agent_name: string
@@ -1048,6 +1092,47 @@ export type Database = {
           },
         ]
       }
+      rate_limit_violations: {
+        Row: {
+          created_at: string
+          current_count: number
+          feature_type: string
+          id: string
+          limit_type: string
+          limit_value: number
+          school_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_count: number
+          feature_type: string
+          id?: string
+          limit_type: string
+          limit_value: number
+          school_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_count?: number
+          feature_type?: string
+          id?: string
+          limit_type?: string
+          limit_value?: number
+          school_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_limit_violations_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restore_jobs: {
         Row: {
           backup_id: string
@@ -1314,6 +1399,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      security_events: {
+        Row: {
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          school_id: string | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          school_id?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          school_id?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_events_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_intervention_plans: {
         Row: {
@@ -1848,6 +1977,14 @@ export type Database = {
       }
     }
     Functions: {
+      can_access_class: {
+        Args: { _class_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_access_student: {
+        Args: { _student_id: string; _user_id: string }
+        Returns: boolean
+      }
       create_audit_log: {
         Args: {
           p_action: string

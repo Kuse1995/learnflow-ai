@@ -9,3 +9,4 @@ export { RecentAuditLogs } from "./RecentAuditLogs";
 export { UsageMetricsDashboard } from "./UsageMetricsDashboard";
 export { SchoolUsageTable } from "./SchoolUsageTable";
 export { PerformanceHealthPanel } from "./PerformanceHealthPanel";
+export { SecurityDashboard } from "./SecurityDashboard";
