@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight, Brain, Lightbulb, PenLine } from "lucide-react";
+import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight, Brain, Lightbulb, PenLine, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { TeacherLayout } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { UploadsList } from "@/components/uploads/UploadsList";
 import { LearningProfileViewer } from "@/components/students/LearningProfileViewer";
 import { TeachingSuggestionsViewer } from "@/components/teaching/TeachingSuggestionsViewer";
 import { LearningOverTimePanel } from "@/components/insights";
+import { AdaptiveSupportGenerator } from "@/components/adaptive-support";
 import { useClass } from "@/hooks/useClasses";
 import { useStudentsByClass } from "@/hooks/useStudents";
 import { useClassAttendanceHistory, type AttendanceSummary } from "@/hooks/useClassAttendanceHistory";
@@ -160,22 +161,43 @@ export default function TeacherClassDetail() {
                   {students.map((student) => (
                     <div 
                       key={student.id} 
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 cursor-pointer transition-colors"
-                      onClick={() => setViewingProfileStudent({ id: student.id, name: student.name })}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
                     >
-                      <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center shrink-0">
-                        <span className="text-sm font-medium">
-                          {student.name.charAt(0).toUpperCase()}
-                        </span>
+                      <div 
+                        className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                        onClick={() => setViewingProfileStudent({ id: student.id, name: student.name })}
+                      >
+                        <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center shrink-0">
+                          <span className="text-sm font-medium">
+                            {student.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{student.name}</p>
+                          <p className="text-xs text-muted-foreground">{student.student_id}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{student.name}</p>
-                        <p className="text-xs text-muted-foreground">{student.student_id}</p>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <AdaptiveSupportGenerator
+                          classId={classData.id}
+                          students={[{ id: student.id, name: student.name }]}
+                          trigger={
+                            <Button variant="secondary" size="sm" className="gap-1 text-xs">
+                              <Sparkles className="h-3 w-3" />
+                              Adaptive support
+                            </Button>
+                          }
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="gap-1 text-xs text-muted-foreground"
+                          onClick={() => setViewingProfileStudent({ id: student.id, name: student.name })}
+                        >
+                          <Brain className="h-3 w-3" />
+                          Profile
+                        </Button>
                       </div>
-                      <Button variant="ghost" size="sm" className="gap-1 text-xs text-muted-foreground">
-                        <Brain className="h-3 w-3" />
-                        Profile
-                      </Button>
                     </div>
                   ))}
                 </CardContent>

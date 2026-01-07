@@ -37,6 +37,7 @@ interface AdaptiveSupportGeneratorProps {
 
 export function AdaptiveSupportGenerator({ classId, students, trigger }: AdaptiveSupportGeneratorProps) {
   const [open, setOpen] = useState(false);
+  // Auto-select if only one student is provided
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   
   const generateMutation = useGenerateAdaptiveSupportPlan();
@@ -46,6 +47,16 @@ export function AdaptiveSupportGenerator({ classId, students, trigger }: Adaptiv
     selectedStudentId || undefined,
     classId
   );
+
+  // Auto-select student when dialog opens with single student
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (isOpen && students.length === 1) {
+      setSelectedStudentId(students[0].id);
+    } else if (!isOpen) {
+      setSelectedStudentId("");
+    }
+  };
 
   const handleGenerate = async () => {
     if (!selectedStudentId) {
@@ -59,8 +70,7 @@ export function AdaptiveSupportGenerator({ classId, students, trigger }: Adaptiv
         classId,
       });
       toast.success("Adaptive support plan generated");
-      setOpen(false);
-      setSelectedStudentId("");
+      handleOpenChange(false);
     } catch (error: any) {
       toast.error(error.message || "Failed to generate support plan");
     }
@@ -68,9 +78,10 @@ export function AdaptiveSupportGenerator({ classId, students, trigger }: Adaptiv
 
   const selectedStudent = students.find(s => s.id === selectedStudentId);
   const canGenerate = !selectedStudentId || canGenerateCheck?.canGenerate !== false;
+  const isSingleStudent = students.length === 1;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" size="sm">
@@ -89,21 +100,28 @@ export function AdaptiveSupportGenerator({ classId, students, trigger }: Adaptiv
         </DialogHeader>
 
         <div className="py-4 space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">Select student</label>
-            <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a student..." />
-              </SelectTrigger>
-              <SelectContent>
-                {students.map((student) => (
-                  <SelectItem key={student.id} value={student.id}>
-                    {student.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {isSingleStudent ? (
+            <div>
+              <label className="text-sm font-medium mb-2 block">Student</label>
+              <p className="text-sm text-muted-foreground">{students[0].name}</p>
+            </div>
+          ) : (
+            <div>
+              <label className="text-sm font-medium mb-2 block">Select student</label>
+              <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a student..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {students.map((student) => (
+                    <SelectItem key={student.id} value={student.id}>
+                      {student.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Regeneration Guard Warning */}
           {selectedStudentId && !isCheckingCanGenerate && canGenerateCheck && !canGenerateCheck.canGenerate && (
@@ -117,7 +135,7 @@ export function AdaptiveSupportGenerator({ classId, students, trigger }: Adaptiv
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Cancel
           </Button>
           <Button
