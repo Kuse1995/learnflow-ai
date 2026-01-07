@@ -29,7 +29,7 @@ interface UploadsListProps {
 export function UploadsList({ uploads, classes, showAnalyzeButton = true }: UploadsListProps) {
   const [uploadToDelete, setUploadToDelete] = useState<Upload | null>(null);
   const [analyzingUploadId, setAnalyzingUploadId] = useState<string | null>(null);
-  const [viewingAnalysis, setViewingAnalysis] = useState<{ analysis: UploadAnalysis; topic: string } | null>(null);
+  const [viewingAnalysis, setViewingAnalysis] = useState<{ analysis: UploadAnalysis; topic: string; classId: string } | null>(null);
   const { mutateAsync: deleteUpload, isPending: isDeleting } = useDeleteUpload();
   const { mutateAsync: analyzeUpload } = useAnalyzeUpload();
 
@@ -105,7 +105,7 @@ export function UploadsList({ uploads, classes, showAnalyzeButton = true }: Uplo
             isAnalyzing={analyzingUploadId === upload.id}
             onAnalyze={() => handleAnalyze(upload.id)}
             onDelete={() => setUploadToDelete(upload)}
-            onViewAnalysis={(analysis) => setViewingAnalysis({ analysis, topic: upload.topic })}
+            onViewAnalysis={(analysis) => setViewingAnalysis({ analysis, topic: upload.topic, classId: upload.class_id })}
           />
         ))}
       </div>
@@ -135,6 +135,7 @@ export function UploadsList({ uploads, classes, showAnalyzeButton = true }: Uplo
       {/* Analysis Viewer */}
       <AnalysisViewer
         analysis={viewingAnalysis?.analysis || null}
+        classId={viewingAnalysis?.classId || ""}
         uploadTopic={viewingAnalysis?.topic}
         open={!!viewingAnalysis}
         onOpenChange={(open) => !open && setViewingAnalysis(null)}
