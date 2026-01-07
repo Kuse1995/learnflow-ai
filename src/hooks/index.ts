@@ -24,5 +24,8 @@ export { useTeachingSuggestions } from "./useTeachingSuggestions";
 // Data readiness
 export { useClassDataReadiness, useStudentDataReadiness } from "./useDataReadiness";
 
+// Teacher action logs
+export { useCreateActionLog, useClassActionLogs, useUploadActionLogs } from "./useTeacherActionLogs";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";

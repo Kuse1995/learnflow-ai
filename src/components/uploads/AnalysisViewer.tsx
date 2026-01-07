@@ -1,19 +1,22 @@
-import { AlertCircle, BookOpen, Brain, FileText, Languages, Lightbulb, User, Zap } from "lucide-react";
+import { AlertCircle, BookOpen, Brain, FileText, Languages, Lightbulb, PenLine, User, Zap } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TeacherActionLogger } from "@/components/teaching/TeacherActionLogger";
 import type { UploadAnalysis, StudentDiagnostic } from "@/hooks/useUploadAnalysis";
 
 interface AnalysisViewerProps {
   analysis: UploadAnalysis | null;
+  classId: string;
   uploadTopic?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function AnalysisViewer({ analysis, uploadTopic, open, onOpenChange }: AnalysisViewerProps) {
+export function AnalysisViewer({ analysis, classId, uploadTopic, open, onOpenChange }: AnalysisViewerProps) {
   if (!analysis || analysis.status !== "completed") {
     return null;
   }
@@ -33,6 +36,19 @@ export function AnalysisViewer({ analysis, uploadTopic, open, onOpenChange }: An
 
         <ScrollArea className="flex-1">
           <div className="p-6 space-y-6">
+            {/* Record Action Button */}
+            <TeacherActionLogger
+              classId={classId}
+              uploadId={analysis.upload_id}
+              defaultTopic={uploadTopic}
+              trigger={
+                <Button variant="outline" size="sm" className="w-full gap-2">
+                  <PenLine className="h-4 w-4" />
+                  Record Teaching Action
+                </Button>
+              }
+            />
+
             {/* Class-Level Summary */}
             <section>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">

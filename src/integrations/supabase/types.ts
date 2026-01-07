@@ -177,6 +177,51 @@ export type Database = {
           },
         ]
       }
+      teacher_action_logs: {
+        Row: {
+          action_taken: string
+          class_id: string
+          created_at: string
+          id: string
+          reflection_notes: string | null
+          topic: string | null
+          upload_id: string | null
+        }
+        Insert: {
+          action_taken: string
+          class_id: string
+          created_at?: string
+          id?: string
+          reflection_notes?: string | null
+          topic?: string | null
+          upload_id?: string | null
+        }
+        Update: {
+          action_taken?: string
+          class_id?: string
+          created_at?: string
+          id?: string
+          reflection_notes?: string | null
+          topic?: string | null
+          upload_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_action_logs_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_action_logs_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upload_analyses: {
         Row: {
           analyzed_at: string | null

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lightbulb, BookOpen, MessageSquare, Sparkles, Clock, Loader2, AlertCircle } from "lucide-react";
+import { Lightbulb, BookOpen, MessageSquare, Sparkles, Clock, Loader2, AlertCircle, PenLine } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { DataReadinessIndicator } from "@/components/ui/data-readiness-indicator";
+import { TeacherActionLogger } from "@/components/teaching/TeacherActionLogger";
 import { useTeachingSuggestions, type TeachingSuggestion, type TeachingSuggestionsResult } from "@/hooks/useTeachingSuggestions";
 import { useClassDataReadiness } from "@/hooks/useDataReadiness";
 import { toast } from "sonner";
@@ -205,6 +206,19 @@ export function TeachingSuggestionsViewer({ classId, className, uploadId, trigge
                       </div>
                     </>
                   )}
+
+                  {/* Record Action Button */}
+                  <Separator />
+                  <TeacherActionLogger
+                    classId={classId}
+                    trigger={
+                      <Button variant="outline" className="w-full gap-2">
+                        <PenLine className="h-4 w-4" />
+                        Record Teaching Action
+                      </Button>
+                    }
+                    showHistory={false}
+                  />
 
                   {/* Disclaimer */}
                   <div className="bg-muted/50 rounded-lg p-4 text-xs text-muted-foreground">
