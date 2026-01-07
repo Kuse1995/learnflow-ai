@@ -20,6 +20,8 @@ export interface LearningPathCheck {
   reason?: string;
 }
 
+const REGENERATION_GUARD_DAYS = 14;
+
 /**
  * Learning Paths - TEACHER-FACING ONLY
  * Never expose to parents or students.
@@ -84,12 +86,17 @@ export function useCanGenerateLearningPath(studentId: string | undefined, classI
         return { canGenerate: true, existingPath: null };
       }
 
+      // Check for unacknowledged path within the guard period
+      const guardDate = new Date();
+      guardDate.setDate(guardDate.getDate() - REGENERATION_GUARD_DAYS);
+
       const { data, error } = await supabase
         .from("student_learning_paths")
         .select("*")
         .eq("student_id", studentId)
         .eq("class_id", classId)
         .eq("teacher_acknowledged", false)
+        .gte("generated_at", guardDate.toISOString())
         .order("generated_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -129,19 +136,23 @@ export function useGenerateLearningPath() {
       classId: string;
       sourceWindowDays?: number;
     }) => {
-      // Check for existing unacknowledged path
+      // 14-day regeneration guard check
+      const guardDate = new Date();
+      guardDate.setDate(guardDate.getDate() - REGENERATION_GUARD_DAYS);
+
       const { data: existingPath } = await supabase
         .from("student_learning_paths")
         .select("*")
         .eq("student_id", studentId)
         .eq("class_id", classId)
         .eq("teacher_acknowledged", false)
+        .gte("generated_at", guardDate.toISOString())
         .order("generated_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (existingPath) {
-        throw new Error("An unacknowledged learning path already exists. Please review or acknowledge it first.");
+        throw new Error("An unacknowledged learning path already exists within the last 14 days. Please review or acknowledge it first.");
       }
 
       const response = await supabase.functions.invoke("generate-learning-path", {
