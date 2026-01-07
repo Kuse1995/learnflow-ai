@@ -13,7 +13,8 @@ import {
   Minus,
   Clock,
   HandHelping,
-  Route
+  Route,
+  History
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,10 +26,12 @@ import { Button } from "@/components/ui/button";
 import { DataReadinessIndicator } from "@/components/ui/data-readiness-indicator";
 import { AdaptiveSupportPlanViewer } from "@/components/adaptive-support";
 import { LearningPathViewer } from "@/components/learning-paths";
+import { LearningTimelineViewer } from "@/components/timeline";
 import { useStudentLearningProfile, type StudentLearningProfile } from "@/hooks/useStudentLearningProfile";
 import { useStudentDataReadiness } from "@/hooks/useDataReadiness";
 import { useStudentAdaptiveSupportPlan, useGenerateAdaptiveSupportPlan, useCanGenerateAdaptiveSupportPlan } from "@/hooks/useAdaptiveSupportPlans";
 import { useStudentLearningPath, useGenerateLearningPath, useCanGenerateLearningPath } from "@/hooks/useLearningPaths";
+import { useRecentStudentTimeline } from "@/hooks/useLearningTimeline";
 import { toast } from "sonner";
 
 interface LearningProfileViewerProps {
@@ -55,6 +58,11 @@ export function LearningProfileViewer({
   const { data: learningPath, isLoading: isLoadingPath } = useStudentLearningPath(
     studentId || undefined,
     classId
+  );
+  const { data: timelineEvents, isLoading: isLoadingTimeline } = useRecentStudentTimeline(
+    studentId || undefined,
+    classId,
+    10
   );
 
   return (
@@ -103,6 +111,15 @@ export function LearningProfileViewer({
                 studentName={studentName || "Student"}
                 path={learningPath}
                 isLoading={isLoadingPath}
+              />
+            )}
+
+            {/* Learning Evidence Timeline Section */}
+            {studentId && classId && (
+              <TimelineSection
+                events={timelineEvents || []}
+                isLoading={isLoadingTimeline}
+                studentName={studentName}
               />
             )}
           </div>
@@ -538,6 +555,36 @@ function LearningPathSection({
           showAcknowledge={true}
         />
       )}
+    </section>
+  );
+}
+
+/**
+ * Learning Evidence Timeline Section
+ * VISIBILITY: Teacher-only. Read-only.
+ * No filters, no export, no parent visibility.
+ */
+interface TimelineSectionProps {
+  events: import("@/hooks/useLearningTimeline").LearningTimelineEvent[];
+  isLoading: boolean;
+  studentName?: string;
+}
+
+function TimelineSection({ events, isLoading, studentName }: TimelineSectionProps) {
+  return (
+    <section>
+      <Separator className="my-6" />
+      <div className="flex items-center gap-2 mb-4">
+        <History className="h-4 w-4 text-muted-foreground" />
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Learning Evidence Timeline
+        </h3>
+      </div>
+      <LearningTimelineViewer
+        events={events}
+        isLoading={isLoading}
+        studentName={studentName}
+      />
     </section>
   );
 }
