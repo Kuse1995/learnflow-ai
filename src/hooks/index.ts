@@ -8,7 +8,11 @@ export { useClasses, useClass } from "./useClasses";
 export { useStudents, useStudentsByClass } from "./useStudents";
 
 // Upload hooks
-export { useUploads, useUploadFile } from "./useUploads";
+export { useUploads, useUploadFile, useDeleteUpload } from "./useUploads";
+export { useUploadsByClass } from "./useUploadsByClass";
+
+// Class attendance history
+export { useClassAttendanceHistory } from "./useClassAttendanceHistory";
 
 // Utility hooks
 export { useIsMobile } from "./use-mobile";

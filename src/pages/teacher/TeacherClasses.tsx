@@ -1,11 +1,13 @@
+import { useNavigate } from "react-router-dom";
 import { TeacherLayout } from "@/components/navigation";
 import { useClasses } from "@/hooks/useClasses";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-states";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, Users } from "lucide-react";
+import { BookOpen, Users, ChevronRight } from "lucide-react";
 
 export default function TeacherClasses() {
+  const navigate = useNavigate();
   const { data: classes = [], isLoading } = useClasses();
 
   return (
@@ -34,7 +36,11 @@ export default function TeacherClasses() {
           ) : (
             <div className="space-y-3">
               {classes.map((cls) => (
-                <Card key={cls.id} className="overflow-hidden hover:border-primary/50 transition-colors cursor-pointer">
+                <Card 
+                  key={cls.id} 
+                  className="overflow-hidden hover:border-primary/50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/teacher/classes/${cls.id}`)}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -52,6 +58,7 @@ export default function TeacherClasses() {
                           <span className="text-xs">View students</span>
                         </div>
                       </div>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 self-center" />
                     </div>
                   </CardContent>
                 </Card>

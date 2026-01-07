@@ -9,6 +9,7 @@ import {
   TeacherDashboard,
   TeacherAttendance,
   TeacherClasses,
+  TeacherClassDetail,
   TeacherUploads,
   TeacherInsights,
 } from "./pages/teacher";
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/teacher" element={<TeacherDashboard />} />
           <Route path="/teacher/attendance" element={<TeacherAttendance />} />
           <Route path="/teacher/classes" element={<TeacherClasses />} />
+          <Route path="/teacher/classes/:classId" element={<TeacherClassDetail />} />
           <Route path="/teacher/uploads" element={<TeacherUploads />} />
           <Route path="/teacher/insights" element={<TeacherInsights />} />
           
