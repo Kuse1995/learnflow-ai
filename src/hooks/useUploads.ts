@@ -114,3 +114,39 @@ export function useUploadFile() {
     uploadProgress,
   };
 }
+
+export function useDeleteUpload() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (upload: Upload) => {
+      // Extract the file path from the URL
+      // URL format: .../storage/v1/object/public/uploads/{classId}/{uploadType}/{fileName}
+      const urlParts = upload.file_url.split("/uploads/");
+      if (urlParts.length < 2) {
+        throw new Error("Invalid file URL format");
+      }
+      const filePath = urlParts[1];
+
+      // Delete from storage first
+      const { error: storageError } = await supabase.storage
+        .from("uploads")
+        .remove([filePath]);
+
+      if (storageError) throw storageError;
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from("uploads")
+        .delete()
+        .eq("id", upload.id);
+
+      if (dbError) throw dbError;
+
+      return upload.id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["uploads"] });
+    },
+  });
+}
