@@ -278,8 +278,62 @@ export type Database = {
           },
         ]
       }
+      school_usage_metrics: {
+        Row: {
+          adaptive_support_plans_generated: number
+          ai_generations: number
+          created_at: string
+          id: string
+          month_year: string
+          parent_insights_generated: number
+          school_id: string
+          total_students: number
+          total_teachers: number
+          updated_at: string
+          uploads_analyzed: number
+        }
+        Insert: {
+          adaptive_support_plans_generated?: number
+          ai_generations?: number
+          created_at?: string
+          id?: string
+          month_year: string
+          parent_insights_generated?: number
+          school_id: string
+          total_students?: number
+          total_teachers?: number
+          updated_at?: string
+          uploads_analyzed?: number
+        }
+        Update: {
+          adaptive_support_plans_generated?: number
+          ai_generations?: number
+          created_at?: string
+          id?: string
+          month_year?: string
+          parent_insights_generated?: number
+          school_id?: string
+          total_students?: number
+          total_teachers?: number
+          updated_at?: string
+          uploads_analyzed?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_usage_metrics_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schools: {
         Row: {
+          billing_end_date: string | null
+          billing_notes: string | null
+          billing_start_date: string
+          billing_status: Database["public"]["Enums"]["billing_status"]
           created_at: string
           id: string
           name: string
@@ -287,6 +341,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          billing_end_date?: string | null
+          billing_notes?: string | null
+          billing_start_date?: string
+          billing_status?: Database["public"]["Enums"]["billing_status"]
           created_at?: string
           id?: string
           name: string
@@ -294,6 +352,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          billing_end_date?: string | null
+          billing_notes?: string | null
+          billing_start_date?: string
+          billing_status?: Database["public"]["Enums"]["billing_status"]
           created_at?: string
           id?: string
           name?: string
@@ -665,6 +727,50 @@ export type Database = {
           },
         ]
       }
+      usage_audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          current_usage: number | null
+          details: Json | null
+          id: string
+          limit_value: number | null
+          metric_type: string
+          plan: string
+          school_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          current_usage?: number | null
+          details?: Json | null
+          id?: string
+          limit_value?: number | null
+          metric_type: string
+          plan: string
+          school_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          current_usage?: number | null
+          details?: Json | null
+          id?: string
+          limit_value?: number | null
+          metric_type?: string
+          plan?: string
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_audit_logs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       student_learning_timeline: {
@@ -681,9 +787,17 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      get_or_create_usage_metrics: {
+        Args: { p_school_id: string }
+        Returns: string
+      }
+      increment_usage_metric: {
+        Args: { p_limit: number; p_metric: string; p_school_id: string }
+        Returns: Json
+      }
     }
     Enums: {
+      billing_status: "active" | "trial" | "suspended"
       confidence_trend: "increasing" | "stable" | "declining"
       saas_plan: "basic" | "standard" | "premium" | "enterprise"
     }
@@ -813,6 +927,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      billing_status: ["active", "trial", "suspended"],
       confidence_trend: ["increasing", "stable", "declining"],
       saas_plan: ["basic", "standard", "premium", "enterprise"],
     },

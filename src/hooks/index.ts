@@ -95,5 +95,14 @@ export {
 export { useSchoolPlan, useSchoolPlanByClass } from "./useSchoolPlan";
 export { useFeatureGate, useFeatureGates } from "./useFeatureGate";
 
+// Usage limits and billing
+export {
+  useSchoolBilling,
+  useSchoolUsageMetrics,
+  useUsageLimit,
+  useAllUsageLimits,
+  useCanPerformAction,
+} from "./useUsageLimits";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";
