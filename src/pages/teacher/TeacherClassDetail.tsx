@@ -272,6 +272,7 @@ export default function TeacherClassDetail() {
         <LearningProfileViewer
           studentId={viewingProfileStudent?.id || null}
           studentName={viewingProfileStudent?.name}
+          classId={classId}
           open={!!viewingProfileStudent}
           onOpenChange={(open) => !open && setViewingProfileStudent(null)}
         />
