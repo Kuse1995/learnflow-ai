@@ -131,6 +131,51 @@ export type Database = {
         }
         Relationships: []
       }
+      student_intervention_plans: {
+        Row: {
+          class_id: string
+          confidence_support_notes: string | null
+          created_at: string
+          focus_areas: string[]
+          generated_at: string
+          id: string
+          recommended_practice_types: string[]
+          source_window_days: number
+          student_id: string
+          support_strategies: string[]
+          teacher_acknowledged: boolean
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          confidence_support_notes?: string | null
+          created_at?: string
+          focus_areas?: string[]
+          generated_at?: string
+          id?: string
+          recommended_practice_types?: string[]
+          source_window_days?: number
+          student_id: string
+          support_strategies?: string[]
+          teacher_acknowledged?: boolean
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          confidence_support_notes?: string | null
+          created_at?: string
+          focus_areas?: string[]
+          generated_at?: string
+          id?: string
+          recommended_practice_types?: string[]
+          source_window_days?: number
+          student_id?: string
+          support_strategies?: string[]
+          teacher_acknowledged?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_learning_profiles: {
         Row: {
           confidence_trend:
