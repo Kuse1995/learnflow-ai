@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight, Brain, Lightbulb, PenLine, Sparkles } from "lucide-react";
+import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight, Brain, Lightbulb, PenLine, Sparkles, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { TeacherLayout } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { TeachingSuggestionsViewer } from "@/components/teaching/TeachingSuggest
 import { LearningOverTimePanel } from "@/components/insights";
 import { AdaptiveSupportGenerator } from "@/components/adaptive-support";
 import { LessonDifferentiationPanel } from "@/components/lesson-differentiation";
+import { PracticeAwarenessTable } from "@/components/practice-awareness";
 import { useClass } from "@/hooks/useClasses";
 import { useStudentsByClass } from "@/hooks/useStudents";
 import { useClassAttendanceHistory, type AttendanceSummary } from "@/hooks/useClassAttendanceHistory";
@@ -140,6 +141,11 @@ export default function TeacherClassDetail() {
 
           {/* Lesson Differentiation Panel */}
           <LessonDifferentiationPanel classId={classData.id} className={classData.name} />
+
+          <Separator />
+
+          {/* Practice Overview (Teacher Awareness) */}
+          <PracticeAwarenessTable classId={classData.id} />
 
           <Separator />
 
