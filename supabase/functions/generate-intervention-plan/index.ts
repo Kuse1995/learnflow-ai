@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateObjectLanguage, logLanguageViolation, getLanguageViolationFallback } from "../_shared/safety-validator.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const SERVICE_UNAVAILABLE_MESSAGE = "This feature is temporarily unavailable. You can continue working without it.";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -222,7 +225,69 @@ Based on this evidence, provide practical instructional suggestions. Remember: f
       throw new Error("Invalid AI response structure");
     }
 
-    const plan = JSON.parse(toolCall.function.arguments);
+    let plan = JSON.parse(toolCall.function.arguments);
+
+    // SAFETY VALIDATION: Check for banned language
+    const safetyCheck = validateObjectLanguage(plan);
+    if (!safetyCheck.isValid) {
+      logLanguageViolation("adaptive_support_plan", safetyCheck.violations, studentId);
+      
+      // Retry once with stricter prompt
+      console.log("[SAFETY] Retrying generation due to language violations");
+      const retryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt + "\n\nCRITICAL: Your previous response contained inappropriate language. Ensure ALL output uses ONLY neutral, supportive phrasing." },
+            { role: "user", content: userPrompt },
+          ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "submit_intervention_plan",
+                description: "Submit the student intervention plan",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    focus_areas: { type: "array", items: { type: "string" } },
+                    recommended_practice_types: { type: "array", items: { type: "string" } },
+                    support_strategies: { type: "array", items: { type: "string" } },
+                    confidence_support_notes: { type: "string" },
+                  },
+                  required: ["focus_areas", "recommended_practice_types", "support_strategies"],
+                },
+              },
+            },
+          ],
+          tool_choice: { type: "function", function: { name: "submit_intervention_plan" } },
+        }),
+      });
+
+      if (retryResponse.ok) {
+        const retryData = await retryResponse.json();
+        const retryToolCall = retryData.choices?.[0]?.message?.tool_calls?.[0];
+        if (retryToolCall?.function?.arguments) {
+          const retryPlan = JSON.parse(retryToolCall.function.arguments);
+          const retrySafetyCheck = validateObjectLanguage(retryPlan);
+          if (retrySafetyCheck.isValid) {
+            plan = retryPlan;
+          } else {
+            // Retry also failed - return fallback
+            logLanguageViolation("adaptive_support_plan_retry", retrySafetyCheck.violations, studentId);
+            return new Response(
+              JSON.stringify({ success: false, error: getLanguageViolationFallback() }),
+              { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
+      }
+    }
 
     // Save to database
     const { data: savedPlan, error: saveError } = await supabase
