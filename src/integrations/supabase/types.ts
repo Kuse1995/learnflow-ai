@@ -176,6 +176,45 @@ export type Database = {
         }
         Relationships: []
       }
+      student_learning_paths: {
+        Row: {
+          class_id: string
+          created_at: string
+          focus_topics: string[]
+          generated_at: string
+          id: string
+          pacing_notes: string | null
+          student_id: string
+          suggested_activities: string[]
+          teacher_acknowledged: boolean
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          focus_topics?: string[]
+          generated_at?: string
+          id?: string
+          pacing_notes?: string | null
+          student_id: string
+          suggested_activities?: string[]
+          teacher_acknowledged?: boolean
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          focus_topics?: string[]
+          generated_at?: string
+          id?: string
+          pacing_notes?: string | null
+          student_id?: string
+          suggested_activities?: string[]
+          teacher_acknowledged?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_learning_profiles: {
         Row: {
           confidence_trend:

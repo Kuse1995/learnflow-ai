@@ -55,5 +55,14 @@ export {
   useAcknowledgeInterventionPlan,
 } from "./useAdaptiveSupportPlans";
 
+// Learning paths (teacher-facing only)
+export {
+  useClassLearningPaths,
+  useStudentLearningPath,
+  useCanGenerateLearningPath,
+  useGenerateLearningPath,
+  useAcknowledgeLearningPath,
+} from "./useLearningPaths";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";
