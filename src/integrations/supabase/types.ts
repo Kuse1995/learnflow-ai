@@ -262,39 +262,6 @@ export type Database = {
           },
         ]
       }
-      student_learning_timeline: {
-        Row: {
-          class_id: string
-          created_at: string
-          event_summary: string
-          event_type: string
-          id: string
-          occurred_at: string
-          source_id: string | null
-          student_id: string
-        }
-        Insert: {
-          class_id: string
-          created_at?: string
-          event_summary: string
-          event_type: string
-          id?: string
-          occurred_at: string
-          source_id?: string | null
-          student_id: string
-        }
-        Update: {
-          class_id?: string
-          created_at?: string
-          event_summary?: string
-          event_type?: string
-          id?: string
-          occurred_at?: string
-          source_id?: string | null
-          student_id?: string
-        }
-        Relationships: []
-      }
       students: {
         Row: {
           avatar_url: string | null
@@ -529,7 +496,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      student_learning_timeline: {
+        Row: {
+          class_id: string | null
+          event_date: string | null
+          event_type: string | null
+          metadata: Json | null
+          student_id: string | null
+          summary_text: string | null
+          timeline_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

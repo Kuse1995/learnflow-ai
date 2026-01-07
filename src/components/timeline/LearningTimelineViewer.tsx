@@ -27,9 +27,8 @@ interface LearningTimelineViewerProps {
 const EVENT_TYPE_LABELS: Record<TimelineEventType, string> = {
   analysis: "Work Analyzed",
   teaching_action: "Teaching Action",
-  support_plan: "Support Plan",
-  learning_path: "Learning Path",
-  parent_summary: "Parent Summary",
+  adaptive_support_plan: "Support Plan",
+  parent_update: "Parent Summary",
 };
 
 function getEventLabel(eventType: TimelineEventType): string {
@@ -69,7 +68,7 @@ export function LearningTimelineViewer({
             <div className="space-y-0">
               {events.map((event, index) => (
                 <TimelineEntry
-                  key={event.id}
+                  key={event.timeline_id}
                   event={event}
                   isLast={index === events.length - 1}
                 />
@@ -89,7 +88,7 @@ interface TimelineEntryProps {
 
 function TimelineEntry({ event, isLast }: TimelineEntryProps) {
   const label = getEventLabel(event.event_type);
-  const formattedDate = format(new Date(event.occurred_at), "MMM d, yyyy");
+  const formattedDate = format(new Date(event.event_date), "MMM d, yyyy");
 
   return (
     <div className="relative flex gap-4">
@@ -112,7 +111,7 @@ function TimelineEntry({ event, isLast }: TimelineEntryProps) {
           </span>
         </div>
         <p className="text-sm text-muted-foreground mt-1">
-          {event.event_summary}
+          {event.summary_text}
         </p>
       </div>
     </div>

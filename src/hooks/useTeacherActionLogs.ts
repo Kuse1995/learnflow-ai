@@ -21,7 +21,7 @@ interface CreateActionLogInput {
 
 /**
  * Hook to create a new teacher action log
- * Silently appends a timeline entry after creation
+ * Note: Timeline entries are auto-generated via the student_learning_timeline VIEW
  */
 export function useCreateActionLog() {
   const queryClient = useQueryClient();
@@ -41,36 +41,11 @@ export function useCreateActionLog() {
         .single();
 
       if (error) throw error;
-
-      // Silently append timeline entries for students in the class (no notifications)
-      // Note: Teaching actions apply to the class, so we append for all students
-      try {
-        const { data: students } = await supabase
-          .from("students")
-          .select("id")
-          .eq("class_id", input.classId);
-
-        if (students && students.length > 0) {
-          const timelineEntries = students.map((student) => ({
-            student_id: student.id,
-            class_id: input.classId,
-            event_type: "teaching_action" as const,
-            event_summary: `Teaching action recorded${input.topic ? `: ${input.topic}` : ""}`,
-            source_id: data.id,
-            occurred_at: new Date().toISOString(),
-          }));
-
-          await supabase.from("student_learning_timeline").insert(timelineEntries);
-        }
-      } catch (timelineError) {
-        // Silent failure - don't block main flow
-        console.error("Timeline append failed:", timelineError);
-      }
-
       return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["teacher-action-logs", "class", variables.classId] });
+      queryClient.invalidateQueries({ queryKey: ["learning-timeline"] });
       if (variables.uploadId) {
         queryClient.invalidateQueries({ queryKey: ["teacher-action-logs", "upload", variables.uploadId] });
       }
