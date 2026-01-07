@@ -1,8 +1,11 @@
 export { PlatformAdminHeader } from "./PlatformAdminHeader";
-export { AiControlsCard } from "./AiControlsCard";
-export { RecentAuditLogs } from "./RecentAuditLogs";
 export { ActivatePlanDialog } from "./ActivatePlanDialog";
 export { SuspendSchoolDialog } from "./SuspendSchoolDialog";
+export { AiControlsCard } from "./AiControlsCard";
 export { FeatureFlagsPanel } from "./FeatureFlagsPanel";
 export { EnvironmentPanel } from "./EnvironmentPanel";
 export { DeploymentChecksPanel } from "./DeploymentChecksPanel";
+export { RecentAuditLogs } from "./RecentAuditLogs";
+export { UsageMetricsDashboard } from "./UsageMetricsDashboard";
+export { SchoolUsageTable } from "./SchoolUsageTable";
+export { PerformanceHealthPanel } from "./PerformanceHealthPanel";
