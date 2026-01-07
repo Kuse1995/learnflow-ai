@@ -18,7 +18,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DataReadinessIndicator } from "@/components/ui/data-readiness-indicator";
 import { useStudentLearningProfile, type StudentLearningProfile } from "@/hooks/useStudentLearningProfile";
+import { useStudentDataReadiness } from "@/hooks/useDataReadiness";
 
 interface LearningProfileViewerProps {
   studentId: string | null;
@@ -34,6 +36,7 @@ export function LearningProfileViewer({
   onOpenChange 
 }: LearningProfileViewerProps) {
   const { data: profile, isLoading } = useStudentLearningProfile(studentId || undefined);
+  const { data: readiness, isLoading: isLoadingReadiness } = useStudentDataReadiness(studentId || undefined);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -55,7 +58,11 @@ export function LearningProfileViewer({
             ) : !profile ? (
               <EmptyProfile studentName={studentName} />
             ) : (
-              <ProfileContent profile={profile} />
+              <ProfileContent 
+                profile={profile} 
+                readiness={readiness}
+                isLoadingReadiness={isLoadingReadiness}
+              />
             )}
           </div>
         </ScrollArea>
@@ -95,11 +102,19 @@ function EmptyProfile({ studentName }: EmptyProfileProps) {
 
 interface ProfileContentProps {
   profile: StudentLearningProfile;
+  readiness?: import("@/hooks/useDataReadiness").DataReadinessResult;
+  isLoadingReadiness?: boolean;
 }
 
-function ProfileContent({ profile }: ProfileContentProps) {
+function ProfileContent({ profile, readiness, isLoadingReadiness }: ProfileContentProps) {
   return (
     <div className="space-y-6">
+      {/* Data Readiness Indicator */}
+      <DataReadinessIndicator 
+        readiness={readiness} 
+        isLoading={isLoadingReadiness} 
+      />
+
       {/* Last Updated */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <Clock className="h-3 w-3" />
