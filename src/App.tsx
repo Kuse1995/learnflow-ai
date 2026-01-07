@@ -10,6 +10,7 @@ import {
   TeacherAttendance,
   TeacherClasses,
   TeacherClassDetail,
+  TeacherStudentProfile,
   TeacherUploads,
   TeacherInsights,
   TeacherActions,
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/teacher/attendance" element={<TeacherAttendance />} />
           <Route path="/teacher/classes" element={<TeacherClasses />} />
           <Route path="/teacher/classes/:classId" element={<TeacherClassDetail />} />
+          <Route path="/teacher/classes/:classId/students/:studentId" element={<TeacherStudentProfile />} />
           <Route path="/teacher/classes/:classId/actions" element={<TeacherActions />} />
           <Route path="/teacher/classes/:classId/parent-insights" element={<TeacherParentInsights />} />
           <Route path="/teacher/uploads" element={<TeacherUploads />} />

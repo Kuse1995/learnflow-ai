@@ -3,6 +3,28 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Student } from "@/types/attendance";
 
 /**
+ * Hook to fetch a single student by ID
+ */
+export function useStudent(studentId: string | undefined) {
+  return useQuery({
+    queryKey: ["student", studentId],
+    queryFn: async (): Promise<Student | null> => {
+      if (!studentId) return null;
+
+      const { data, error } = await supabase
+        .from("students")
+        .select("*")
+        .eq("id", studentId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!studentId,
+  });
+}
+
+/**
  * Hook to fetch students for a specific class
  */
 export function useStudentsByClass(classId: string | undefined) {
