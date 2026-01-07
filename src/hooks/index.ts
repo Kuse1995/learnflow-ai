@@ -41,5 +41,13 @@ export {
   useDeleteParentInsight,
 } from "./useParentInsights";
 
+// Intervention plans
+export {
+  useClassInterventionPlans,
+  useStudentInterventionPlan,
+  useGenerateInterventionPlan,
+  useAcknowledgeInterventionPlan,
+} from "./useInterventionPlans";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";
