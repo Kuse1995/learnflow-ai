@@ -165,6 +165,21 @@ serve(async (req) => {
 
     console.log("Learning path saved:", newPath.id);
 
+    // Append timeline entry (silently, no notifications)
+    try {
+      const topics = focusTopics.slice(0, 2).join(", ");
+      await supabase.from("student_learning_timeline").insert({
+        student_id: studentId,
+        class_id: classId,
+        event_type: "learning_path",
+        event_summary: `Learning path generated${topics ? ` covering ${topics}` : ""}`,
+        source_id: newPath.id,
+        occurred_at: new Date().toISOString(),
+      });
+    } catch (timelineError) {
+      console.error("Timeline append failed:", timelineError);
+    }
+
     return new Response(
       JSON.stringify({ success: true, path: newPath }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

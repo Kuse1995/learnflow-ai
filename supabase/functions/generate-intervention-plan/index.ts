@@ -245,6 +245,21 @@ Based on this evidence, provide practical instructional suggestions. Remember: f
       throw new Error("Failed to save intervention plan");
     }
 
+    // Append timeline entry (silently, no notifications)
+    try {
+      const focusAreas = (plan.focus_areas || []).slice(0, 2).join(", ");
+      await supabase.from("student_learning_timeline").insert({
+        student_id: studentId,
+        class_id: classId,
+        event_type: "support_plan",
+        event_summary: `Adaptive support plan generated${focusAreas ? ` focusing on ${focusAreas}` : ""}`,
+        source_id: savedPlan.id,
+        occurred_at: new Date().toISOString(),
+      });
+    } catch (timelineError) {
+      console.error("Timeline append failed:", timelineError);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
