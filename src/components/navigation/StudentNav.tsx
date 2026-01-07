@@ -1,22 +1,32 @@
-import { BottomNav, type NavItem } from "./BottomNav";
-import {
-  GraduationCap,
-  ClipboardList,
-  Bot,
-  TrendingUp,
-} from "lucide-react";
+import { BottomNav } from "./BottomNav";
+import { STUDENT_NAV_ITEMS } from "./navigation-config";
+
+interface StudentLayoutProps {
+  children: React.ReactNode;
+}
 
 /**
- * Student navigation configuration.
- * Fixed navigation for student role - consistent across all student screens.
+ * Student Layout Component
+ * 
+ * NAVIGATION RULES:
+ * - Web & Mobile: Bottom navigation only
+ * - Items: Learn, Homework, Tutor, Progress
+ * 
+ * Students ALWAYS use bottom navigation regardless of screen size.
+ * This ensures a consistent, mobile-first experience.
  */
-const studentNavItems: NavItem[] = [
-  { label: "Learn", href: "/student", icon: GraduationCap },
-  { label: "Homework", href: "/student/homework", icon: ClipboardList },
-  { label: "Tutor", href: "/student/tutor", icon: Bot },
-  { label: "Progress", href: "/student/progress", icon: TrendingUp },
-];
+export function StudentLayout({ children }: StudentLayoutProps) {
+  return (
+    <div className="min-h-screen bg-background max-w-2xl mx-auto">
+      <main className="pb-24">{children}</main>
+      <BottomNav items={STUDENT_NAV_ITEMS} />
+    </div>
+  );
+}
 
+/**
+ * Simple Student Bottom Nav for standalone use
+ */
 export function StudentNav() {
-  return <BottomNav items={studentNavItems} />;
+  return <BottomNav items={STUDENT_NAV_ITEMS} />;
 }
