@@ -148,6 +148,44 @@ export type Database = {
           },
         ]
       }
+      lesson_resources: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          lesson_id: string
+          title: string | null
+          type: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lesson_id: string
+          title?: string | null
+          type: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lesson_id?: string
+          title?: string | null
+          type?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_resources_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_differentiation_suggestions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_insight_summaries: {
         Row: {
           approved_at: string | null
