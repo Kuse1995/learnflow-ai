@@ -16,6 +16,7 @@ import { LearningProfileViewer } from "@/components/students/LearningProfileView
 import { TeachingSuggestionsViewer } from "@/components/teaching/TeachingSuggestionsViewer";
 import { LearningOverTimePanel } from "@/components/insights";
 import { AdaptiveSupportGenerator } from "@/components/adaptive-support";
+import { LessonDifferentiationPanel } from "@/components/lesson-differentiation";
 import { useClass } from "@/hooks/useClasses";
 import { useStudentsByClass } from "@/hooks/useStudents";
 import { useClassAttendanceHistory, type AttendanceSummary } from "@/hooks/useClassAttendanceHistory";
@@ -136,6 +137,11 @@ export default function TeacherClassDetail() {
         <div className="flex-1 p-4 space-y-6">
           {/* Learning Over Time Panel */}
           <LearningOverTimePanel classId={classData.id} />
+
+          {/* Lesson Differentiation Panel */}
+          <LessonDifferentiationPanel classId={classData.id} className={classData.name} />
+
+          <Separator />
 
           {/* Students Section */}
           <section>

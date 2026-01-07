@@ -64,5 +64,17 @@ export {
   useAcknowledgeLearningPath,
 } from "./useLearningPaths";
 
+// Lesson differentiation
+export {
+  useLessonSuggestions,
+  useLessonSuggestion,
+  useLessonResources,
+  useGenerateLessonSuggestion,
+  useMarkLessonReviewed,
+  useAddLessonResource,
+  useDeleteLessonResource,
+  useDuplicateLessonSuggestion,
+} from "./useLessonDifferentiation";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";
