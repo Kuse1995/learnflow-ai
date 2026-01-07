@@ -95,6 +95,14 @@ serve(async (req) => {
       profiles = profileData || [];
     }
 
+    // Fetch recent teacher action logs for context (last 5 entries)
+    const { data: recentActions } = await supabase
+      .from("teacher_action_logs")
+      .select("topic, action_taken, created_at")
+      .eq("class_id", classId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
     // Aggregate data for the AI
     const classSummaries = relevantAnalyses.map((a) => ({
       subject: a.uploads?.subject,
@@ -137,7 +145,11 @@ serve(async (req) => {
     const subjects = [...new Set(classSummaries.map((s) => s.subject).filter(Boolean))];
     const topics = [...new Set(classSummaries.flatMap((s) => [s.topic, ...s.topic_gaps]).filter(Boolean))];
 
-    // Build AI prompt
+    // Build context about recent teacher actions (topics only, no judgments)
+    const recentActionTopics = recentActions?.filter((a) => a.topic).map((a) => a.topic) || [];
+    const hasRecentActions = recentActions && recentActions.length > 0;
+
+    // Build AI prompt with context-awareness
     const systemPrompt = `You are an experienced instructional coach helping teachers improve their teaching effectiveness.
 
 IMPORTANT RULES:
@@ -147,6 +159,15 @@ IMPORTANT RULES:
 - Do NOT generate detailed lesson plans
 - Keep suggestions optional and flexible, not prescriptive
 - Focus on actionable teaching strategies
+${hasRecentActions ? `
+CONTEXT-AWARENESS RULES:
+- The teacher has already taken some instructional actions recently
+- Avoid repeating similar strategies unless offering a meaningful variation or extension
+- Build upon prior instructional efforts rather than starting from scratch
+- Do NOT critique, judge, or evaluate past actions
+- Do NOT suggest what the teacher "should have" done
+- Do NOT reference teacher reflections or observations
+- Use prior actions only as background context to inform new suggestions` : ""}
 
 Your role is to:
 1. Identify instructional gaps affecting the class as a whole
@@ -161,6 +182,16 @@ Categories for suggestions:
 - language_support: Vocabulary support, comprehension strategies, terminology clarification
 - engagement_strategies: Active learning techniques, student involvement, motivation approaches`;
 
+    // Build prior actions context block (neutral, no judgments)
+    let priorActionsContext = "";
+    if (hasRecentActions && recentActionTopics.length > 0) {
+      priorActionsContext = `
+Prior Instructional Context:
+Recent instructional actions have been taken on the following topics: ${[...new Set(recentActionTopics)].join(", ")}.
+Consider offering complementary strategies, variations, or next-step approaches rather than repeating similar interventions.
+`;
+    }
+
     const userPrompt = `Based on the following class data, provide teaching suggestions.
 
 Class: ${classData.name} (Grade ${classData.grade || "N/A"}, Section ${classData.section || "N/A"})
@@ -168,7 +199,7 @@ Number of students: ${studentCount}
 
 ${subjects.length > 0 ? `Subjects covered: ${subjects.join(", ")}` : "No subject data available."}
 ${topics.length > 0 ? `Topics: ${topics.join(", ")}` : ""}
-
+${priorActionsContext}
 Recent Analysis Summaries:
 ${classSummaries.length > 0 
   ? classSummaries.map((s) => `
