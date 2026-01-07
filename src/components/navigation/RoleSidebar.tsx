@@ -1,6 +1,3 @@
-import { BottomNav } from "./BottomNav";
-import { ADMIN_MOBILE_NAV_ITEMS, ADMIN_NAV_ITEMS } from "./navigation-config";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -11,7 +8,11 @@ import {
   CreditCard,
   BarChart3,
   Settings,
-  Bell,
+  Home,
+  ClipboardCheck,
+  BookOpen,
+  Sparkles,
+  MessageSquare,
   LucideIcon,
 } from "lucide-react";
 import {
@@ -29,6 +30,7 @@ import {
   SidebarInset,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { type NavItem } from "./navigation-config";
 
 // Icon mapping
 const iconMap: Record<string, LucideIcon> = {
@@ -39,40 +41,41 @@ const iconMap: Record<string, LucideIcon> = {
   CreditCard,
   BarChart3,
   Settings,
-  Bell,
+  Home,
+  ClipboardCheck,
+  BookOpen,
+  Sparkles,
+  MessageSquare,
 };
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
+interface RoleSidebarProps {
+  items: NavItem[];
+  role: "admin" | "teacher";
   schoolName?: string;
+  children: React.ReactNode;
 }
 
 /**
- * Admin Layout Component
+ * Canonical sidebar navigation component.
+ * Used by: Admin (web), Teacher (web)
  * 
- * NAVIGATION RULES:
- * - Web: Left sidebar navigation
- * - Mobile: Optional bottom nav for alerts only
+ * Features:
+ * - Collapsible with keyboard shortcut (Ctrl+B)
+ * - Active route highlighting
+ * - School branding in header
  */
-export function AdminLayout({ children, schoolName = "School SMS" }: AdminLayoutProps) {
-  const isMobile = useIsMobile();
-
-  if (isMobile) {
-    return (
-      <div className="min-h-screen bg-background">
-        {children}
-        {/* Optional bottom nav for alerts only on mobile */}
-        <BottomNav items={ADMIN_MOBILE_NAV_ITEMS} />
-      </div>
-    );
-  }
-
+export function RoleSidebar({
+  items,
+  role,
+  schoolName = "School SMS",
+  children,
+}: RoleSidebarProps) {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
-        <AdminSidebar schoolName={schoolName} />
+        <SidebarNav items={items} role={role} schoolName={schoolName} />
         <SidebarInset>
-          <AdminHeader />
+          <SidebarNavHeader />
           <main className="flex-1 p-6">{children}</main>
         </SidebarInset>
       </div>
@@ -80,12 +83,21 @@ export function AdminLayout({ children, schoolName = "School SMS" }: AdminLayout
   );
 }
 
-function AdminSidebar({ schoolName }: { schoolName: string }) {
+function SidebarNav({
+  items,
+  role,
+  schoolName,
+}: {
+  items: NavItem[];
+  role: "admin" | "teacher";
+  schoolName: string;
+}) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
   return (
     <Sidebar collapsible="icon">
+      {/* Sidebar Header with School Branding */}
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg shrink-0">
@@ -96,8 +108,8 @@ function AdminSidebar({ schoolName }: { schoolName: string }) {
               <span className="font-bold text-sidebar-foreground truncate">
                 {schoolName}
               </span>
-              <span className="text-xs text-sidebar-foreground/70">
-                Admin Portal
+              <span className="text-xs text-sidebar-foreground/70 capitalize">
+                {role} Portal
               </span>
             </div>
           )}
@@ -106,10 +118,10 @@ function AdminSidebar({ schoolName }: { schoolName: string }) {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {ADMIN_NAV_ITEMS.map((item) => {
+              {items.map((item) => {
                 const Icon = iconMap[item.icon];
                 if (!Icon) return null;
 
@@ -118,7 +130,7 @@ function AdminSidebar({ schoolName }: { schoolName: string }) {
                     <SidebarMenuButton asChild tooltip={item.label}>
                       <NavLink
                         to={item.href}
-                        end={item.href === "/admin"}
+                        end={item.href === "/admin" || item.href === "/teacher"}
                         className={({ isActive }) =>
                           cn(
                             "flex items-center gap-3 w-full",
@@ -128,6 +140,11 @@ function AdminSidebar({ schoolName }: { schoolName: string }) {
                       >
                         <Icon className="h-4 w-4" />
                         <span>{item.label}</span>
+                        {item.badge && item.badge > 0 && (
+                          <span className="ml-auto h-5 min-w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center px-1.5">
+                            {item.badge > 99 ? "99+" : item.badge}
+                          </span>
+                        )}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -141,7 +158,7 @@ function AdminSidebar({ schoolName }: { schoolName: string }) {
   );
 }
 
-function AdminHeader() {
+function SidebarNavHeader() {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 md:px-6">
       <SidebarTrigger />
@@ -149,3 +166,5 @@ function AdminHeader() {
     </header>
   );
 }
+
+export { SidebarNav, SidebarNavHeader };
