@@ -15,6 +15,7 @@ export interface TeachingSuggestionsResult {
   topics: string[];
   suggestions: TeachingSuggestion[];
   pacing_notes: string | null;
+  informed_by_prior_actions?: boolean;
 }
 
 interface TeachingSuggestionsInput {

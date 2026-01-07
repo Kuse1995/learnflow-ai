@@ -329,6 +329,7 @@ Please provide teaching suggestions to help address these patterns. Focus on pra
       JSON.stringify({
         success: true,
         class_name: classData.name,
+        informed_by_prior_actions: hasRecentActions && recentActionTopics.length > 0,
         ...result,
       }),
       {
