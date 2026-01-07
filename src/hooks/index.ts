@@ -15,5 +15,8 @@ export { useAnalyzeUpload, useUploadAnalysis, useClassAnalyses } from "./useUplo
 // Class attendance history
 export { useClassAttendanceHistory } from "./useClassAttendanceHistory";
 
+// Student learning profiles
+export { useStudentLearningProfile } from "./useStudentLearningProfile";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";

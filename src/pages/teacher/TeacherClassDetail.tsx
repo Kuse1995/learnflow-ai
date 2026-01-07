@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight } from "lucide-react";
+import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight, Brain } from "lucide-react";
 import { toast } from "sonner";
 import { TeacherLayout } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { EmptyState } from "@/components/empty-states";
 import { AttendanceSheet } from "@/components/attendance/AttendanceSheet";
 import { UploadsList } from "@/components/uploads/UploadsList";
+import { LearningProfileViewer } from "@/components/students/LearningProfileViewer";
 import { useClass } from "@/hooks/useClasses";
 import { useStudentsByClass } from "@/hooks/useStudents";
 import { useClassAttendanceHistory, type AttendanceSummary } from "@/hooks/useClassAttendanceHistory";
@@ -22,6 +23,7 @@ export default function TeacherClassDetail() {
   const { classId } = useParams<{ classId: string }>();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [viewingProfileStudent, setViewingProfileStudent] = useState<{ id: string; name: string } | null>(null);
 
   const { data: classData, isLoading: isLoadingClass } = useClass(classId);
   const { data: students = [], isLoading: isLoadingStudents } = useStudentsByClass(classId);
@@ -123,7 +125,11 @@ export default function TeacherClassDetail() {
               <Card>
                 <CardContent className="p-0 divide-y">
                   {students.map((student) => (
-                    <div key={student.id} className="flex items-center gap-3 px-4 py-3">
+                    <div 
+                      key={student.id} 
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() => setViewingProfileStudent({ id: student.id, name: student.name })}
+                    >
                       <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center shrink-0">
                         <span className="text-sm font-medium">
                           {student.name.charAt(0).toUpperCase()}
@@ -133,6 +139,10 @@ export default function TeacherClassDetail() {
                         <p className="font-medium text-sm truncate">{student.name}</p>
                         <p className="text-xs text-muted-foreground">{student.student_id}</p>
                       </div>
+                      <Button variant="ghost" size="sm" className="gap-1 text-xs text-muted-foreground">
+                        <Brain className="h-3 w-3" />
+                        Profile
+                      </Button>
                     </div>
                   ))}
                 </CardContent>
@@ -224,6 +234,14 @@ export default function TeacherClassDetail() {
             )}
           </SheetContent>
         </Sheet>
+
+        {/* Learning Profile Viewer */}
+        <LearningProfileViewer
+          studentId={viewingProfileStudent?.id || null}
+          studentName={viewingProfileStudent?.name}
+          open={!!viewingProfileStudent}
+          onOpenChange={(open) => !open && setViewingProfileStudent(null)}
+        />
       </div>
     </TeacherLayout>
   );
