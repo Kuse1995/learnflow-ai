@@ -22,8 +22,13 @@ import {
 
 /**
  * Learning Path Viewer
- * VISIBILITY: Teacher-only. Never expose to parents or students.
- * No notifications, analytics, scores, or progress indicators.
+ * 
+ * CONSTRAINTS (enforced):
+ * - VISIBILITY: Teacher-only. Never expose to parents or students.
+ * - No notifications triggered by viewing or acknowledging.
+ * - No analytics, tracking, or scoring displayed.
+ * - No automatic generation—always requires manual teacher action.
+ * - Disclaimer always visible: "This guidance is optional..."
  */
 interface LearningPathViewerProps {
   path: LearningPath;
