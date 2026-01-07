@@ -248,8 +248,8 @@ async function logAuditEvent(
     actor_id: actorId,
     target_school_id: targetSchoolId || null,
     target_subscription_id: targetSubscriptionId || null,
-    previous_state: previousState || null,
-    new_state: newState || null,
+    previous_state: (previousState || null) as import("@/integrations/supabase/types").Json,
+    new_state: (newState || null) as import("@/integrations/supabase/types").Json,
     reason: reason || null,
     user_agent: navigator.userAgent,
   }]);
