@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight, Brain } from "lucide-react";
+import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight, Brain, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
 import { TeacherLayout } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/empty-states";
 import { AttendanceSheet } from "@/components/attendance/AttendanceSheet";
 import { UploadsList } from "@/components/uploads/UploadsList";
 import { LearningProfileViewer } from "@/components/students/LearningProfileViewer";
+import { TeachingSuggestionsViewer } from "@/components/teaching/TeachingSuggestionsViewer";
 import { useClass } from "@/hooks/useClasses";
 import { useStudentsByClass } from "@/hooks/useStudents";
 import { useClassAttendanceHistory, type AttendanceSummary } from "@/hooks/useClassAttendanceHistory";
@@ -99,6 +100,20 @@ export default function TeacherClassDetail() {
                 {students.length} students enrolled
               </p>
             </div>
+          </div>
+
+          {/* Teaching Suggestions Button */}
+          <div className="mt-4">
+            <TeachingSuggestionsViewer
+              classId={classData.id}
+              className={classData.name}
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Lightbulb className="h-4 w-4" />
+                  Get Teaching Suggestions
+                </Button>
+              }
+            />
           </div>
         </header>
 

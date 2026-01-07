@@ -18,5 +18,8 @@ export { useClassAttendanceHistory } from "./useClassAttendanceHistory";
 // Student learning profiles
 export { useStudentLearningProfile } from "./useStudentLearningProfile";
 
+// Teaching suggestions
+export { useTeachingSuggestions } from "./useTeachingSuggestions";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";
