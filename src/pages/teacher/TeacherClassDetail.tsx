@@ -19,6 +19,7 @@ import { useStudentsByClass } from "@/hooks/useStudents";
 import { useClassAttendanceHistory, type AttendanceSummary } from "@/hooks/useClassAttendanceHistory";
 import { useUploadsByClass } from "@/hooks/useUploadsByClass";
 import { useAttendanceByClassAndDate, useSaveAttendance } from "@/hooks/useAttendance";
+import { useClassActionLogs } from "@/hooks/useTeacherActionLogs";
 
 export default function TeacherClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -32,6 +33,7 @@ export default function TeacherClassDetail() {
   const { data: uploads = [], isLoading: isLoadingUploads } = useUploadsByClass(classId);
   const { data: dateAttendance = [] } = useAttendanceByClassAndDate(classId, selectedDate || undefined);
   const { mutateAsync: saveAttendance } = useSaveAttendance();
+  const { data: actionLogs = [] } = useClassActionLogs(classId);
 
   const handleSaveAttendance = async (entries: { studentId: string; present: boolean }[]) => {
     if (!classId || !selectedDate) return;
@@ -122,6 +124,9 @@ export default function TeacherClassDetail() {
             >
               <PenLine className="h-4 w-4" />
               Teaching Actions
+              {actionLogs.length > 0 && (
+                <span className="text-muted-foreground">• {actionLogs.length}</span>
+              )}
             </Button>
           </div>
         </header>
