@@ -76,8 +76,7 @@ export function AdaptiveSupportGenerator({ classId, students, trigger }: Adaptiv
     }
   };
 
-  const selectedStudent = students.find(s => s.id === selectedStudentId);
-  const canGenerate = !selectedStudentId || canGenerateCheck?.canGenerate !== false;
+  const canGenerate = selectedStudentId ? canGenerateCheck?.canGenerate !== false : false;
   const isSingleStudent = students.length === 1;
 
   return (

@@ -123,32 +123,28 @@ export function useGenerateAdaptiveSupportPlan() {
       studentId,
       classId,
       sourceWindowDays = 30,
-      forceGenerate = false,
     }: {
       studentId: string;
       classId: string;
       sourceWindowDays?: number;
-      forceGenerate?: boolean;
     }) => {
-      // Regeneration guard check (unless forced)
-      if (!forceGenerate) {
-        const fourteenDaysAgo = new Date();
-        fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - REGENERATION_GUARD_DAYS);
+      // Regeneration guard check
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - REGENERATION_GUARD_DAYS);
 
-        const { data: existingPlan } = await supabase
-          .from("student_intervention_plans")
-          .select("*")
-          .eq("student_id", studentId)
-          .eq("class_id", classId)
-          .eq("teacher_acknowledged", false)
-          .gte("generated_at", fourteenDaysAgo.toISOString())
-          .order("generated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
+      const { data: existingPlan } = await supabase
+        .from("student_intervention_plans")
+        .select("*")
+        .eq("student_id", studentId)
+        .eq("class_id", classId)
+        .eq("teacher_acknowledged", false)
+        .gte("generated_at", fourteenDaysAgo.toISOString())
+        .order("generated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-        if (existingPlan) {
-          throw new Error("An unacknowledged support plan already exists for this student. Please review it first or acknowledge it before generating a new one.");
-        }
+      if (existingPlan) {
+        throw new Error("An unacknowledged support plan already exists for this student. Please review it first or acknowledge it before generating a new one.");
       }
 
       const response = await supabase.functions.invoke("generate-intervention-plan", {
