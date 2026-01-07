@@ -29,6 +29,11 @@ interface Student {
   name: string;
 }
 
+/**
+ * Adaptive Support Plan Generator
+ * VISIBILITY: Teacher-only. Never expose to parents or students.
+ * No notifications, analytics, scores, or progress indicators.
+ */
 interface AdaptiveSupportGeneratorProps {
   classId: string;
   students: Student[];

@@ -335,7 +335,11 @@ function ConfidenceTrendDisplay({ trend }: ConfidenceTrendDisplayProps) {
   );
 }
 
-// Adaptive Support Plan Section
+/**
+ * Adaptive Support Plan Section
+ * VISIBILITY: Teacher-only. Never expose to parents or students.
+ * No notifications, analytics, scores, or progress indicators.
+ */
 interface AdaptiveSupportPlanSectionProps {
   studentId: string;
   classId: string;
@@ -393,6 +397,9 @@ function AdaptiveSupportPlanSection({
       {!plan ? (
         <Card className="border-dashed">
           <CardContent className="py-8 text-center">
+            <p className="text-xs text-muted-foreground italic mb-4">
+              This guidance is optional and intended to support professional judgment.
+            </p>
             <p className="text-sm text-muted-foreground mb-4">
               No support plan has been generated for {studentName} yet.
             </p>
