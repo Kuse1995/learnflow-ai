@@ -62,6 +62,80 @@ export type Database = {
           },
         ]
       }
+      billing_events: {
+        Row: {
+          amount: number | null
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          event_type: Database["public"]["Enums"]["billing_event_type"]
+          id: string
+          notes: string | null
+          plan_id: string | null
+          previous_plan_id: string | null
+          school_id: string
+          stripe_invoice_id: string | null
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          event_type: Database["public"]["Enums"]["billing_event_type"]
+          id?: string
+          notes?: string | null
+          plan_id?: string | null
+          previous_plan_id?: string | null
+          school_id: string
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          event_type?: Database["public"]["Enums"]["billing_event_type"]
+          id?: string
+          notes?: string | null
+          plan_id?: string | null
+          previous_plan_id?: string | null
+          school_id?: string
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "super_admins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_previous_plan_id_fkey"
+            columns: ["previous_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       classes: {
         Row: {
           created_at: string
@@ -236,6 +310,181 @@ export type Database = {
         }
         Relationships: []
       }
+      plans: {
+        Row: {
+          ai_limits: Json
+          created_at: string
+          currency: string | null
+          description: string | null
+          display_name: string
+          features: Json
+          id: string
+          is_active: boolean
+          max_students: number | null
+          max_teachers: number | null
+          name: string
+          price_annual: number | null
+          price_monthly: number | null
+          sort_order: number
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_limits?: Json
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          display_name: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_students?: number | null
+          max_teachers?: number | null
+          name: string
+          price_annual?: number | null
+          price_monthly?: number | null
+          sort_order?: number
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_limits?: Json
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          display_name?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_students?: number | null
+          max_teachers?: number | null
+          name?: string
+          price_annual?: number | null
+          price_monthly?: number | null
+          sort_order?: number
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_ai_controls: {
+        Row: {
+          ai_globally_enabled: boolean
+          feature_toggles: Json
+          id: string
+          kill_switch_activated_at: string | null
+          kill_switch_activated_by: string | null
+          kill_switch_active: boolean
+          kill_switch_reason: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ai_globally_enabled?: boolean
+          feature_toggles?: Json
+          id?: string
+          kill_switch_activated_at?: string | null
+          kill_switch_activated_by?: string | null
+          kill_switch_active?: boolean
+          kill_switch_reason?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ai_globally_enabled?: boolean
+          feature_toggles?: Json
+          id?: string
+          kill_switch_activated_at?: string | null
+          kill_switch_activated_by?: string | null
+          kill_switch_active?: boolean
+          kill_switch_reason?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_ai_controls_kill_switch_activated_by_fkey"
+            columns: ["kill_switch_activated_by"]
+            isOneToOne: false
+            referencedRelation: "super_admins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_ai_controls_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "super_admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_audit_logs: {
+        Row: {
+          action: Database["public"]["Enums"]["platform_audit_action"]
+          actor_id: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          new_state: Json | null
+          previous_state: Json | null
+          reason: string | null
+          target_school_id: string | null
+          target_subscription_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["platform_audit_action"]
+          actor_id: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_state?: Json | null
+          previous_state?: Json | null
+          reason?: string | null
+          target_school_id?: string | null
+          target_subscription_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["platform_audit_action"]
+          actor_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_state?: Json | null
+          previous_state?: Json | null
+          reason?: string | null
+          target_school_id?: string | null
+          target_subscription_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "super_admins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_audit_logs_target_school_id_fkey"
+            columns: ["target_school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_audit_logs_target_subscription_id_fkey"
+            columns: ["target_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "school_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       practice_sessions: {
         Row: {
           class_id: string
@@ -274,6 +523,89 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_subscriptions: {
+        Row: {
+          activated_at: string | null
+          activated_by: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          notes: string | null
+          plan_id: string
+          school_id: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          suspended_at: string | null
+          suspended_by: string | null
+          suspension_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          plan_id: string
+          school_id: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          activated_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          plan_id?: string
+          school_id?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspension_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_subscriptions_activated_by_fkey"
+            columns: ["activated_by"]
+            isOneToOne: false
+            referencedRelation: "super_admins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_subscriptions_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_subscriptions_suspended_by_fkey"
+            columns: ["suspended_by"]
+            isOneToOne: false
+            referencedRelation: "super_admins"
             referencedColumns: ["id"]
           },
         ]
@@ -330,34 +662,43 @@ export type Database = {
       }
       schools: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           billing_end_date: string | null
           billing_notes: string | null
           billing_start_date: string
           billing_status: Database["public"]["Enums"]["billing_status"]
           created_at: string
           id: string
+          is_archived: boolean
           name: string
           plan: Database["public"]["Enums"]["saas_plan"]
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           billing_end_date?: string | null
           billing_notes?: string | null
           billing_start_date?: string
           billing_status?: Database["public"]["Enums"]["billing_status"]
           created_at?: string
           id?: string
+          is_archived?: boolean
           name: string
           plan?: Database["public"]["Enums"]["saas_plan"]
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           billing_end_date?: string | null
           billing_notes?: string | null
           billing_start_date?: string
           billing_status?: Database["public"]["Enums"]["billing_status"]
           created_at?: string
           id?: string
+          is_archived?: boolean
           name?: string
           plan?: Database["public"]["Enums"]["saas_plan"]
           updated_at?: string
@@ -532,6 +873,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      super_admins: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          id: string
+          is_active: boolean
+          name: string | null
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          id?: string
+          is_active?: boolean
+          name?: string | null
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean
+          name?: string | null
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       teacher_action_logs: {
         Row: {
@@ -795,11 +1169,35 @@ export type Database = {
         Args: { p_limit: number; p_metric: string; p_school_id: string }
         Returns: Json
       }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
+      billing_event_type:
+        | "manual_activation"
+        | "plan_change"
+        | "extension"
+        | "credit"
+        | "suspension"
+        | "reinstatement"
+        | "downgrade"
+        | "stripe_payment"
+        | "stripe_refund"
       billing_status: "active" | "trial" | "suspended"
       confidence_trend: "increasing" | "stable" | "declining"
+      platform_audit_action:
+        | "plan_activated"
+        | "plan_changed"
+        | "school_suspended"
+        | "school_reinstated"
+        | "subscription_extended"
+        | "ai_toggle_changed"
+        | "ai_kill_switch_activated"
+        | "ai_kill_switch_deactivated"
+        | "super_admin_action"
+        | "override_applied"
+        | "school_archived"
       saas_plan: "basic" | "standard" | "premium" | "enterprise"
+      subscription_status: "active" | "suspended" | "expired" | "pending"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -927,9 +1325,34 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      billing_event_type: [
+        "manual_activation",
+        "plan_change",
+        "extension",
+        "credit",
+        "suspension",
+        "reinstatement",
+        "downgrade",
+        "stripe_payment",
+        "stripe_refund",
+      ],
       billing_status: ["active", "trial", "suspended"],
       confidence_trend: ["increasing", "stable", "declining"],
+      platform_audit_action: [
+        "plan_activated",
+        "plan_changed",
+        "school_suspended",
+        "school_reinstated",
+        "subscription_extended",
+        "ai_toggle_changed",
+        "ai_kill_switch_activated",
+        "ai_kill_switch_deactivated",
+        "super_admin_action",
+        "override_applied",
+        "school_archived",
+      ],
       saas_plan: ["basic", "standard", "premium", "enterprise"],
+      subscription_status: ["active", "suspended", "expired", "pending"],
     },
   },
 } as const
