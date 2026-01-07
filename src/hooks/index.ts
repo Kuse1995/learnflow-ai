@@ -27,5 +27,8 @@ export { useClassDataReadiness, useStudentDataReadiness } from "./useDataReadine
 // Teacher action logs
 export { useCreateActionLog, useClassActionLogs, useUploadActionLogs, useUpdateActionLog, useDeleteActionLog } from "./useTeacherActionLogs";
 
+// Learning patterns
+export { useLearningPatterns } from "./useLearningPatterns";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";

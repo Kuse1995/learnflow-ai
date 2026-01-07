@@ -14,6 +14,7 @@ import { AttendanceSheet } from "@/components/attendance/AttendanceSheet";
 import { UploadsList } from "@/components/uploads/UploadsList";
 import { LearningProfileViewer } from "@/components/students/LearningProfileViewer";
 import { TeachingSuggestionsViewer } from "@/components/teaching/TeachingSuggestionsViewer";
+import { LearningOverTimePanel } from "@/components/insights";
 import { useClass } from "@/hooks/useClasses";
 import { useStudentsByClass } from "@/hooks/useStudents";
 import { useClassAttendanceHistory, type AttendanceSummary } from "@/hooks/useClassAttendanceHistory";
@@ -132,6 +133,9 @@ export default function TeacherClassDetail() {
         </header>
 
         <div className="flex-1 p-4 space-y-6">
+          {/* Learning Over Time Panel */}
+          <LearningOverTimePanel classId={classData.id} />
+
           {/* Students Section */}
           <section>
             <div className="flex items-center gap-2 mb-3">
