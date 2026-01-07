@@ -173,8 +173,8 @@ export default function TeacherActions() {
           ) : actionLogs.length === 0 ? (
             <EmptyState
               variant="no-data"
-              title="No teaching actions recorded"
-              description="When you record instructional actions, they will appear here for reflection and reference."
+              title="No teaching actions recorded yet"
+              description="This space is for documenting instructional decisions and reflections over time. You can record actions directly from analysis results or teaching suggestions."
             />
           ) : (
             <div className="space-y-3">
