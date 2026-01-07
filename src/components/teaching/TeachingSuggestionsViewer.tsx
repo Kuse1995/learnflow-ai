@@ -6,7 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { DataReadinessIndicator } from "@/components/ui/data-readiness-indicator";
 import { useTeachingSuggestions, type TeachingSuggestion, type TeachingSuggestionsResult } from "@/hooks/useTeachingSuggestions";
+import { useClassDataReadiness } from "@/hooks/useDataReadiness";
 import { toast } from "sonner";
 
 interface TeachingSuggestionsViewerProps {
@@ -43,6 +45,7 @@ export function TeachingSuggestionsViewer({ classId, className, uploadId, trigge
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState<TeachingSuggestionsResult | null>(null);
   const { mutate: getSuggestions, isPending } = useTeachingSuggestions();
+  const { data: readiness, isLoading: isLoadingReadiness } = useClassDataReadiness(classId);
 
   const handleGetSuggestions = () => {
     setOpen(true);
@@ -122,6 +125,12 @@ export function TeachingSuggestionsViewer({ classId, className, uploadId, trigge
 
               {results && (
                 <>
+                  {/* Data Readiness Indicator */}
+                  <DataReadinessIndicator 
+                    readiness={readiness} 
+                    isLoading={isLoadingReadiness} 
+                  />
+
                   {/* Context Header */}
                   <div className="space-y-3">
                     <div className="flex flex-wrap gap-2">

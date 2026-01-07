@@ -21,5 +21,8 @@ export { useStudentLearningProfile } from "./useStudentLearningProfile";
 // Teaching suggestions
 export { useTeachingSuggestions } from "./useTeachingSuggestions";
 
+// Data readiness
+export { useClassDataReadiness, useStudentDataReadiness } from "./useDataReadiness";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";
