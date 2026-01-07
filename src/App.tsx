@@ -18,7 +18,7 @@ import {
 } from "./pages/teacher";
 import { ParentDashboard } from "./pages/parent";
 import { StudentPractice } from "./pages/student";
-import { PlatformAdminCompliance } from "./pages/platform-admin";
+import { PlatformAdminCompliance, PlatformAdminBackups } from "./pages/platform-admin";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +51,7 @@ const App = () => (
           
           {/* Platform Admin Routes */}
           <Route path="/platform-admin/compliance" element={<PlatformAdminCompliance />} />
+          <Route path="/platform-admin/backups" element={<PlatformAdminBackups />} />
           
           {/* Demo page */}
           <Route path="/demo" element={<Index />} />
