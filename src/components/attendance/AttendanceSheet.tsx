@@ -1,10 +1,13 @@
-import { useState, useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { AttendanceStudentCard, type Student } from "./AttendanceStudentCard";
+import { AttendanceStudentCard } from "./AttendanceStudentCard";
 import { Calendar, Users, Check } from "lucide-react";
+import type { Student as StudentType } from "@/types/attendance";
 
-interface AttendanceRecord {
+// Re-export for backwards compatibility
+export type { Student } from "./AttendanceStudentCard";
+
+interface AttendanceEntry {
   studentId: string;
   present: boolean;
 }
@@ -13,11 +16,12 @@ interface AttendanceSheetProps {
   classId: string;
   className: string;
   date: Date;
-  students: Student[];
-  initialAttendance?: AttendanceRecord[];
-  onSave?: (attendance: AttendanceRecord[]) => void;
+  students: StudentType[];
+  initialAttendance?: AttendanceEntry[];
+  onSave?: (attendance: AttendanceEntry[]) => void | Promise<void>;
   onDateChange?: (date: Date) => void;
   disabled?: boolean;
+  isLoading?: boolean;
 }
 
 /**
