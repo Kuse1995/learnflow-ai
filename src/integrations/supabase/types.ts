@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_versions: {
+        Row: {
+          breaking_change: boolean
+          changelog: string[] | null
+          deployed_by: string | null
+          id: string
+          is_current: boolean
+          notes: string | null
+          released_at: string
+          version: string
+        }
+        Insert: {
+          breaking_change?: boolean
+          changelog?: string[] | null
+          deployed_by?: string | null
+          id?: string
+          is_current?: boolean
+          notes?: string | null
+          released_at?: string
+          version: string
+        }
+        Update: {
+          breaking_change?: boolean
+          changelog?: string[] | null
+          deployed_by?: string | null
+          id?: string
+          is_current?: boolean
+          notes?: string | null
+          released_at?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_versions_deployed_by_fkey"
+            columns: ["deployed_by"]
+            isOneToOne: false
+            referencedRelation: "super_admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_records: {
         Row: {
           class_id: string
@@ -177,6 +218,83 @@ export type Database = {
           },
         ]
       }
+      deployment_checks: {
+        Row: {
+          check_name: string
+          check_type: string
+          created_at: string
+          description: string | null
+          id: string
+          is_blocking: boolean
+          last_checked_at: string | null
+          result_details: Json | null
+          status: string
+        }
+        Insert: {
+          check_name: string
+          check_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_blocking?: boolean
+          last_checked_at?: string | null
+          result_details?: Json | null
+          status?: string
+        }
+        Update: {
+          check_name?: string
+          check_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_blocking?: boolean
+          last_checked_at?: string | null
+          result_details?: Json | null
+          status?: string
+        }
+        Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          created_at: string
+          description: string | null
+          enabled: boolean
+          environment: string[] | null
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          environment?: string[] | null
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          environment?: string[] | null
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_flags_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "super_admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_differentiation_suggestions: {
         Row: {
           class_id: string
@@ -267,6 +385,53 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lesson_differentiation_suggestions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      migration_logs: {
+        Row: {
+          applied_at: string
+          applied_by: string | null
+          environment: string
+          error_message: string | null
+          id: string
+          migration_name: string
+          notes: string | null
+          rollback_executed_at: string | null
+          rollback_supported: boolean
+          status: string
+        }
+        Insert: {
+          applied_at?: string
+          applied_by?: string | null
+          environment: string
+          error_message?: string | null
+          id?: string
+          migration_name: string
+          notes?: string | null
+          rollback_executed_at?: string | null
+          rollback_supported?: boolean
+          status?: string
+        }
+        Update: {
+          applied_at?: string
+          applied_by?: string | null
+          environment?: string
+          error_message?: string | null
+          id?: string
+          migration_name?: string
+          notes?: string | null
+          rollback_executed_at?: string | null
+          rollback_supported?: boolean
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "migration_logs_applied_by_fkey"
+            columns: ["applied_by"]
+            isOneToOne: false
+            referencedRelation: "super_admins"
             referencedColumns: ["id"]
           },
         ]
@@ -907,6 +1072,47 @@ export type Database = {
         }
         Relationships: []
       }
+      system_environment: {
+        Row: {
+          debug_mode_enabled: boolean
+          deployed_at: string | null
+          environment: string
+          id: string
+          is_production: boolean
+          updated_at: string
+          updated_by: string | null
+          version_tag: string | null
+        }
+        Insert: {
+          debug_mode_enabled?: boolean
+          deployed_at?: string | null
+          environment?: string
+          id?: string
+          is_production?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          version_tag?: string | null
+        }
+        Update: {
+          debug_mode_enabled?: boolean
+          deployed_at?: string | null
+          environment?: string
+          id?: string
+          is_production?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          version_tag?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_environment_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "super_admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_action_logs: {
         Row: {
           action_taken: string
@@ -1196,6 +1402,10 @@ export type Database = {
         | "super_admin_action"
         | "override_applied"
         | "school_archived"
+        | "feature_flag_changed"
+        | "deployment_initiated"
+        | "rollback_executed"
+        | "environment_changed"
       saas_plan: "basic" | "standard" | "premium" | "enterprise"
       subscription_status: "active" | "suspended" | "expired" | "pending"
     }
@@ -1350,6 +1560,10 @@ export const Constants = {
         "super_admin_action",
         "override_applied",
         "school_archived",
+        "feature_flag_changed",
+        "deployment_initiated",
+        "rollback_executed",
+        "environment_changed",
       ],
       saas_plan: ["basic", "standard", "premium", "enterprise"],
       subscription_status: ["active", "suspended", "expired", "pending"],
