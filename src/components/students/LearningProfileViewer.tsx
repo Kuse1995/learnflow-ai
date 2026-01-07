@@ -12,7 +12,8 @@ import {
   TrendingDown,
   Minus,
   Clock,
-  HandHelping
+  HandHelping,
+  Route
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,9 +24,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { DataReadinessIndicator } from "@/components/ui/data-readiness-indicator";
 import { AdaptiveSupportPlanViewer } from "@/components/adaptive-support";
+import { LearningPathViewer } from "@/components/learning-paths";
 import { useStudentLearningProfile, type StudentLearningProfile } from "@/hooks/useStudentLearningProfile";
 import { useStudentDataReadiness } from "@/hooks/useDataReadiness";
 import { useStudentAdaptiveSupportPlan, useGenerateAdaptiveSupportPlan, useCanGenerateAdaptiveSupportPlan } from "@/hooks/useAdaptiveSupportPlans";
+import { useStudentLearningPath, useGenerateLearningPath, useCanGenerateLearningPath } from "@/hooks/useLearningPaths";
 import { toast } from "sonner";
 
 interface LearningProfileViewerProps {
@@ -46,6 +49,10 @@ export function LearningProfileViewer({
   const { data: profile, isLoading } = useStudentLearningProfile(studentId || undefined);
   const { data: readiness, isLoading: isLoadingReadiness } = useStudentDataReadiness(studentId || undefined);
   const { data: supportPlan, isLoading: isLoadingPlan } = useStudentAdaptiveSupportPlan(
+    studentId || undefined,
+    classId
+  );
+  const { data: learningPath, isLoading: isLoadingPath } = useStudentLearningPath(
     studentId || undefined,
     classId
   );
@@ -85,6 +92,17 @@ export function LearningProfileViewer({
                 studentName={studentName || "Student"}
                 plan={supportPlan}
                 isLoading={isLoadingPlan}
+              />
+            )}
+
+            {/* Adaptive Learning Path Section */}
+            {studentId && classId && (
+              <LearningPathSection
+                studentId={studentId}
+                classId={classId}
+                studentName={studentName || "Student"}
+                path={learningPath}
+                isLoading={isLoadingPath}
               />
             )}
           </div>
@@ -419,6 +437,98 @@ function AdaptiveSupportPlanSection({
       ) : (
         <AdaptiveSupportPlanViewer
           plan={plan}
+          studentName={studentName}
+          showAcknowledge={true}
+        />
+      )}
+    </section>
+  );
+}
+
+/**
+ * Adaptive Learning Path Section
+ * VISIBILITY: Teacher-only. Never expose to parents or students.
+ * No notifications, analytics, scores, or progress indicators.
+ */
+interface LearningPathSectionProps {
+  studentId: string;
+  classId: string;
+  studentName: string;
+  path: import("@/hooks/useLearningPaths").LearningPath | null | undefined;
+  isLoading: boolean;
+}
+
+function LearningPathSection({
+  studentId,
+  classId,
+  studentName,
+  path,
+  isLoading,
+}: LearningPathSectionProps) {
+  const generateMutation = useGenerateLearningPath();
+  const { data: canGenerateCheck } = useCanGenerateLearningPath(studentId, classId);
+
+  const handleGenerate = async () => {
+    try {
+      await generateMutation.mutateAsync({ studentId, classId });
+      toast.success("Learning path generated");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to generate learning path");
+    }
+  };
+
+  const canGenerate = canGenerateCheck?.canGenerate !== false;
+
+  if (isLoading) {
+    return (
+      <section>
+        <Separator className="my-6" />
+        <div className="flex items-center gap-2 mb-4">
+          <Route className="h-4 w-4 text-muted-foreground" />
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Adaptive Learning Path
+          </h3>
+        </div>
+        <Skeleton className="h-32 w-full rounded-xl" />
+      </section>
+    );
+  }
+
+  return (
+    <section>
+      <Separator className="my-6" />
+      <div className="flex items-center gap-2 mb-4">
+        <Route className="h-4 w-4 text-muted-foreground" />
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Adaptive Learning Path
+        </h3>
+      </div>
+
+      {!path ? (
+        <Card className="border-dashed">
+          <CardContent className="py-8 text-center">
+            <p className="text-xs text-muted-foreground italic mb-4">
+              This guidance is optional and intended to support professional judgment.
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              No learning path has been generated for {studentName} yet.
+            </p>
+            <Button
+              onClick={handleGenerate}
+              disabled={!canGenerate || generateMutation.isPending}
+            >
+              {generateMutation.isPending ? "Generating..." : "Generate learning path"}
+            </Button>
+            {!canGenerate && canGenerateCheck?.reason && (
+              <p className="text-xs text-amber-600 mt-3 max-w-xs mx-auto">
+                {canGenerateCheck.reason}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <LearningPathViewer
+          path={path}
           studentName={studentName}
           showAcknowledge={true}
         />
