@@ -24,8 +24,20 @@ import {
   PlatformAdminUsage,
   PlatformAdminSecurity,
 } from "./pages/platform-admin";
+import PlatformAdminOnboarding from "./pages/platform-admin/PlatformAdminOnboarding";
+import PlatformAdminSystemStatus from "./pages/platform-admin/PlatformAdminSystemStatus";
+import { LegalDocument } from "./pages/legal";
+import { OfflineIndicator } from "./components/common";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30000, // 30 seconds - reduces refetches on slow connections
+      retry: 2,
+      refetchOnWindowFocus: false, // Reduce network usage
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -59,6 +71,11 @@ const App = () => (
           <Route path="/platform-admin/backups" element={<PlatformAdminBackups />} />
           <Route path="/platform-admin/usage" element={<PlatformAdminUsage />} />
           <Route path="/platform-admin/security" element={<PlatformAdminSecurity />} />
+          <Route path="/platform-admin/onboarding" element={<PlatformAdminOnboarding />} />
+          <Route path="/platform-admin/system-status" element={<PlatformAdminSystemStatus />} />
+          
+          {/* Legal Routes */}
+          <Route path="/legal/:type" element={<LegalDocument />} />
           
           {/* Demo page */}
           <Route path="/demo" element={<Index />} />
@@ -66,6 +83,9 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        
+        {/* Global offline indicator */}
+        <OfflineIndicator />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
