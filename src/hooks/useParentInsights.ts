@@ -153,6 +153,7 @@ export function useUpdateParentInsight() {
 
 /**
  * Hook to approve a parent insight
+ * Silently appends a timeline entry after approval
  */
 export function useApproveParentInsight() {
   const queryClient = useQueryClient();
@@ -171,6 +172,21 @@ export function useApproveParentInsight() {
         .single();
 
       if (error) throw error;
+
+      // Silently append timeline entry (no notifications)
+      try {
+        await supabase.from("student_learning_timeline").insert({
+          student_id: data.student_id,
+          class_id: data.class_id,
+          event_type: "parent_summary",
+          event_summary: "Parent insight summary approved and shared",
+          source_id: data.id,
+          occurred_at: new Date().toISOString(),
+        });
+      } catch (timelineError) {
+        console.error("Timeline append failed:", timelineError);
+      }
+
       return data as ParentInsightSummary;
     },
     onSuccess: (data) => {

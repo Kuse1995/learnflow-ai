@@ -313,6 +313,23 @@ Return your analysis as a structured response for each student and the class ove
       })
       .eq("id", analysisId);
 
+    // Append timeline entries for each student analyzed (silently, no notifications)
+    for (const diagnostic of analysisResult.student_diagnostics) {
+      try {
+        await supabase.from("student_learning_timeline").insert({
+          student_id: diagnostic.student_id,
+          class_id: upload.class_id,
+          event_type: "analysis",
+          event_summary: `Work analyzed for ${upload.topic} (${upload.subject})`,
+          source_id: analysisId,
+          occurred_at: new Date().toISOString(),
+        });
+      } catch (timelineError) {
+        // Silent failure - don't block main flow
+        console.error("Timeline append failed:", timelineError);
+      }
+    }
+
     // Update student learning profiles
     for (const diagnostic of analysisResult.student_diagnostics) {
       // Check if learning profile exists
