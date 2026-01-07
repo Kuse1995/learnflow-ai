@@ -92,6 +92,62 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_differentiation_suggestions: {
+        Row: {
+          class_id: string
+          core_lesson_flow: string[]
+          created_at: string
+          extension_opportunities: string[]
+          id: string
+          lesson_duration_minutes: number | null
+          lesson_objective: string
+          lesson_topic: string
+          materials_needed: string[] | null
+          optional_variations: string[]
+          support_strategies: string[]
+          teacher_accepted: boolean
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          core_lesson_flow?: string[]
+          created_at?: string
+          extension_opportunities?: string[]
+          id?: string
+          lesson_duration_minutes?: number | null
+          lesson_objective: string
+          lesson_topic: string
+          materials_needed?: string[] | null
+          optional_variations?: string[]
+          support_strategies?: string[]
+          teacher_accepted?: boolean
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          core_lesson_flow?: string[]
+          created_at?: string
+          extension_opportunities?: string[]
+          id?: string
+          lesson_duration_minutes?: number | null
+          lesson_objective?: string
+          lesson_topic?: string
+          materials_needed?: string[] | null
+          optional_variations?: string[]
+          support_strategies?: string[]
+          teacher_accepted?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_differentiation_suggestions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_insight_summaries: {
         Row: {
           approved_at: string | null
