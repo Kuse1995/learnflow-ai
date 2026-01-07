@@ -86,7 +86,7 @@ export function AttendanceSheet({
 
   const handleSave = async () => {
     if (!onSave) return;
-    
+
     setIsSaving(true);
     const records: AttendanceEntry[] = Object.entries(attendance).map(
       ([studentId, present]) => ({ studentId, present })
