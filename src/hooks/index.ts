@@ -30,5 +30,16 @@ export { useCreateActionLog, useClassActionLogs, useUploadActionLogs, useUpdateA
 // Learning patterns
 export { useLearningPatterns } from "./useLearningPatterns";
 
+// Parent insights
+export {
+  useDraftParentInsights,
+  useStudentDraftInsight,
+  useApprovedParentInsight,
+  useGenerateParentInsight,
+  useUpdateParentInsight,
+  useApproveParentInsight,
+  useDeleteParentInsight,
+} from "./useParentInsights";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";

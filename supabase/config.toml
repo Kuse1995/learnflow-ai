@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.learning-patterns]
 verify_jwt = false
+
+[functions.generate-parent-insight]
+verify_jwt = false

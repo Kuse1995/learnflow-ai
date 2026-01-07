@@ -13,7 +13,9 @@ import {
   TeacherUploads,
   TeacherInsights,
   TeacherActions,
+  TeacherParentInsights,
 } from "./pages/teacher";
+import { ParentDashboard } from "./pages/parent";
 
 const queryClient = new QueryClient();
 
@@ -33,8 +35,12 @@ const App = () => (
           <Route path="/teacher/classes" element={<TeacherClasses />} />
           <Route path="/teacher/classes/:classId" element={<TeacherClassDetail />} />
           <Route path="/teacher/classes/:classId/actions" element={<TeacherActions />} />
+          <Route path="/teacher/classes/:classId/parent-insights" element={<TeacherParentInsights />} />
           <Route path="/teacher/uploads" element={<TeacherUploads />} />
           <Route path="/teacher/insights" element={<TeacherInsights />} />
+          
+          {/* Parent Routes */}
+          <Route path="/parent/:studentId" element={<ParentDashboard />} />
           
           {/* Demo page */}
           <Route path="/demo" element={<Index />} />
