@@ -225,6 +225,48 @@ export type Database = {
         }
         Relationships: []
       }
+      practice_sessions: {
+        Row: {
+          class_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          session_length_minutes: number | null
+          student_id: string
+        }
+        Insert: {
+          class_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          session_length_minutes?: number | null
+          student_id: string
+        }
+        Update: {
+          class_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          session_length_minutes?: number | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_sessions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "practice_sessions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_intervention_plans: {
         Row: {
           class_id: string
