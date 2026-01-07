@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { format } from "date-fns";
-import { ArrowLeft, PenLine, Pencil, Trash2, MessageSquare, Calendar, Loader2 } from "lucide-react";
+import { format, subDays, isAfter } from "date-fns";
+import { ArrowLeft, PenLine, Pencil, Trash2, MessageSquare, Calendar, Loader2, Search, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { TeacherLayout } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +36,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/empty-states";
 import { useClass } from "@/hooks/useClasses";
@@ -38,6 +45,9 @@ import {
   useDeleteActionLog,
   type TeacherActionLog,
 } from "@/hooks/useTeacherActionLogs";
+
+type DateRangeFilter = "7" | "30" | "90" | "all";
+type ContextFilter = "all" | "linked" | "general";
 
 export default function TeacherActions() {
   const { classId } = useParams<{ classId: string }>();
@@ -51,6 +61,11 @@ export default function TeacherActions() {
   const [editingLog, setEditingLog] = useState<TeacherActionLog | null>(null);
   const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
 
+  // Filter state
+  const [topicSearch, setTopicSearch] = useState("");
+  const [dateRange, setDateRange] = useState<DateRangeFilter>("all");
+  const [contextFilter, setContextFilter] = useState<ContextFilter>("all");
+
   // Edit form state
   const [editTopic, setEditTopic] = useState("");
   const [editAction, setEditAction] = useState("");
@@ -62,6 +77,36 @@ export default function TeacherActions() {
     setEditAction(log.action_taken);
     setEditReflection(log.reflection_notes || "");
   };
+
+  // Filtered logs
+  const filteredLogs = useMemo(() => {
+    return actionLogs.filter((log) => {
+      // Topic filter (case-insensitive)
+      if (topicSearch.trim()) {
+        const searchLower = topicSearch.toLowerCase().trim();
+        const topicMatch = log.topic?.toLowerCase().includes(searchLower);
+        const actionMatch = log.action_taken.toLowerCase().includes(searchLower);
+        if (!topicMatch && !actionMatch) return false;
+      }
+
+      // Date range filter
+      if (dateRange !== "all") {
+        const days = parseInt(dateRange, 10);
+        const cutoffDate = subDays(new Date(), days);
+        const logDate = new Date(log.created_at);
+        if (!isAfter(logDate, cutoffDate)) return false;
+      }
+
+      // Context filter
+      if (contextFilter === "linked" && !log.upload_id) return false;
+      if (contextFilter === "general" && log.upload_id) return false;
+
+      return true;
+    });
+  }, [actionLogs, topicSearch, dateRange, contextFilter]);
+
+  const hasActiveFilters = topicSearch.trim() || dateRange !== "all" || contextFilter !== "all";
+  const showFilteredEmptyState = hasActiveFilters && filteredLogs.length === 0 && actionLogs.length > 0;
 
   const handleSaveEdit = () => {
     if (!editingLog || !editAction.trim()) return;
@@ -163,7 +208,49 @@ export default function TeacherActions() {
           </div>
         </header>
 
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-4 space-y-4">
+          {/* Filters */}
+          {actionLogs.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Topic Search */}
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by topic..."
+                  value={topicSearch}
+                  onChange={(e) => setTopicSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              {/* Date Range */}
+              <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRangeFilter)}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Date range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All time</SelectItem>
+                  <SelectItem value="7">Last 7 days</SelectItem>
+                  <SelectItem value="30">Last 30 days</SelectItem>
+                  <SelectItem value="90">Last 90 days</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Context Filter */}
+              <Select value={contextFilter} onValueChange={(v) => setContextFilter(v as ContextFilter)}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Context" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All actions</SelectItem>
+                  <SelectItem value="linked">Linked to analysis</SelectItem>
+                  <SelectItem value="general">General actions</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Action Logs List */}
           {isLoadingLogs ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -176,9 +263,26 @@ export default function TeacherActions() {
               title="No teaching actions recorded yet"
               description="This space is for documenting instructional decisions and reflections over time. You can record actions directly from analysis results or teaching suggestions."
             />
+          ) : showFilteredEmptyState ? (
+            <div className="py-12 text-center">
+              <Filter className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">No actions match the selected filters.</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2"
+                onClick={() => {
+                  setTopicSearch("");
+                  setDateRange("all");
+                  setContextFilter("all");
+                }}
+              >
+                Clear filters
+              </Button>
+            </div>
           ) : (
             <div className="space-y-3">
-              {actionLogs.map((log) => (
+              {filteredLogs.map((log) => (
                 <ActionLogCard
                   key={log.id}
                   log={log}
