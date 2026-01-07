@@ -92,6 +92,45 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_insight_summaries: {
+        Row: {
+          approved_at: string | null
+          class_id: string
+          created_at: string
+          home_support_tips: string[] | null
+          id: string
+          source_analysis_ids: string[] | null
+          student_id: string
+          summary_text: string
+          teacher_approved: boolean
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          class_id: string
+          created_at?: string
+          home_support_tips?: string[] | null
+          id?: string
+          source_analysis_ids?: string[] | null
+          student_id: string
+          summary_text: string
+          teacher_approved?: boolean
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          class_id?: string
+          created_at?: string
+          home_support_tips?: string[] | null
+          id?: string
+          source_analysis_ids?: string[] | null
+          student_id?: string
+          summary_text?: string
+          teacher_approved?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_learning_profiles: {
         Row: {
           confidence_trend:
