@@ -7,25 +7,39 @@ import { supabase } from "@/integrations/supabase/client";
  * CONSTRAINTS (enforced):
  * - VISIBILITY: Teacher-only. Never expose to parents or students.
  * - Read-only: No edits or deletions.
- * - Append-only data model.
+ * - This queries a VIEW (not a table) that unifies multiple evidence sources.
  */
 
 export type TimelineEventType =
   | "analysis"
   | "teaching_action"
-  | "support_plan"
-  | "learning_path"
-  | "parent_summary";
+  | "adaptive_support_plan"
+  | "parent_update";
+
+/**
+ * Timeline event metadata varies by event type:
+ * - analysis: { upload_id: string }
+ * - teaching_action: { topic: string | null, action_taken: string }
+ * - adaptive_support_plan: { acknowledged: boolean, source_window_days: number }
+ * - parent_update: { shared: boolean }
+ */
+export interface TimelineEventMetadata {
+  upload_id?: string;
+  topic?: string | null;
+  action_taken?: string;
+  acknowledged?: boolean;
+  source_window_days?: number;
+  shared?: boolean;
+}
 
 export interface LearningTimelineEvent {
-  id: string;
+  timeline_id: string;
   student_id: string;
   class_id: string;
   event_type: TimelineEventType;
-  event_summary: string;
-  source_id: string | null;
-  occurred_at: string;
-  created_at: string;
+  event_date: string;
+  summary_text: string;
+  metadata: TimelineEventMetadata | null;
 }
 
 interface UseStudentLearningTimelineOptions {
@@ -58,18 +72,18 @@ export function useStudentLearningTimeline(
         return { events: [], totalCount: 0, hasMore: false };
       }
 
-      // Fetch events with count
+      // Fetch events with count from the VIEW
       const { data, error, count } = await supabase
         .from("student_learning_timeline")
         .select("*", { count: "exact" })
         .eq("student_id", studentId)
         .eq("class_id", classId)
-        .order("occurred_at", { ascending: false })
+        .order("event_date", { ascending: false })
         .range(offset, offset + pageSize - 1);
 
       if (error) throw error;
 
-      const events = (data || []) as LearningTimelineEvent[];
+      const events = (data || []) as unknown as LearningTimelineEvent[];
       const totalCount = count || 0;
       const hasMore = offset + events.length < totalCount;
 
@@ -93,16 +107,17 @@ export function useRecentStudentTimeline(
     queryFn: async (): Promise<LearningTimelineEvent[]> => {
       if (!studentId || !classId) return [];
 
+      // Fetch from the VIEW
       const { data, error } = await supabase
         .from("student_learning_timeline")
         .select("*")
         .eq("student_id", studentId)
         .eq("class_id", classId)
-        .order("occurred_at", { ascending: false })
+        .order("event_date", { ascending: false })
         .limit(limit);
 
       if (error) throw error;
-      return (data || []) as LearningTimelineEvent[];
+      return (data || []) as unknown as LearningTimelineEvent[];
     },
     enabled: !!studentId && !!classId,
   });
