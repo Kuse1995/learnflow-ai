@@ -177,6 +177,60 @@ export type Database = {
           },
         ]
       }
+      upload_analyses: {
+        Row: {
+          analyzed_at: string | null
+          class_id: string
+          class_summary: Json | null
+          created_at: string
+          error_message: string | null
+          id: string
+          status: string
+          student_diagnostics: Json | null
+          updated_at: string
+          upload_id: string
+        }
+        Insert: {
+          analyzed_at?: string | null
+          class_id: string
+          class_summary?: Json | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          status?: string
+          student_diagnostics?: Json | null
+          updated_at?: string
+          upload_id: string
+        }
+        Update: {
+          analyzed_at?: string | null
+          class_id?: string
+          class_summary?: Json | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          status?: string
+          student_diagnostics?: Json | null
+          updated_at?: string
+          upload_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upload_analyses_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upload_analyses_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: true
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upload_students: {
         Row: {
           created_at: string
