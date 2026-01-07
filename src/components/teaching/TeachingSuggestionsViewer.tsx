@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lightbulb, BookOpen, MessageSquare, Sparkles, Clock, Loader2, AlertCircle, PenLine } from "lucide-react";
+import { Lightbulb, BookOpen, MessageSquare, Sparkles, Clock, Loader2, AlertCircle, PenLine, Link2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -126,11 +126,20 @@ export function TeachingSuggestionsViewer({ classId, className, uploadId, trigge
 
               {results && (
                 <>
-                  {/* Data Readiness Indicator */}
-                  <DataReadinessIndicator 
-                    readiness={readiness} 
-                    isLoading={isLoadingReadiness} 
-                  />
+                  {/* Data Readiness & Context Indicators */}
+                  <div className="space-y-2">
+                    <DataReadinessIndicator 
+                      readiness={readiness} 
+                      isLoading={isLoadingReadiness} 
+                    />
+                    
+                    {results.informed_by_prior_actions && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Link2 className="h-3 w-3" />
+                        <span>Informed by recent teaching actions</span>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Context Header */}
                   <div className="space-y-3">
