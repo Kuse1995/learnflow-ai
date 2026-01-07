@@ -447,8 +447,13 @@ function AdaptiveSupportPlanSection({
 
 /**
  * Adaptive Learning Path Section
- * VISIBILITY: Teacher-only. Never expose to parents or students.
- * No notifications, analytics, scores, or progress indicators.
+ * 
+ * CONSTRAINTS (enforced):
+ * - VISIBILITY: Teacher-only. Never expose to parents or students.
+ * - No notifications triggered.
+ * - No analytics, tracking, or scoring.
+ * - No automatic generation—always requires manual teacher action.
+ * - Disclaimer always visible.
  */
 interface LearningPathSectionProps {
   studentId: string;

@@ -23,9 +23,14 @@ export interface LearningPathCheck {
 const REGENERATION_GUARD_DAYS = 14;
 
 /**
- * Learning Paths - TEACHER-FACING ONLY
- * Never expose to parents or students.
- * No notifications, analytics, scores, or progress indicators.
+ * Learning Paths Hooks
+ * 
+ * CONSTRAINTS (enforced):
+ * - VISIBILITY: Teacher-only. Never expose to parents or students.
+ * - No notifications triggered by any operation.
+ * - No analytics, tracking, or scoring.
+ * - No automatic generation—always requires manual teacher action.
+ * - 14-day regeneration guard with acknowledgment requirement.
  */
 
 /**

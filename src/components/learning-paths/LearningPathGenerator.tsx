@@ -31,8 +31,13 @@ interface Student {
 
 /**
  * Learning Path Generator
- * VISIBILITY: Teacher-only. Never expose to parents or students.
- * No notifications, analytics, scores, or progress indicators.
+ * 
+ * CONSTRAINTS (enforced):
+ * - VISIBILITY: Teacher-only. Never expose to parents or students.
+ * - No notifications triggered by generation.
+ * - No analytics, tracking, or scoring.
+ * - No automatic generation—always requires manual teacher action.
+ * - 14-day regeneration guard with acknowledgment requirement.
  */
 interface LearningPathGeneratorProps {
   classId: string;
