@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.teaching-suggestions]
 verify_jwt = false
+
+[functions.learning-patterns]
+verify_jwt = false
