@@ -1,1 +1,4 @@
 project_id = "vsrwqkednruuvnfvrhco"
+
+[functions.analyze-upload]
+verify_jwt = false

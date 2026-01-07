@@ -10,6 +10,7 @@ export { useStudents, useStudentsByClass } from "./useStudents";
 // Upload hooks
 export { useUploads, useUploadFile, useDeleteUpload } from "./useUploads";
 export { useUploadsByClass } from "./useUploadsByClass";
+export { useAnalyzeUpload, useUploadAnalysis, useClassAnalyses } from "./useUploadAnalysis";
 
 // Class attendance history
 export { useClassAttendanceHistory } from "./useClassAttendanceHistory";
