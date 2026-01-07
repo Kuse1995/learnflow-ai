@@ -41,13 +41,19 @@ export {
   useDeleteParentInsight,
 } from "./useParentInsights";
 
-// Intervention plans
+// Adaptive support plans (formerly intervention plans)
 export {
+  useClassAdaptiveSupportPlans,
+  useStudentAdaptiveSupportPlan,
+  useCanGenerateAdaptiveSupportPlan,
+  useGenerateAdaptiveSupportPlan,
+  useAcknowledgeAdaptiveSupportPlan,
+  // Deprecated aliases for backward compatibility
   useClassInterventionPlans,
   useStudentInterventionPlan,
   useGenerateInterventionPlan,
   useAcknowledgeInterventionPlan,
-} from "./useInterventionPlans";
+} from "./useAdaptiveSupportPlans";
 
 // Utility hooks
 export { useIsMobile } from "./use-mobile";
