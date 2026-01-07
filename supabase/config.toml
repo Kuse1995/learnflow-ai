@@ -18,5 +18,5 @@ verify_jwt = false
 [functions.generate-learning-path]
 verify_jwt = false
 
-[functions.append-learning-timeline-event]
+[functions.generate-differentiated-lesson]
 verify_jwt = false
