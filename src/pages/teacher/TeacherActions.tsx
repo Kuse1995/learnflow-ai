@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, subDays, isAfter } from "date-fns";
-import { ArrowLeft, PenLine, Pencil, Trash2, MessageSquare, Calendar, Loader2, Search, Filter } from "lucide-react";
+import { ArrowLeft, PenLine, Pencil, Trash2, MessageSquare, Calendar, Loader2, Search, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import { TeacherLayout } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -247,6 +247,58 @@ export default function TeacherActions() {
                   <SelectItem value="general">General actions</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {/* Active Filter Chips */}
+          {actionLogs.length > 0 && hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-2">
+              {topicSearch.trim() && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-xs text-muted-foreground">
+                  Topic: "{topicSearch.trim()}"
+                  <button
+                    onClick={() => setTopicSearch("")}
+                    className="ml-0.5 hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              )}
+              {dateRange !== "all" && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-xs text-muted-foreground">
+                  {dateRange === "7" ? "Last 7 days" : dateRange === "30" ? "Last 30 days" : "Last 90 days"}
+                  <button
+                    onClick={() => setDateRange("all")}
+                    className="ml-0.5 hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              )}
+              {contextFilter !== "all" && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-xs text-muted-foreground">
+                  {contextFilter === "linked" ? "Linked to analysis" : "General actions"}
+                  <button
+                    onClick={() => setContextFilter("all")}
+                    className="ml-0.5 hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              )}
+              {/* Clear All - only show if more than one filter active */}
+              {[topicSearch.trim(), dateRange !== "all", contextFilter !== "all"].filter(Boolean).length > 1 && (
+                <button
+                  onClick={() => {
+                    setTopicSearch("");
+                    setDateRange("all");
+                    setContextFilter("all");
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                >
+                  Clear all
+                </button>
+              )}
             </div>
           )}
 
