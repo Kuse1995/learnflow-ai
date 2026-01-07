@@ -130,6 +130,65 @@ export type Database = {
           },
         ]
       }
+      uploads: {
+        Row: {
+          class_id: string
+          created_at: string
+          date: string
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id: string
+          marking_scheme: string | null
+          subject: string
+          topic: string
+          updated_at: string
+          upload_type: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          date: string
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id?: string
+          marking_scheme?: string | null
+          subject: string
+          topic: string
+          updated_at?: string
+          upload_type: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          date?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          marking_scheme?: string | null
+          subject?: string
+          topic?: string
+          updated_at?: string
+          upload_type?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uploads_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

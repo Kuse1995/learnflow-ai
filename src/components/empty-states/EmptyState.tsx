@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { LucideIcon, FileText, Upload, CalendarX } from "lucide-react";
+import { LucideIcon, FileText, Upload, CalendarX, BookOpen } from "lucide-react";
 
-type EmptyStateVariant = "no-data" | "upload-first" | "no-lessons";
+export type EmptyStateVariant = "no-data" | "upload-first" | "no-lessons" | "no-classes";
 
 interface EmptyStateConfig {
   icon: LucideIcon;
@@ -29,6 +29,12 @@ const variants: Record<EmptyStateVariant, EmptyStateConfig> = {
     title: "No lessons planned today",
     description: "Your schedule is clear. Take a moment to plan ahead!",
     actionLabel: "Plan a lesson",
+  },
+  "no-classes": {
+    icon: BookOpen,
+    title: "No classes available",
+    description: "Create a class first to get started.",
+    actionLabel: "Create class",
   },
 };
 
