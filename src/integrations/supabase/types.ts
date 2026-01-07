@@ -68,6 +68,7 @@ export type Database = {
           grade: string | null
           id: string
           name: string
+          school_id: string | null
           section: string | null
           teacher_id: string | null
           updated_at: string
@@ -77,6 +78,7 @@ export type Database = {
           grade?: string | null
           id?: string
           name: string
+          school_id?: string | null
           section?: string | null
           teacher_id?: string | null
           updated_at?: string
@@ -86,11 +88,20 @@ export type Database = {
           grade?: string | null
           id?: string
           name?: string
+          school_id?: string | null
           section?: string | null
           teacher_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "classes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lesson_differentiation_suggestions: {
         Row: {
@@ -266,6 +277,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      schools: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          plan: Database["public"]["Enums"]["saas_plan"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          plan?: Database["public"]["Enums"]["saas_plan"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          plan?: Database["public"]["Enums"]["saas_plan"]
+          updated_at?: string
+        }
+        Relationships: []
       }
       student_intervention_plans: {
         Row: {
@@ -650,6 +685,7 @@ export type Database = {
     }
     Enums: {
       confidence_trend: "increasing" | "stable" | "declining"
+      saas_plan: "basic" | "standard" | "premium" | "enterprise"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -778,6 +814,7 @@ export const Constants = {
   public: {
     Enums: {
       confidence_trend: ["increasing", "stable", "declining"],
+      saas_plan: ["basic", "standard", "premium", "enterprise"],
     },
   },
 } as const

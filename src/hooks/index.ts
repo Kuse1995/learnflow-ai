@@ -91,5 +91,9 @@ export {
   formatGentleNudge,
 } from "./usePracticeAwareness";
 
+// School plan and feature gates
+export { useSchoolPlan, useSchoolPlanByClass } from "./useSchoolPlan";
+export { useFeatureGate, useFeatureGates } from "./useFeatureGate";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";
