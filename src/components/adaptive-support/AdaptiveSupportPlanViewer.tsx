@@ -22,6 +22,11 @@ import {
   useAcknowledgeAdaptiveSupportPlan,
 } from "@/hooks/useAdaptiveSupportPlans";
 
+/**
+ * Adaptive Support Plan Viewer
+ * VISIBILITY: Teacher-only. Never expose to parents or students.
+ * No notifications, analytics, scores, or progress indicators.
+ */
 interface AdaptiveSupportPlanViewerProps {
   plan: AdaptiveSupportPlan;
   studentName: string;
