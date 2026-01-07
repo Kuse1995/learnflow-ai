@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { FileText, Image, ExternalLink, Trash2, Sparkles, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { FileText, Image, ExternalLink, Trash2, Sparkles, Loader2, CheckCircle, XCircle, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { Upload } from "@/hooks/useUploads";
 import { useDeleteUpload } from "@/hooks/useUploads";
-import { useAnalyzeUpload, useUploadAnalysis } from "@/hooks/useUploadAnalysis";
+import { useAnalyzeUpload, useUploadAnalysis, type UploadAnalysis } from "@/hooks/useUploadAnalysis";
+import { AnalysisViewer } from "./AnalysisViewer";
 
 interface UploadsListProps {
   uploads: Upload[];
@@ -28,6 +29,7 @@ interface UploadsListProps {
 export function UploadsList({ uploads, classes, showAnalyzeButton = true }: UploadsListProps) {
   const [uploadToDelete, setUploadToDelete] = useState<Upload | null>(null);
   const [analyzingUploadId, setAnalyzingUploadId] = useState<string | null>(null);
+  const [viewingAnalysis, setViewingAnalysis] = useState<{ analysis: UploadAnalysis; topic: string } | null>(null);
   const { mutateAsync: deleteUpload, isPending: isDeleting } = useDeleteUpload();
   const { mutateAsync: analyzeUpload } = useAnalyzeUpload();
 
@@ -103,6 +105,7 @@ export function UploadsList({ uploads, classes, showAnalyzeButton = true }: Uplo
             isAnalyzing={analyzingUploadId === upload.id}
             onAnalyze={() => handleAnalyze(upload.id)}
             onDelete={() => setUploadToDelete(upload)}
+            onViewAnalysis={(analysis) => setViewingAnalysis({ analysis, topic: upload.topic })}
           />
         ))}
       </div>
@@ -128,6 +131,14 @@ export function UploadsList({ uploads, classes, showAnalyzeButton = true }: Uplo
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Analysis Viewer */}
+      <AnalysisViewer
+        analysis={viewingAnalysis?.analysis || null}
+        uploadTopic={viewingAnalysis?.topic}
+        open={!!viewingAnalysis}
+        onOpenChange={(open) => !open && setViewingAnalysis(null)}
+      />
     </>
   );
 }
@@ -143,6 +154,7 @@ interface UploadCardProps {
   isAnalyzing: boolean;
   onAnalyze: () => void;
   onDelete: () => void;
+  onViewAnalysis: (analysis: UploadAnalysis) => void;
 }
 
 function UploadCard({
@@ -155,6 +167,7 @@ function UploadCard({
   isAnalyzing,
   onAnalyze,
   onDelete,
+  onViewAnalysis,
 }: UploadCardProps) {
   const { data: analysis } = useUploadAnalysis(upload.id);
 
@@ -207,6 +220,18 @@ function UploadCard({
             </p>
           </div>
           <div className="flex gap-1">
+            {/* View Analysis button - only for completed analyses */}
+            {analysisStatus === "completed" && analysis && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onViewAnalysis(analysis)}
+                className="text-primary hover:text-primary hover:bg-primary/10"
+                title="View Analysis"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            )}
             {showAnalyzeButton && (
               <Button
                 variant="ghost"
@@ -214,7 +239,7 @@ function UploadCard({
                 onClick={onAnalyze}
                 disabled={isAnalyzing || analysisStatus === "analyzing"}
                 className="text-primary hover:text-primary hover:bg-primary/10"
-                title="Analyze with AI"
+                title={analysisStatus === "completed" ? "Re-analyze" : "Analyze with AI"}
               >
                 {isAnalyzing || analysisStatus === "analyzing" ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
