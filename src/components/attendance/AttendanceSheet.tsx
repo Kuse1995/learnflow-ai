@@ -1,8 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { AttendanceStudentCard } from "./AttendanceStudentCard";
+import { AttendanceStudentCard, type Student } from "./AttendanceStudentCard";
 import { Calendar, Users, Check } from "lucide-react";
-import type { Student as StudentType } from "@/types/attendance";
 
 // Re-export for backwards compatibility
 export type { Student } from "./AttendanceStudentCard";
@@ -16,7 +15,7 @@ interface AttendanceSheetProps {
   classId: string;
   className: string;
   date: Date;
-  students: StudentType[];
+  students: Student[];
   initialAttendance?: AttendanceEntry[];
   onSave?: (attendance: AttendanceEntry[]) => void | Promise<void>;
   onDateChange?: (date: Date) => void;
@@ -89,7 +88,7 @@ export function AttendanceSheet({
     if (!onSave) return;
     
     setIsSaving(true);
-    const records: AttendanceRecord[] = Object.entries(attendance).map(
+    const records: AttendanceEntry[] = Object.entries(attendance).map(
       ([studentId, present]) => ({ studentId, present })
     );
     
