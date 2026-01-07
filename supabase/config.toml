@@ -2,3 +2,6 @@ project_id = "vsrwqkednruuvnfvrhco"
 
 [functions.analyze-upload]
 verify_jwt = false
+
+[functions.teaching-suggestions]
+verify_jwt = false
