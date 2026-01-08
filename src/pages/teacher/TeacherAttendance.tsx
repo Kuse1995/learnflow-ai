@@ -35,7 +35,7 @@ export default function TeacherAttendance() {
 
   if (classesLoading) {
     return (
-      <TeacherLayout schoolName="Stitch Academy">
+      <TeacherLayout schoolName="Omanut Academy">
         <div className="p-4 space-y-4">
           <Skeleton className="h-8 w-40" />
           <Skeleton className="h-12 w-full rounded-xl" />
@@ -47,7 +47,7 @@ export default function TeacherAttendance() {
 
   if (classes.length === 0) {
     return (
-      <TeacherLayout schoolName="Stitch Academy">
+      <TeacherLayout schoolName="Omanut Academy">
         <div className="flex items-center justify-center h-full p-4">
           <EmptyState 
             variant="no-data"
@@ -60,7 +60,7 @@ export default function TeacherAttendance() {
   }
 
   return (
-    <TeacherLayout schoolName="Stitch Academy">
+    <TeacherLayout schoolName="Omanut Academy">
       <div className="flex flex-col h-full">
         {/* Class & Date Selector */}
         {!selectedClassId ? (

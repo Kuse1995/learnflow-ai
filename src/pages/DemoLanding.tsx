@@ -44,7 +44,7 @@ export default function DemoLanding() {
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
               <Beaker className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-lg">Stitch SMS</span>
+            <span className="font-bold text-lg">Omanut SMS</span>
             <Badge variant="secondary" className="ml-2">Demo</Badge>
           </div>
           
