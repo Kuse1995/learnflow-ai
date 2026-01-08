@@ -1,5 +1,6 @@
 import React from 'react';
-import { Lock, ArrowLeft, Home } from 'lucide-react';
+import { Lock, ArrowLeft, Home, LogOut } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +14,8 @@ interface AccessDeniedProps {
   showBack?: boolean;
   /** Show home button */
   showHome?: boolean;
+  /** Show logout button */
+  showLogout?: boolean;
   /** Custom action */
   action?: React.ReactNode;
   /** Compact mode for inline use */
@@ -35,10 +38,16 @@ export function AccessDenied({
   message = "This content is not available to your account. Please contact your administrator if you need assistance.",
   showBack = true,
   showHome = true,
+  showLogout = true,
   action,
   compact = false,
 }: AccessDeniedProps) {
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
 
   if (compact) {
     return (
@@ -74,6 +83,12 @@ export function AccessDenied({
               <Button onClick={() => navigate('/')}>
                 <Home className="h-4 w-4 mr-2" />
                 Home
+              </Button>
+            )}
+            {showLogout && (
+              <Button variant="destructive" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Log Out
               </Button>
             )}
             {action}
