@@ -1,13 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { validateObjectLanguage, logLanguageViolation, getLanguageViolationFallback } from "../_shared/safety-validator.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-const SERVICE_UNAVAILABLE_MESSAGE = "This feature is temporarily unavailable. You can continue working without it.";
+import { 
+  corsHeaders, 
+  validateObjectLanguage, 
+  logLanguageViolation, 
+  getLanguageViolationFallback,
+  createDemoPlaceholderResponse,
+  createDemoSafeErrorResponse 
+} from "../_shared/safety-validator.ts";
 
 // Demo fallback plan when AI is unavailable
 function getDemoFallbackPlan(studentName?: string) {

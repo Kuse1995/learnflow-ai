@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders, createDemoPlaceholderResponse, createDemoSafeErrorResponse } from "../_shared/safety-validator.ts";
 
 interface PracticeActivity {
   type: "guided_example" | "try_it" | "explain" | "visual_match" | "reflection";
@@ -13,26 +9,96 @@ interface PracticeActivity {
   hint?: string;
 }
 
+// Demo fallback practice
+function getDemoFallbackPractice(): {
+  welcome_message: string;
+  activities: PracticeActivity[];
+  closing_message: string;
+} {
+  return {
+    welcome_message: "Welcome! Let's explore some learning activities together. Take your time - there's no rush!",
+    activities: [
+      {
+        type: "guided_example",
+        content: "This is a sample guided activity. In the full version, activities will be personalized based on your class topics.",
+        prompt: "Follow along with the steps shown above.",
+        hint: "Don't worry about getting it perfect - this is just practice!",
+      },
+      {
+        type: "try_it",
+        content: "Here's a simple prompt to try on your own.",
+        prompt: "Think about what you learned recently and try applying it here.",
+        hint: "Remember, it's okay to take your time.",
+      },
+      {
+        type: "reflection",
+        content: "Learning is a journey, not a race.",
+        prompt: "What's one thing you're curious to learn more about?",
+      },
+    ],
+    closing_message: "Great job exploring today! You can come back anytime to practice more.",
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const context = "generate-practice";
+
   try {
     const { studentId, classId } = await req.json();
 
     if (!studentId || !classId) {
+      console.log(`[${context}] Missing required fields`);
+      return createDemoPlaceholderResponse({
+        welcomeMessage: "Welcome to practice mode!",
+        activities: [],
+        closingMessage: "Please select a class to begin.",
+      }, "Student and class information required");
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error(`[${context}] Missing Supabase configuration`);
+      const demo = getDemoFallbackPractice();
       return new Response(
-        JSON.stringify({ error: "studentId and classId are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: true,
+          isDemoGenerated: true,
+          message: "Demo practice generated",
+          welcomeMessage: demo.welcome_message,
+          activities: demo.activities,
+          closingMessage: demo.closing_message,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Check for AI API key - use demo fallback if not available
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.log(`[${context}] LOVABLE_API_KEY not configured, using demo fallback`);
+      const demo = getDemoFallbackPractice();
+      return new Response(
+        JSON.stringify({
+          success: true,
+          isDemoGenerated: true,
+          message: "Demo practice generated - AI service not configured",
+          welcomeMessage: demo.welcome_message,
+          activities: demo.activities,
+          closingMessage: demo.closing_message,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Fetch adaptive support plan for focus areas (no student profile exposure)
+    // Fetch adaptive support plan for focus areas
     const { data: supportPlan } = await supabase
       .from("student_intervention_plans")
       .select("focus_areas, support_strategies")
@@ -42,7 +108,7 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    // Fetch recent lesson topics for context
+    // Fetch recent lesson topics
     const { data: recentLessons } = await supabase
       .from("lesson_differentiation_suggestions")
       .select("lesson_topic, lesson_objective, support_strategies")
@@ -50,7 +116,7 @@ serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(3);
 
-    // Fetch recent class uploads for topic context
+    // Fetch recent uploads for topic context
     const { data: recentUploads } = await supabase
       .from("uploads")
       .select("topic, subject")
@@ -58,22 +124,19 @@ serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(5);
 
-    // Build context for AI (no scores, no student profile details)
+    // Build context
     const focusAreas = supportPlan?.focus_areas || [];
     const supportStrategies = supportPlan?.support_strategies || [];
     const lessonTopics = recentLessons?.map(l => l.lesson_topic) || [];
     const classTopics = recentUploads?.map(u => u.topic) || [];
 
-    // Select 1-2 focus areas randomly
     const selectedFocusAreas = focusAreas.length > 0 
       ? focusAreas.slice(0, Math.min(2, focusAreas.length))
       : classTopics.slice(0, Math.min(2, classTopics.length));
 
-    // Get lesson context
     const lessonContext = recentLessons?.[0]?.lesson_objective || 
       `Exploring concepts related to ${selectedFocusAreas.join(" and ") || "recent class topics"}`;
 
-    // Build the AI prompt
     const systemPrompt = `You are a friendly, encouraging practice assistant for students.
 Your role is to create supportive, low-pressure practice activities.
 
@@ -112,12 +175,7 @@ For each activity, provide:
 
 Remember: This is practice for exploration and growth, not assessment.`;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    console.log("Generating practice activities for student:", studentId);
+    console.log(`[${context}] Generating practice activities for student:`, studentId);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -140,19 +198,13 @@ Remember: This is practice for exploration and growth, not assessment.`;
               parameters: {
                 type: "object",
                 properties: {
-                  welcome_message: {
-                    type: "string",
-                    description: "A warm, encouraging welcome message for the student",
-                  },
+                  welcome_message: { type: "string" },
                   activities: {
                     type: "array",
                     items: {
                       type: "object",
                       properties: {
-                        type: {
-                          type: "string",
-                          enum: ["guided_example", "try_it", "explain", "visual_match", "reflection"],
-                        },
+                        type: { type: "string", enum: ["guided_example", "try_it", "explain", "visual_match", "reflection"] },
                         content: { type: "string" },
                         prompt: { type: "string" },
                         hint: { type: "string" },
@@ -160,10 +212,7 @@ Remember: This is practice for exploration and growth, not assessment.`;
                       required: ["type", "content", "prompt"],
                     },
                   },
-                  closing_message: {
-                    type: "string",
-                    description: "A gentle closing message for when the session ends",
-                  },
+                  closing_message: { type: "string" },
                 },
                 required: ["welcome_message", "activities", "closing_message"],
               },
@@ -176,37 +225,45 @@ Remember: This is practice for exploration and growth, not assessment.`;
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error(`[${context}] AI gateway error:`, response.status);
       
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Practice generation is busy. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Service temporarily unavailable. Please try again later." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      throw new Error(`AI gateway error: ${response.status}`);
+      // Demo-safe: return fallback
+      const demo = getDemoFallbackPractice();
+      return new Response(
+        JSON.stringify({
+          success: true,
+          isDemoGenerated: true,
+          message: "Demo practice generated - AI service temporarily unavailable",
+          welcomeMessage: demo.welcome_message,
+          activities: demo.activities,
+          closingMessage: demo.closing_message,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const aiResponse = await response.json();
-    console.log("AI response received");
+    console.log(`[${context}] AI response received`);
 
-    // Extract the tool call result
     const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall?.function?.arguments) {
-      throw new Error("No practice activities generated");
+      console.error(`[${context}] No practice activities generated`);
+      const demo = getDemoFallbackPractice();
+      return new Response(
+        JSON.stringify({
+          success: true,
+          isDemoGenerated: true,
+          welcomeMessage: demo.welcome_message,
+          activities: demo.activities,
+          closingMessage: demo.closing_message,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const practiceData = JSON.parse(toolCall.function.arguments);
 
-    console.log("Practice session generated with", practiceData.activities?.length, "activities");
+    console.log(`[${context}] Practice session generated with`, practiceData.activities?.length, "activities");
 
     return new Response(
       JSON.stringify({
@@ -218,11 +275,18 @@ Remember: This is practice for exploration and growth, not assessment.`;
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error generating practice:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to generate practice activities";
+    console.error(`[${context}] Error:`, error);
+    const demo = getDemoFallbackPractice();
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        success: true,
+        isDemoGenerated: true,
+        message: "Not enough demo data yet",
+        welcomeMessage: demo.welcome_message,
+        activities: demo.activities,
+        closingMessage: demo.closing_message,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

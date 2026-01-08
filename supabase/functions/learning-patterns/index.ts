@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders, createDemoPlaceholderResponse, createDemoSafeErrorResponse } from "../_shared/safety-validator.ts";
 
 interface LearningPatternsResult {
   insights: string[];
@@ -16,47 +12,69 @@ interface LearningPatternsResult {
   };
 }
 
+// Demo fallback patterns
+function getDemoFallbackPatterns(): { insights: string[]; data_coverage: LearningPatternsResult["data_coverage"] } {
+  return {
+    insights: [
+      "Learning pattern analysis will be available once more class data is collected.",
+      "Upload and analyze student work to see longitudinal insights here.",
+    ],
+    data_coverage: {
+      analyses_count: 0,
+      profiles_count: 0,
+      actions_count: 0,
+      earliest_date: null,
+    },
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const context = "learning-patterns";
+
   try {
     const { classId } = await req.json();
 
     if (!classId) {
-      return new Response(JSON.stringify({ error: "classId is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.log(`[${context}] Missing classId`);
+      return createDemoPlaceholderResponse(getDemoFallbackPatterns(), "Class ID is required");
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error(`[${context}] Missing Supabase configuration`);
+      return createDemoPlaceholderResponse(getDemoFallbackPatterns(), "Database configuration not available");
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log(`Generating learning patterns for class: ${classId}`);
+    console.log(`[${context}] Generating learning patterns for class: ${classId}`);
 
     // Calculate 90-day window
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
     const dateThreshold = ninetyDaysAgo.toISOString();
 
-    // Fetch completed analyses within time window
+    // Fetch completed analyses
     const { data: analyses, error: analysesError } = await supabase
       .from("upload_analyses")
-      .select(`
-        *,
-        uploads!inner(subject, topic, date)
-      `)
+      .select(`*, uploads!inner(subject, topic, date)`)
       .eq("class_id", classId)
       .eq("status", "completed")
       .gte("analyzed_at", dateThreshold)
       .order("analyzed_at", { ascending: true });
 
-    if (analysesError) throw analysesError;
+    if (analysesError) {
+      console.error(`[${context}] Analyses fetch error:`, analysesError);
+      return createDemoPlaceholderResponse(getDemoFallbackPatterns(), "Unable to fetch analysis data");
+    }
 
-    // Fetch students in this class
+    // Fetch students in class
     const { data: students } = await supabase
       .from("students")
       .select("id")
@@ -74,7 +92,7 @@ serve(async (req) => {
       profiles = profileData || [];
     }
 
-    // Fetch recent teacher actions (for context awareness, not evaluation)
+    // Fetch recent teacher actions
     const { data: recentActions } = await supabase
       .from("teacher_action_logs")
       .select("topic, created_at")
@@ -92,17 +110,34 @@ serve(async (req) => {
 
     // If insufficient data, return early with minimal response
     if (!analyses || analyses.length < 2) {
+      console.log(`[${context}] Insufficient data for pattern analysis`);
       return new Response(
         JSON.stringify({
           success: true,
-          insights: [],
+          insights: ["Not enough data collected yet. Upload and analyze more student work to see patterns."],
           data_coverage: dataCoverage,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Aggregate patterns for AI analysis
+    // Check for AI API key
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!lovableApiKey) {
+      console.log(`[${context}] LOVABLE_API_KEY not configured, using demo response`);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          isDemoGenerated: true,
+          message: "AI service not configured",
+          insights: ["Pattern analysis requires AI service configuration. Data is being collected."],
+          data_coverage: dataCoverage,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Aggregate patterns for AI
     const analysisSummaries = analyses.map((a) => ({
       date: a.uploads?.date,
       subject: a.uploads?.subject,
@@ -111,20 +146,11 @@ serve(async (req) => {
       topic_gaps: a.class_summary?.topic_gaps || [],
     }));
 
-    // Get unique topics from analyses
     const allTopics = [...new Set(analysisSummaries.flatMap((a) => [a.topic, ...a.topic_gaps]).filter(Boolean))];
-
-    // Get topics from teacher actions (for context only)
     const actionTopics = [...new Set(recentActions?.filter((a) => a.topic).map((a) => a.topic) || [])];
 
     // Aggregate error patterns
-    const aggregatedPatterns = {
-      conceptual: 0,
-      procedural: 0,
-      language: 0,
-      careless: 0,
-    };
-
+    const aggregatedPatterns = { conceptual: 0, procedural: 0, language: 0, careless: 0 };
     profiles.forEach((p) => {
       if (p.error_patterns) {
         aggregatedPatterns.conceptual += p.error_patterns.conceptual || 0;
@@ -134,7 +160,6 @@ serve(async (req) => {
       }
     });
 
-    // Build AI prompt
     const systemPrompt = `You are an educational data analyst providing observational insights about classroom learning patterns over time.
 
 CRITICAL RULES:
@@ -151,44 +176,22 @@ CRITICAL RULES:
 TONE:
 - Neutral and supportive
 - Tentative, not definitive
-- Descriptive, not evaluative
-
-EXAMPLES OF GOOD INSIGHTS:
-- "Focus areas appear to have shifted from foundational concepts toward application-based challenges."
-- "Language-related observations seem relatively consistent across recent analyses."
-- "Procedural understanding may be an emerging area of attention based on recent patterns."
-
-EXAMPLES TO AVOID:
-- "Performance has improved by 20%"
-- "The teacher's intervention was successful"
-- "Students are struggling with..."
-- "Decline in conceptual understanding"`;
+- Descriptive, not evaluative`;
 
     const userPrompt = `Based on the following longitudinal class data, provide 3-4 brief observational insights about learning patterns over time.
 
 Time Window: Last 90 days
 Number of analyses available: ${analyses.length}
-
-Topics observed across analyses: ${allTopics.join(", ") || "Various topics"}
-
-${actionTopics.length > 0 ? `Topics where instructional attention has been documented: ${actionTopics.join(", ")}` : ""}
+Topics observed: ${allTopics.join(", ") || "Various topics"}
+${actionTopics.length > 0 ? `Topics with instructional attention: ${actionTopics.join(", ")}` : ""}
 
 Aggregated error pattern observations:
-- Conceptual understanding challenges: ${aggregatedPatterns.conceptual > 10 ? "Notable" : aggregatedPatterns.conceptual > 3 ? "Present" : "Limited"}
-- Procedural execution challenges: ${aggregatedPatterns.procedural > 10 ? "Notable" : aggregatedPatterns.procedural > 3 ? "Present" : "Limited"}
-- Language/comprehension challenges: ${aggregatedPatterns.language > 10 ? "Notable" : aggregatedPatterns.language > 3 ? "Present" : "Limited"}
-- Attention-related patterns: ${aggregatedPatterns.careless > 10 ? "Notable" : aggregatedPatterns.careless > 3 ? "Present" : "Limited"}
-
-Analysis timeline summary:
-${analysisSummaries.slice(0, 5).map((a) => `- ${a.date}: ${a.subject || "Unknown"} / ${a.topic || "Unknown"}`).join("\n")}
-${analyses.length > 5 ? `... and ${analyses.length - 5} more analyses` : ""}
+- Conceptual: ${aggregatedPatterns.conceptual > 10 ? "Notable" : aggregatedPatterns.conceptual > 3 ? "Present" : "Limited"}
+- Procedural: ${aggregatedPatterns.procedural > 10 ? "Notable" : aggregatedPatterns.procedural > 3 ? "Present" : "Limited"}
+- Language: ${aggregatedPatterns.language > 10 ? "Notable" : aggregatedPatterns.language > 3 ? "Present" : "Limited"}
+- Attention: ${aggregatedPatterns.careless > 10 ? "Notable" : aggregatedPatterns.careless > 3 ? "Present" : "Limited"}
 
 Provide observational insights only. Do not evaluate or recommend.`;
-
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!lovableApiKey) {
-      throw new Error("LOVABLE_API_KEY not configured");
-    }
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -207,16 +210,11 @@ Provide observational insights only. Do not evaluate or recommend.`;
             type: "function",
             function: {
               name: "submit_learning_patterns",
-              description: "Submit observational insights about learning patterns over time",
+              description: "Submit observational insights about learning patterns",
               parameters: {
                 type: "object",
                 properties: {
-                  insights: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Array of 3-4 brief, observational insight statements",
-                    maxItems: 4,
-                  },
+                  insights: { type: "array", items: { type: "string" }, maxItems: 4 },
                 },
                 required: ["insights"],
               },
@@ -228,50 +226,42 @@ Provide observational insights only. Do not evaluate or recommend.`;
     });
 
     if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI Gateway error:", aiResponse.status, errorText);
-
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error(`AI Gateway error: ${aiResponse.status}`);
+      console.error(`[${context}] AI Gateway error:`, aiResponse.status);
+      
+      // Demo-safe: return placeholder
+      return new Response(
+        JSON.stringify({
+          success: true,
+          isDemoGenerated: true,
+          message: "AI service temporarily unavailable",
+          insights: ["Pattern analysis is being processed. Check back soon."],
+          data_coverage: dataCoverage,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const aiData = await aiResponse.json();
     const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
 
     if (!toolCall || toolCall.function.name !== "submit_learning_patterns") {
-      throw new Error("Invalid AI response format");
+      console.error(`[${context}] Invalid AI response format`);
+      return createDemoSafeErrorResponse(new Error("Invalid AI response"), { data_coverage: dataCoverage }, context);
     }
 
     const result: { insights: string[] } = JSON.parse(toolCall.function.arguments);
-    console.log("Learning patterns generated successfully");
+    console.log(`[${context}] Learning patterns generated successfully`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        insights: result.insights.slice(0, 4), // Ensure max 4
+        insights: result.insights.slice(0, 4),
         data_coverage: dataCoverage,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Learning patterns error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Failed to generate patterns" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    console.error(`[${context}] Error:`, error);
+    return createDemoSafeErrorResponse(error, getDemoFallbackPatterns(), context);
   }
 });

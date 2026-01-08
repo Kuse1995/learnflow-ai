@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders, createDemoPlaceholderResponse, createDemoSafeErrorResponse } from "../_shared/safety-validator.ts";
 
 interface StudentDiagnostic {
   student_id: string;
@@ -30,28 +26,53 @@ interface AnalysisResult {
   student_diagnostics: StudentDiagnostic[];
 }
 
+// Demo fallback analysis
+function getDemoFallbackAnalysis(students: { id: string; name: string }[]): AnalysisResult {
+  return {
+    class_summary: {
+      common_errors: ["Demo mode - upload a marked assessment to see real analysis"],
+      topic_gaps: ["Analysis will be available when AI service is configured"],
+      overall_observations: "This is a demo placeholder. In the full version, AI will analyze student work and provide detailed insights.",
+    },
+    student_diagnostics: students.map((s) => ({
+      student_id: s.id,
+      student_name: s.name,
+      error_patterns: { conceptual: 0, procedural: 0, language: 0, careless: 0 },
+      weak_topics: [],
+      notes: "Demo-generated placeholder - no analysis performed",
+    })),
+  };
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const context = "analyze-upload";
+
   try {
     const { uploadId } = await req.json();
     
     if (!uploadId) {
-      return new Response(JSON.stringify({ error: "uploadId is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      // In demo mode, return safe placeholder instead of 400
+      console.log(`[${context}] Missing uploadId`);
+      return createDemoPlaceholderResponse({ analysisId: null }, "Upload ID is required");
     }
 
     // Initialize Supabase client with service role for full access
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error(`[${context}] Missing Supabase configuration`);
+      return createDemoPlaceholderResponse({}, "Database configuration not available");
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log(`Starting analysis for upload: ${uploadId}`);
+    console.log(`[${context}] Starting analysis for upload: ${uploadId}`);
 
     // Fetch upload details
     const { data: upload, error: uploadError } = await supabase
@@ -61,11 +82,8 @@ serve(async (req) => {
       .single();
 
     if (uploadError || !upload) {
-      console.error("Upload not found:", uploadError);
-      return new Response(JSON.stringify({ error: "Upload not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.error(`[${context}] Upload not found:`, uploadError);
+      return createDemoPlaceholderResponse({ uploadId }, "Upload not found in demo data");
     }
 
     // Check if analysis already exists
@@ -79,19 +97,20 @@ serve(async (req) => {
 
     if (existingAnalysis) {
       if (existingAnalysis.status === "analyzing") {
-        return new Response(JSON.stringify({ error: "Analysis already in progress" }), {
-          status: 409,
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: "Analysis already in progress",
+          analysisId: existingAnalysis.id 
+        }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       analysisId = existingAnalysis.id;
-      // Update status to analyzing
       await supabase
         .from("upload_analyses")
         .update({ status: "analyzing", error_message: null })
         .eq("id", analysisId);
     } else {
-      // Create new analysis record
       const { data: newAnalysis, error: createError } = await supabase
         .from("upload_analyses")
         .insert({ upload_id: uploadId, class_id: upload.class_id, status: "analyzing" })
@@ -99,14 +118,13 @@ serve(async (req) => {
         .single();
 
       if (createError || !newAnalysis) {
-        console.error("Failed to create analysis record:", createError);
-        throw new Error("Failed to create analysis record");
+        console.error(`[${context}] Failed to create analysis record:`, createError);
+        return createDemoPlaceholderResponse({}, "Unable to create analysis record");
       }
       analysisId = newAnalysis.id;
     }
 
     // Fetch students for this class
-    // First check if there are specific students in upload_students
     const { data: uploadStudents } = await supabase
       .from("upload_students")
       .select("student_id")
@@ -115,27 +133,64 @@ serve(async (req) => {
     let students: { id: string; name: string; student_id: string }[];
 
     if (uploadStudents && uploadStudents.length > 0) {
-      // Specific students assigned
       const studentIds = uploadStudents.map((us) => us.student_id);
       const { data: specificStudents, error: studentsError } = await supabase
         .from("students")
         .select("id, name, student_id")
         .in("id", studentIds);
 
-      if (studentsError) throw studentsError;
-      students = specificStudents || [];
+      if (studentsError) {
+        console.error(`[${context}] Students fetch error:`, studentsError);
+        students = [];
+      } else {
+        students = specificStudents || [];
+      }
     } else {
-      // All students in class
       const { data: classStudents, error: studentsError } = await supabase
         .from("students")
         .select("id, name, student_id")
         .eq("class_id", upload.class_id);
 
-      if (studentsError) throw studentsError;
-      students = classStudents || [];
+      if (studentsError) {
+        console.error(`[${context}] Students fetch error:`, studentsError);
+        students = [];
+      } else {
+        students = classStudents || [];
+      }
     }
 
-    console.log(`Analyzing for ${students.length} students`);
+    console.log(`[${context}] Analyzing for ${students.length} students`);
+
+    // Check for AI API key - use demo fallback if not available
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!lovableApiKey) {
+      console.log(`[${context}] LOVABLE_API_KEY not configured, using demo fallback`);
+      
+      const demoResult = getDemoFallbackAnalysis(students.map(s => ({ id: s.id, name: s.name })));
+      
+      // Save demo analysis to database
+      await supabase
+        .from("upload_analyses")
+        .update({
+          status: "completed",
+          class_summary: demoResult.class_summary,
+          student_diagnostics: demoResult.student_diagnostics,
+          analyzed_at: new Date().toISOString(),
+        })
+        .eq("id", analysisId);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          isDemoGenerated: true,
+          message: "Demo analysis generated - AI service not configured",
+          analysisId,
+          class_summary: demoResult.class_summary,
+          student_count: demoResult.student_diagnostics.length,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Build the AI prompt
     const systemPrompt = `You are an educational assessment analyst. Your task is to analyze student work and identify learning patterns.
@@ -174,12 +229,6 @@ Please analyze the document and provide diagnostic feedback. If this appears to 
 
 Return your analysis as a structured response for each student and the class overall.`;
 
-    // Call Lovable AI Gateway with vision capabilities
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!lovableApiKey) {
-      throw new Error("LOVABLE_API_KEY not configured");
-    }
-
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -210,20 +259,9 @@ Return your analysis as a structured response for each student and the class ove
                   class_summary: {
                     type: "object",
                     properties: {
-                      common_errors: {
-                        type: "array",
-                        items: { type: "string" },
-                        description: "List of common errors seen across multiple students",
-                      },
-                      topic_gaps: {
-                        type: "array",
-                        items: { type: "string" },
-                        description: "Topics that need reinforcement",
-                      },
-                      overall_observations: {
-                        type: "string",
-                        description: "General observations about class performance patterns",
-                      },
+                      common_errors: { type: "array", items: { type: "string" } },
+                      topic_gaps: { type: "array", items: { type: "string" } },
+                      overall_observations: { type: "string" },
                     },
                     required: ["common_errors", "topic_gaps", "overall_observations"],
                   },
@@ -232,7 +270,7 @@ Return your analysis as a structured response for each student and the class ove
                     items: {
                       type: "object",
                       properties: {
-                        student_id: { type: "string", description: "The student UUID" },
+                        student_id: { type: "string" },
                         student_name: { type: "string" },
                         error_patterns: {
                           type: "object",
@@ -244,11 +282,8 @@ Return your analysis as a structured response for each student and the class ove
                           },
                           required: ["conceptual", "procedural", "language", "careless"],
                         },
-                        weak_topics: {
-                          type: "array",
-                          items: { type: "string" },
-                        },
-                        notes: { type: "string", description: "Brief neutral observation" },
+                        weak_topics: { type: "array", items: { type: "string" } },
+                        notes: { type: "string" },
                       },
                       required: ["student_id", "student_name", "error_patterns", "weak_topics", "notes"],
                     },
@@ -265,42 +300,45 @@ Return your analysis as a structured response for each student and the class ove
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error("AI Gateway error:", aiResponse.status, errorText);
+      console.error(`[${context}] AI Gateway error:`, aiResponse.status, errorText);
       
-      if (aiResponse.status === 429) {
-        await supabase
-          .from("upload_analyses")
-          .update({ status: "failed", error_message: "Rate limit exceeded. Please try again later." })
-          .eq("id", analysisId);
-        return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (aiResponse.status === 402) {
-        await supabase
-          .from("upload_analyses")
-          .update({ status: "failed", error_message: "AI credits exhausted." })
-          .eq("id", analysisId);
-        return new Response(JSON.stringify({ error: "AI credits exhausted" }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error(`AI Gateway error: ${aiResponse.status}`);
+      // Demo-safe: return placeholder instead of error status
+      const demoResult = getDemoFallbackAnalysis(students.map(s => ({ id: s.id, name: s.name })));
+      
+      await supabase
+        .from("upload_analyses")
+        .update({
+          status: "completed",
+          class_summary: demoResult.class_summary,
+          student_diagnostics: demoResult.student_diagnostics,
+          analyzed_at: new Date().toISOString(),
+        })
+        .eq("id", analysisId);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          isDemoGenerated: true,
+          message: aiResponse.status === 429 ? "Rate limit reached - demo analysis generated" : "AI service unavailable - demo analysis generated",
+          analysisId,
+          class_summary: demoResult.class_summary,
+          student_count: demoResult.student_diagnostics.length,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const aiData = await aiResponse.json();
-    console.log("AI response received");
+    console.log(`[${context}] AI response received`);
 
-    // Extract the function call result
     const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall || toolCall.function.name !== "submit_analysis") {
-      throw new Error("Invalid AI response format");
+      console.error(`[${context}] Invalid AI response format`);
+      return createDemoSafeErrorResponse(new Error("Invalid AI response"), { analysisId }, context);
     }
 
     const analysisResult: AnalysisResult = JSON.parse(toolCall.function.arguments);
-    console.log("Analysis parsed successfully");
+    console.log(`[${context}] Analysis parsed successfully`);
 
     // Update the analysis record with results
     await supabase
@@ -313,7 +351,7 @@ Return your analysis as a structured response for each student and the class ove
       })
       .eq("id", analysisId);
 
-    // Append timeline entries for each student analyzed (silently, no notifications)
+    // Append timeline entries and update profiles (silently)
     for (const diagnostic of analysisResult.student_diagnostics) {
       try {
         await supabase.from("student_learning_timeline").insert({
@@ -325,14 +363,10 @@ Return your analysis as a structured response for each student and the class ove
           occurred_at: new Date().toISOString(),
         });
       } catch (timelineError) {
-        // Silent failure - don't block main flow
-        console.error("Timeline append failed:", timelineError);
+        console.error(`[${context}] Timeline append failed:`, timelineError);
       }
-    }
 
-    // Update student learning profiles
-    for (const diagnostic of analysisResult.student_diagnostics) {
-      // Check if learning profile exists
+      // Update learning profiles
       const { data: existingProfile } = await supabase
         .from("student_learning_profiles")
         .select("*")
@@ -340,7 +374,6 @@ Return your analysis as a structured response for each student and the class ove
         .maybeSingle();
 
       if (existingProfile) {
-        // Merge error patterns (weighted average with existing)
         const mergedPatterns = {
           conceptual: Math.round((existingProfile.error_patterns.conceptual + diagnostic.error_patterns.conceptual) / 2),
           procedural: Math.round((existingProfile.error_patterns.procedural + diagnostic.error_patterns.procedural) / 2),
@@ -348,19 +381,13 @@ Return your analysis as a structured response for each student and the class ove
           careless: Math.round((existingProfile.error_patterns.careless + diagnostic.error_patterns.careless) / 2),
         };
 
-        // Merge weak topics (union, keeping unique)
         const existingTopics = existingProfile.weak_topics || [];
         const mergedTopics = [...new Set([...existingTopics, ...diagnostic.weak_topics])];
 
-        // Conservative confidence trend update
         const totalErrors = diagnostic.error_patterns.conceptual + diagnostic.error_patterns.procedural;
         let newTrend = existingProfile.confidence_trend;
-        if (totalErrors < 3) {
-          newTrend = "increasing";
-        } else if (totalErrors > 6) {
-          newTrend = "declining";
-        }
-        // Otherwise keep stable
+        if (totalErrors < 3) newTrend = "increasing";
+        else if (totalErrors > 6) newTrend = "declining";
 
         await supabase
           .from("student_learning_profiles")
@@ -371,7 +398,6 @@ Return your analysis as a structured response for each student and the class ove
           })
           .eq("student_id", diagnostic.student_id);
       } else {
-        // Create new profile
         const totalErrors = diagnostic.error_patterns.conceptual + diagnostic.error_patterns.procedural;
         const trend = totalErrors < 3 ? "increasing" : totalErrors > 6 ? "declining" : "stable";
 
@@ -385,7 +411,7 @@ Return your analysis as a structured response for each student and the class ove
       }
     }
 
-    console.log("Student learning profiles updated");
+    console.log(`[${context}] Student learning profiles updated`);
 
     return new Response(
       JSON.stringify({
@@ -394,18 +420,10 @@ Return your analysis as a structured response for each student and the class ove
         class_summary: analysisResult.class_summary,
         student_count: analysisResult.student_diagnostics.length,
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Analysis error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Analysis failed" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    console.error(`[${context}] Analysis error:`, error);
+    return createDemoSafeErrorResponse(error, {}, context);
   }
 });
