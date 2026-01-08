@@ -7,7 +7,8 @@ import {
   sortRolesByPriority,
 } from '@/lib/rbac-permissions';
 import { useDemoMode, DEMO_USERS } from '@/contexts/DemoModeContext';
-
+import { useAuthContext } from '@/contexts/AuthContext';
+import { isPlatformOwnerEmail } from '@/hooks/usePlatformOwner';
 // =============================================================================
 // CONTEXT TYPE
 // =============================================================================
@@ -34,6 +35,9 @@ interface RBACContextValue {
   
   // Loading state
   isLoading: boolean;
+  
+  // Platform Owner has unrestricted access
+  isPlatformOwner: boolean;
 }
 
 const RBACContext = createContext<RBACContextValue | null>(null);
@@ -58,6 +62,10 @@ export function RBACProvider({
 }: RBACProviderProps) {
   // Check if demo mode is active
   const { isDemoMode, demoRole, demoUserId, demoUserName, demoSchoolId } = useDemoMode();
+  
+  // Check if current user is the Platform Owner (unrestricted access)
+  const { user } = useAuthContext();
+  const isPlatformOwner = isPlatformOwnerEmail(user?.email);
   
   // Use demo credentials if in demo mode and no real user
   const effectiveUserId = userId ?? (isDemoMode ? demoUserId : null);
@@ -89,16 +97,19 @@ export function RBACProvider({
   }, [roles]);
 
   const hasRole = useCallback((role: AppRole) => {
+    if (isPlatformOwner) return true; // Platform Owner bypass
     return roles.includes(role);
-  }, [roles]);
+  }, [roles, isPlatformOwner]);
 
   const hasAnyRole = useCallback((checkRoles: AppRole[]) => {
+    if (isPlatformOwner) return true; // Platform Owner bypass
     return checkRoles.some(role => roles.includes(role));
-  }, [roles]);
+  }, [roles, isPlatformOwner]);
 
   const canPerform = useCallback((action: PermissionAction) => {
+    if (isPlatformOwner) return true; // Platform Owner bypass
     return canPerformAction(roles, action);
-  }, [roles]);
+  }, [roles, isPlatformOwner]);
 
   const value = useMemo(() => ({
     userId: effectiveUserId,
@@ -114,6 +125,7 @@ export function RBACProvider({
     assignedClassIds: [] as string[],
     linkedStudentIds: [] as string[],
     isLoading: isDemoMode ? false : isLoading,
+    isPlatformOwner,
   }), [
     effectiveUserId,
     effectiveUserName,
@@ -126,6 +138,7 @@ export function RBACProvider({
     canPerform,
     isLoading,
     isDemoMode,
+    isPlatformOwner,
   ]);
 
   return (
@@ -158,6 +171,7 @@ export function useRBACContext(): RBACContextValue {
       assignedClassIds: [],
       linkedStudentIds: [],
       isLoading: false,
+      isPlatformOwner: false,
     };
   }
   

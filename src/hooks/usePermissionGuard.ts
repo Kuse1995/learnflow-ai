@@ -41,10 +41,13 @@ interface PermissionGuardResult {
  * }
  */
 export function usePermissionGuard(options: UsePermissionGuardOptions = {}): PermissionGuardResult {
-  const { canPerform, hasRole, hasAnyRole, activeRole, isLoading } = useRBACContext();
+  const { canPerform, hasRole, hasAnyRole, activeRole, isLoading, isPlatformOwner } = useRBACContext();
   const navigate = useNavigate();
 
   const hasPermission = useMemo(() => {
+    // Platform Owner has unrestricted access
+    if (isPlatformOwner) return true;
+    
     // Check action permissions
     let hasActionPermission = true;
     
@@ -72,7 +75,7 @@ export function usePermissionGuard(options: UsePermissionGuardOptions = {}): Per
     }
 
     return hasActionPermission && hasRolePermission;
-  }, [options, canPerform, hasRole, hasAnyRole]);
+  }, [options, canPerform, hasRole, hasAnyRole, isPlatformOwner]);
 
   const navigateToAccessDenied = useCallback(() => {
     navigate('/access-denied', { replace: true });
@@ -174,9 +177,12 @@ interface ScopeGuardResult {
  * }
  */
 export function useScopeGuard(): ScopeGuardResult {
-  const { assignedClassIds, linkedStudentIds, isLoading, activeRole } = useRBACContext();
+  const { assignedClassIds, linkedStudentIds, isLoading, activeRole, isPlatformOwner } = useRBACContext();
 
   const canAccessClass = useCallback((classId: string): boolean => {
+    // Platform Owner has unrestricted access
+    if (isPlatformOwner) return true;
+    
     // Admins can access all classes in their school
     if (activeRole === 'admin' || activeRole === 'school_admin' || activeRole === 'platform_admin') {
       return true;
@@ -189,9 +195,12 @@ export function useScopeGuard(): ScopeGuardResult {
     
     // Parents and students have indirect access through student linkage
     return false;
-  }, [activeRole, assignedClassIds]);
+  }, [activeRole, assignedClassIds, isPlatformOwner]);
 
   const canAccessStudent = useCallback((studentId: string): boolean => {
+    // Platform Owner has unrestricted access
+    if (isPlatformOwner) return true;
+    
     // Admins can access all students in their school
     if (activeRole === 'admin' || activeRole === 'school_admin' || activeRole === 'platform_admin') {
       return true;
@@ -214,7 +223,7 @@ export function useScopeGuard(): ScopeGuardResult {
     }
     
     return false;
-  }, [activeRole, linkedStudentIds]);
+  }, [activeRole, linkedStudentIds, isPlatformOwner]);
 
   return {
     canAccessClass,
