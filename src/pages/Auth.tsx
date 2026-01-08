@@ -8,11 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Beaker, Loader2, Mail, Lock, User } from 'lucide-react';
+import { Beaker, Loader2, Mail, Lock, User, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
+
+// Super admin email - uses magic link authentication
+const SUPER_ADMIN_EMAIL = 'abkanyanta@gmail.com';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -23,17 +26,16 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string }>({});
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
 
   // Check for existing session
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        // Redirect authenticated users to dashboard
         navigate('/teacher');
       }
     });
 
-    // Check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         navigate('/teacher');
@@ -62,6 +64,33 @@ export default function Auth() {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSuperAdminMagicLink = async () => {
+    setIsLoading(true);
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      email: SUPER_ADMIN_EMAIL,
+      options: {
+        emailRedirectTo: `${window.location.origin}/teacher`,
+      },
+    });
+
+    if (error) {
+      toast({
+        title: 'Magic link failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } else {
+      setMagicLinkSent(true);
+      toast({
+        title: 'Magic link sent!',
+        description: `Check ${SUPER_ADMIN_EMAIL} for a login link.`,
+      });
+    }
+    
+    setIsLoading(false);
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -295,6 +324,42 @@ export default function Auth() {
             </TabsContent>
           </CardContent>
         </Tabs>
+      </Card>
+
+      {/* Super Admin Magic Link */}
+      <Card className="w-full max-w-md mt-6 border-primary/20 bg-primary/5">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Platform Owner Access
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {magicLinkSent ? (
+            <p className="text-sm text-muted-foreground">
+              ✅ Magic link sent to <strong>{SUPER_ADMIN_EMAIL}</strong>. Check your inbox!
+            </p>
+          ) : (
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={handleSuperAdminMagicLink}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="mr-2 h-4 w-4" />
+                  Send Magic Link to Owner
+                </>
+              )}
+            </Button>
+          )}
+        </CardContent>
       </Card>
 
       {/* Demo Mode Link */}
