@@ -232,6 +232,7 @@ export async function confirmRestore(
       user_id: confirmedBy,
       role_used: 'admin',
       action: 'restore_confirmed',
+      action_category: 'system',
       entity_type: 'restore_request',
       entity_id: requestId,
       details: JSON.parse(JSON.stringify({ confirmed_at: new Date().toISOString() })),

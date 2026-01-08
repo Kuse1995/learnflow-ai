@@ -65,9 +65,13 @@ export const USER_FRIENDLY_MESSAGES: Record<IncidentType, string> = {
  * Get current system status
  */
 export async function getSystemStatus(schoolId?: string): Promise<SystemStatus | null> {
-  const { data, error } = schoolId
-    ? await supabase.from('system_status').select('*').eq('school_id', schoolId).single()
-    : await supabase.from('system_status').select('*').is('school_id', null).single();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const baseQuery: any = supabase.from('system_status').select('*');
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error }: any = schoolId
+    ? await baseQuery.eq('school_id', schoolId).single()
+    : await baseQuery.is('school_id', null).single();
 
   if (error) {
     if (error.code !== 'PGRST116') {
@@ -76,7 +80,7 @@ export async function getSystemStatus(schoolId?: string): Promise<SystemStatus |
     return null;
   }
 
-  return data as unknown as SystemStatus;
+  return data as SystemStatus;
 }
 
 /**
