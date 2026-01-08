@@ -39,7 +39,7 @@ export function RoleBasedRedirect() {
     case 'student':
       return <Navigate to="/student" replace />;
     default:
-      // No role assigned - show access denied or redirect to auth
-      return <Navigate to="/auth" replace />;
+      // No role assigned - show access denied page with helpful message
+      return <Navigate to="/access-denied" replace />;
   }
 }
