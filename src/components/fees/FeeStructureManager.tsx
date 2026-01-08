@@ -43,6 +43,7 @@ import {
   useCreateFeeStructure,
   useFormatBalance,
 } from '@/hooks/useStudentFees';
+import { useClassLevelTerminology } from '@/hooks/useClassLevelTerminology';
 
 interface FeeStructureManagerProps {
   schoolId: string;
@@ -66,6 +67,7 @@ export function FeeStructureManager({ schoolId }: FeeStructureManagerProps) {
   );
   const { data: categories } = useFeeCategories(schoolId);
   const { formatAmount } = useFormatBalance();
+  const { config: terminologyConfig } = useClassLevelTerminology(schoolId);
 
   const years = [currentYear + 1, currentYear, currentYear - 1];
 
@@ -155,7 +157,7 @@ export function FeeStructureManager({ schoolId }: FeeStructureManagerProps) {
                   <TableHead>Category</TableHead>
                   <TableHead>Year</TableHead>
                   <TableHead>Term</TableHead>
-                  <TableHead>Grade</TableHead>
+                  <TableHead>{terminologyConfig.singular}</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead>Due Date</TableHead>
                 </TableRow>
@@ -225,9 +227,9 @@ function AddFeeStructureForm({
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
 
-  const grades = ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 
-                  'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10',
-                  'Grade 11', 'Grade 12'];
+  // Use school's terminology for grade levels
+  const { config: terminologyConfig } = useClassLevelTerminology(schoolId);
+  const grades = terminologyConfig.levels;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,15 +303,15 @@ function AddFeeStructureForm({
         </div>
       </div>
 
-      {/* Grade */}
+      {/* Grade/Level */}
       <div className="space-y-2">
-        <Label htmlFor="grade">Applicable Grade</Label>
+        <Label htmlFor="grade">Applicable {terminologyConfig.singular}</Label>
         <Select value={grade} onValueChange={setGrade}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Grades</SelectItem>
+            <SelectItem value="all">All {terminologyConfig.plural}</SelectItem>
             {grades.map((g) => (
               <SelectItem key={g} value={g}>{g}</SelectItem>
             ))}
