@@ -5,6 +5,7 @@ import { RBACProvider } from '@/contexts/RBACContext';
 import { ProtectedRoute, ROUTE_PERMISSIONS, AccessDeniedPage } from '@/components/rbac';
 import { OfflineIndicator } from '@/components/common';
 import { LegalDocument } from '@/pages/legal';
+import { RoleBasedRedirect } from './RoleBasedRedirect';
 import {
   TeacherDashboard,
   TeacherAttendance,
@@ -63,6 +64,9 @@ export function AuthenticatedApp() {
     >
       <div className="min-h-screen overflow-auto">
       <Routes>
+        {/* Role-based default redirect */}
+        <Route path="/home" element={<RoleBasedRedirect />} />
+        
         {/* Access denied route */}
         <Route path="/access-denied" element={<AccessDeniedPage />} />
         
