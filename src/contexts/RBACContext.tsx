@@ -27,6 +27,10 @@ interface RBACContextValue {
   hasAnyRole: (roles: AppRole[]) => boolean;
   canPerform: (action: PermissionAction) => boolean;
   
+  // Scope data (populated by useDataScope)
+  assignedClassIds: string[];
+  linkedStudentIds: string[];
+  
   // Loading state
   isLoading: boolean;
 }
@@ -93,6 +97,9 @@ export function RBACProvider({
     hasRole,
     hasAnyRole,
     canPerform,
+    // Scope data - these will be populated by useDataScope
+    assignedClassIds: [] as string[],
+    linkedStudentIds: [] as string[],
     isLoading,
   }), [
     userId,
@@ -134,6 +141,8 @@ export function useRBACContext(): RBACContextValue {
       hasRole: () => true, // Permissive default during dev
       hasAnyRole: () => true,
       canPerform: () => true,
+      assignedClassIds: [],
+      linkedStudentIds: [],
       isLoading: false,
     };
   }
