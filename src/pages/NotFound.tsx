@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, LogOut, Home } from "lucide-react";
+import { ArrowLeft, LogOut, Home, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 
@@ -11,7 +11,7 @@ const NotFound = () => {
   const { isAuthenticated } = useAuthContext();
 
   useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
+    console.info("Coming Soon: User accessed route under development:", location.pathname);
   }, [location.pathname]);
 
   const handleLogout = async () => {
@@ -35,8 +35,9 @@ const NotFound = () => {
       )}
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
-          <h1 className="mb-4 text-4xl font-bold">404</h1>
-          <p className="mb-6 text-xl text-muted-foreground">Oops! Page not found</p>
+          <Clock className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+          <h1 className="mb-4 text-4xl font-bold">Coming Soon</h1>
+          <p className="mb-6 text-xl text-muted-foreground">We're working on this feature. Check back soon!</p>
           <Button onClick={() => navigate("/")} className="gap-2">
             <Home className="h-4 w-4" />
             Return to Home
