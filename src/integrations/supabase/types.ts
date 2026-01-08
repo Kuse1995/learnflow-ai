@@ -1290,6 +1290,144 @@ export type Database = {
           },
         ]
       }
+      fee_receipt_sequences: {
+        Row: {
+          created_at: string
+          id: string
+          last_sequence: number
+          school_code: string
+          school_id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_sequence?: number
+          school_code: string
+          school_id: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_sequence?: number
+          school_code?: string
+          school_id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_receipt_sequences_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_receipts: {
+        Row: {
+          academic_year: number
+          amount: number
+          class_name_snapshot: string | null
+          created_at: string
+          currency: string
+          grade_snapshot: string | null
+          id: string
+          issued_at: string
+          issued_by: string | null
+          ledger_entry_id: string
+          payment_date: string
+          payment_method: string
+          receipt_number: string
+          reference_number: string | null
+          school_id: string
+          school_name_snapshot: string
+          student_id: string
+          student_name_snapshot: string
+          term: number | null
+          void_reason: string | null
+          voided: boolean
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          academic_year: number
+          amount: number
+          class_name_snapshot?: string | null
+          created_at?: string
+          currency?: string
+          grade_snapshot?: string | null
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          ledger_entry_id: string
+          payment_date: string
+          payment_method: string
+          receipt_number: string
+          reference_number?: string | null
+          school_id: string
+          school_name_snapshot: string
+          student_id: string
+          student_name_snapshot: string
+          term?: number | null
+          void_reason?: string | null
+          voided?: boolean
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          academic_year?: number
+          amount?: number
+          class_name_snapshot?: string | null
+          created_at?: string
+          currency?: string
+          grade_snapshot?: string | null
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          ledger_entry_id?: string
+          payment_date?: string
+          payment_method?: string
+          receipt_number?: string
+          reference_number?: string | null
+          school_id?: string
+          school_name_snapshot?: string
+          student_id?: string
+          student_name_snapshot?: string
+          term?: number | null
+          void_reason?: string | null
+          voided?: boolean
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_receipts_ledger_entry_id_fkey"
+            columns: ["ledger_entry_id"]
+            isOneToOne: false
+            referencedRelation: "student_fee_ledger"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_receipts_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_receipts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fee_structures: {
         Row: {
           academic_year: number
@@ -5739,6 +5877,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_fee_receipt: {
+        Args: { p_issued_by?: string; p_ledger_entry_id: string }
+        Returns: string
+      }
       edit_message_draft: {
         Args: {
           p_change_summary?: string
@@ -5764,6 +5906,10 @@ export type Database = {
         Returns: string
       }
       generate_backup_version_id: { Args: never; Returns: string }
+      generate_receipt_number: {
+        Args: { p_school_code: string; p_school_id: string; p_year?: number }
+        Returns: string
+      }
       generate_term_report_data: {
         Args: { p_end_date: string; p_school_id: string; p_start_date: string }
         Returns: Json
@@ -6081,6 +6227,14 @@ export type Database = {
           expected_hash: string
           is_valid: boolean
         }[]
+      }
+      void_fee_receipt: {
+        Args: {
+          p_receipt_id: string
+          p_void_reason: string
+          p_voided_by: string
+        }
+        Returns: boolean
       }
     }
     Enums: {

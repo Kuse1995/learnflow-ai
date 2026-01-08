@@ -2,3 +2,7 @@ export { StudentFeesTab } from './StudentFeesTab';
 export { RecordPaymentForm } from './RecordPaymentForm';
 export { ClassFeesOverview } from './ClassFeesOverview';
 export { FeeStructureManager } from './FeeStructureManager';
+export { ReceiptHistory } from './ReceiptHistory';
+export { ReceiptPreview } from './ReceiptPreview';
+export { StudentStatementViewer } from './StudentStatementViewer';
+export { FinancialExports } from './FinancialExports';
