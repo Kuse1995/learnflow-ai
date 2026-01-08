@@ -164,6 +164,26 @@ export function usePilotSchools() {
 }
 
 /**
+ * Get all non-pilot schools (for initializing new pilots)
+ */
+export function useNonPilotSchools() {
+  return useQuery({
+    queryKey: ['non-pilot-schools'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('schools')
+        .select('id, name')
+        .or('is_pilot.is.null,is_pilot.eq.false')
+        .eq('is_archived', false)
+        .order('name');
+
+      if (error) throw error;
+      return data as { id: string; name: string }[];
+    },
+  });
+}
+
+/**
  * Get rollout status for a school
  */
 export function useSchoolRolloutStatus(schoolId?: string) {
