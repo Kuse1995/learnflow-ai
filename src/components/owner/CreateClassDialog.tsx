@@ -22,6 +22,7 @@ import {
 import { Plus } from 'lucide-react';
 import { useCreateClass, useAllSchoolsWithPlans } from '@/hooks/useOwnerControls';
 import { SubjectCombobox } from './SubjectCombobox';
+import { useClassLevelTerminology } from '@/hooks/useClassLevelTerminology';
 
 export function CreateClassDialog() {
   const [open, setOpen] = useState(false);
@@ -34,6 +35,7 @@ export function CreateClassDialog() {
 
   const createClass = useCreateClass();
   const { data: schools } = useAllSchoolsWithPlans();
+  const { config: terminology } = useClassLevelTerminology(schoolId || undefined);
 
   const handleSubmit = () => {
     if (!name.trim() || !schoolId) return;
@@ -84,7 +86,7 @@ export function CreateClassDialog() {
               id="class-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Grade 5A"
+              placeholder={`e.g., ${terminology.levels[4] || terminology.withNumber(5)}A`}
             />
           </div>
 
@@ -110,13 +112,20 @@ export function CreateClassDialog() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="grade">Grade</Label>
-              <Input
-                id="grade"
-                value={grade}
-                onChange={(e) => setGrade(e.target.value)}
-                placeholder="e.g., 5"
-              />
+              <Label htmlFor="grade">{terminology.singular}</Label>
+              <Select value={grade || 'none'} onValueChange={(v) => setGrade(v === 'none' ? '' : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={`Select ${terminology.singular.toLowerCase()}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Select {terminology.singular.toLowerCase()}</SelectItem>
+                  {terminology.levels.map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="section">Section</Label>

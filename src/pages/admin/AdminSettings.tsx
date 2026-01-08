@@ -3,7 +3,8 @@
  * School profile and admin preferences
  */
 
-import { Settings, Building2, Globe, Clock, CreditCard } from "lucide-react";
+import { useState } from "react";
+import { Settings, Building2, Globe, Clock, CreditCard, GraduationCap, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,14 +15,45 @@ import { useSchoolAdminSchool, useIsSchoolAdmin } from "@/hooks/useSchoolAdmin";
 import { AdminLayout } from "@/components/navigation/AdminNav";
 import { usePlatformOwner } from "@/hooks/usePlatformOwner";
 import { useNavigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
+import { ClassLevelTerminology, TERMINOLOGY_CONFIGS } from "@/lib/class-level-terminology";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function AdminSettings() {
   const { data: school, isLoading: schoolLoading } = useSchoolAdminSchool();
   const { data: isAdmin, isLoading: isAdminLoading } = useIsSchoolAdmin();
   const { isPlatformOwner } = usePlatformOwner();
+  const { terminology, config: terminologyConfig } = useClassLevelTerminology(school?.id);
+  const [isUpdatingTerminology, setIsUpdatingTerminology] = useState(false);
+  const queryClient = useQueryClient();
 
   const isLoading = schoolLoading || isAdminLoading;
   const navigate = useNavigate();
+
+  const handleTerminologyChange = async (newTerminology: ClassLevelTerminology) => {
+    if (!school?.id) return;
+    setIsUpdatingTerminology(true);
+    try {
+      const { error } = await supabase
+        .from('schools')
+        .update({ class_level_terminology: newTerminology })
+        .eq('id', school.id);
+      
+      if (error) throw error;
+      
+      await queryClient.invalidateQueries({ queryKey: ['school-terminology'] });
+      await queryClient.invalidateQueries({ queryKey: ['school-admin-school'] });
+      toast.success(`Class levels will now use "${TERMINOLOGY_CONFIGS[newTerminology].plural}"`);
+    } catch (error) {
+      console.error('Failed to update terminology:', error);
+      toast.error('Failed to update class level terminology');
+    } finally {
+      setIsUpdatingTerminology(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -111,6 +143,48 @@ export default function AdminSettings() {
           </CardContent>
         </Card>
 
+        {/* Localization Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Localization
+            </CardTitle>
+            <CardDescription>
+              Configure how class levels are named in your school
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Class Level Terminology</p>
+                <p className="text-sm text-muted-foreground">
+                  Currently using: {terminologyConfig.levels.slice(0, 3).join(', ')}...
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {isUpdatingTerminology && <Loader2 className="h-4 w-4 animate-spin" />}
+                <Select 
+                  value={terminology} 
+                  onValueChange={(v) => handleTerminologyChange(v as ClassLevelTerminology)}
+                  disabled={isUpdatingTerminology}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="grade">Grades (Grade 1, 2...)</SelectItem>
+                    <SelectItem value="form">Forms (Form 1, 2...)</SelectItem>
+                    <SelectItem value="year">Years (Year 1, 2...)</SelectItem>
+                    <SelectItem value="standard">Standards (Std 1, 2...)</SelectItem>
+                    <SelectItem value="class">Classes (Class 1, 2...)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Quick Links */}
         <Card>
           <CardHeader>
@@ -129,7 +203,7 @@ export default function AdminSettings() {
                 <CreditCard className="h-5 w-5 mr-3" />
                 <div className="text-left">
                   <p className="font-medium">Fee Structure</p>
-                  <p className="text-sm text-muted-foreground">Configure fees by term and grade</p>
+                  <p className="text-sm text-muted-foreground">Configure fees by term and {terminology.toLowerCase()}</p>
                 </div>
               </Button>
               <Button

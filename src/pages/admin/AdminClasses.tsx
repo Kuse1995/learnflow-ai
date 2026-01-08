@@ -39,6 +39,7 @@ import { useSchoolAdminSchool, useSchoolClassesWithDetails, useArchiveClass } fr
 import { CreateSchoolClassDialog } from "@/components/school-admin/CreateSchoolClassDialog";
 import { AssignTeacherToClassDialog } from "@/components/school-admin/AssignTeacherToClassDialog";
 import { AdminLayout } from "@/components/navigation/AdminNav";
+import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
 
 export default function AdminClasses() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -48,6 +49,7 @@ export default function AdminClasses() {
   const { data: school, isLoading: schoolLoading } = useSchoolAdminSchool();
   const { data: classes, isLoading: classesLoading } = useSchoolClassesWithDetails(school?.id);
   const archiveClass = useArchiveClass();
+  const { config: terminology } = useClassLevelTerminology(school?.id);
 
   const isLoading = schoolLoading || classesLoading;
 
@@ -114,7 +116,7 @@ export default function AdminClasses() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Class Name</TableHead>
-                    <TableHead>Grade</TableHead>
+                    <TableHead>{terminology.singular}</TableHead>
                     <TableHead>Subject</TableHead>
                     <TableHead>Teacher</TableHead>
                     <TableHead>Students</TableHead>
