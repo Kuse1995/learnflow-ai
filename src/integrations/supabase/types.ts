@@ -6313,6 +6313,53 @@ export type Database = {
           },
         ]
       }
+      teacher_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          email: string
+          expires_at: string
+          full_name: string | null
+          id: string
+          invite_token: string
+          invited_by: string
+          school_id: string
+          status: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email: string
+          expires_at: string
+          full_name?: string | null
+          id?: string
+          invite_token: string
+          invited_by: string
+          school_id: string
+          status?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          full_name?: string | null
+          id?: string
+          invite_token?: string
+          invited_by?: string
+          school_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_invitations_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_onboarding: {
         Row: {
           completed_at: string | null

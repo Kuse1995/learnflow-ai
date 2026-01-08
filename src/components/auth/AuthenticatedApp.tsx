@@ -22,7 +22,7 @@ import {
 } from '@/pages/teacher';
 import { ParentDashboard } from '@/pages/parent';
 import { StudentPractice } from '@/pages/student';
-import { SchoolAdminDashboard, SchoolReports, AdminReportsDashboard } from '@/pages/admin';
+import { SchoolAdminDashboard, SchoolReports, AdminReportsDashboard, AdminTeachers, AdminClasses } from '@/pages/admin';
 import { 
   PlatformAdminCompliance, 
   PlatformAdminBackups,
@@ -160,6 +160,16 @@ export function AuthenticatedApp() {
         <Route path="/admin/term-reports" element={
           <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
             <SchoolReports />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/teachers" element={
+          <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+            <AdminTeachers />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/classes" element={
+          <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+            <AdminClasses />
           </ProtectedRoute>
         } />
         

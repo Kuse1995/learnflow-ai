@@ -405,6 +405,340 @@ export function useSchoolTeachers(schoolId?: string) {
   });
 }
 
+// Teachers with class counts and profile info
+export interface TeacherWithDetails {
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+  class_count: number;
+}
+
+export function useSchoolTeachersWithClasses(schoolId?: string) {
+  return useQuery({
+    queryKey: ["school-teachers-with-classes", schoolId],
+    queryFn: async (): Promise<TeacherWithDetails[]> => {
+      if (!schoolId) return [];
+
+      // Get all teachers for this school
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("school_id", schoolId)
+        .eq("role", "teacher")
+        .eq("is_active", true);
+
+      if (rolesError) throw rolesError;
+      if (!roles || roles.length === 0) return [];
+
+      const teacherIds = roles.map(r => r.user_id);
+
+      // Get class counts for each teacher
+      const { data: classes, error: classesError } = await supabase
+        .from("classes")
+        .select("teacher_id")
+        .eq("school_id", schoolId)
+        .is("deleted_at", null)
+        .in("teacher_id", teacherIds);
+
+      if (classesError) throw classesError;
+
+      // Count classes per teacher
+      const classCountMap = new Map<string, number>();
+      classes?.forEach(c => {
+        if (c.teacher_id) {
+          classCountMap.set(c.teacher_id, (classCountMap.get(c.teacher_id) || 0) + 1);
+        }
+      });
+
+      // Get profiles for teachers (try demo_users first, then create placeholder)
+      const { data: demoUsers } = await supabase
+        .from("demo_users")
+        .select("id, full_name, email")
+        .in("id", teacherIds);
+
+      const demoUserMap = new Map(demoUsers?.map(u => [u.id, u]) || []);
+
+      return teacherIds.map(userId => ({
+        user_id: userId,
+        full_name: demoUserMap.get(userId)?.full_name || null,
+        email: demoUserMap.get(userId)?.email || null,
+        class_count: classCountMap.get(userId) || 0,
+      }));
+    },
+    enabled: !!schoolId,
+  });
+}
+
+// Teacher Invitations
+export interface TeacherInvitation {
+  id: string;
+  school_id: string;
+  email: string;
+  full_name: string | null;
+  status: string;
+  invite_token: string;
+  expires_at: string;
+  created_at: string;
+}
+
+export function useTeacherInvitations(schoolId?: string) {
+  return useQuery({
+    queryKey: ["teacher-invitations", schoolId],
+    queryFn: async (): Promise<TeacherInvitation[]> => {
+      if (!schoolId) return [];
+
+      const { data, error } = await supabase
+        .from("teacher_invitations")
+        .select("*")
+        .eq("school_id", schoolId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as TeacherInvitation[];
+    },
+    enabled: !!schoolId,
+  });
+}
+
+export function useInviteTeacher() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ schoolId, email, fullName }: { schoolId: string; email: string; fullName?: string }) => {
+      const { data, error } = await supabase.functions.invoke("send-teacher-invite", {
+        body: { schoolId, email, fullName },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["teacher-invitations"] });
+      toast.success(data?.message || "Invitation sent successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to send invitation");
+    },
+  });
+}
+
+export function useCancelInvitation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (invitationId: string) => {
+      const { error } = await supabase
+        .from("teacher_invitations")
+        .update({ status: "cancelled" })
+        .eq("id", invitationId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teacher-invitations"] });
+      toast.success("Invitation cancelled");
+    },
+    onError: () => {
+      toast.error("Failed to cancel invitation");
+    },
+  });
+}
+
+export function useRemoveTeacher() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ userId, schoolId }: { userId: string; schoolId: string }) => {
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ is_active: false })
+        .eq("user_id", userId)
+        .eq("school_id", schoolId)
+        .eq("role", "teacher");
+
+      if (error) throw error;
+
+      // Log to system history
+      await supabase.rpc("log_school_history", {
+        p_school_id: schoolId,
+        p_action_type: "teacher_removed",
+        p_action_description: "Teacher removed from school",
+        p_new_state: { user_id: userId },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["school-teachers"] });
+      queryClient.invalidateQueries({ queryKey: ["school-teachers-with-classes"] });
+      toast.success("Teacher removed from school");
+    },
+    onError: () => {
+      toast.error("Failed to remove teacher");
+    },
+  });
+}
+
+// School Classes with details
+export interface ClassWithDetails {
+  id: string;
+  name: string;
+  grade: string | null;
+  section: string | null;
+  subject: string | null;
+  teacher_id: string | null;
+  teacher_name: string | null;
+  student_count: number;
+  deleted_at: string | null;
+}
+
+export function useSchoolClassesWithDetails(schoolId?: string) {
+  return useQuery({
+    queryKey: ["school-classes-with-details", schoolId],
+    queryFn: async (): Promise<ClassWithDetails[]> => {
+      if (!schoolId) return [];
+
+      const { data: classes, error } = await supabase
+        .from("classes")
+        .select("*")
+        .eq("school_id", schoolId)
+        .order("name");
+
+      if (error) throw error;
+      if (!classes) return [];
+
+      // Get teacher names
+      const teacherIds = classes.filter(c => c.teacher_id).map(c => c.teacher_id!);
+      const { data: demoUsers } = await supabase
+        .from("demo_users")
+        .select("id, full_name")
+        .in("id", teacherIds);
+
+      const teacherMap = new Map(demoUsers?.map(u => [u.id, u.full_name]) || []);
+
+      // Get student counts
+      const classIds = classes.map(c => c.id);
+      const { data: students } = await supabase
+        .from("students")
+        .select("class_id")
+        .in("class_id", classIds);
+
+      const studentCountMap = new Map<string, number>();
+      students?.forEach(s => {
+        if (s.class_id) {
+          studentCountMap.set(s.class_id, (studentCountMap.get(s.class_id) || 0) + 1);
+        }
+      });
+
+      return classes.map(c => ({
+        id: c.id,
+        name: c.name,
+        grade: c.grade,
+        section: c.section,
+        subject: c.subject,
+        teacher_id: c.teacher_id,
+        teacher_name: c.teacher_id ? teacherMap.get(c.teacher_id) || null : null,
+        student_count: studentCountMap.get(c.id) || 0,
+        deleted_at: c.deleted_at,
+      }));
+    },
+    enabled: !!schoolId,
+  });
+}
+
+export function useCreateSchoolClass() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ schoolId, name, grade, section, subject }: {
+      schoolId: string;
+      name: string;
+      grade?: string;
+      section?: string;
+      subject?: string;
+    }) => {
+      const { error } = await supabase
+        .from("classes")
+        .insert({
+          school_id: schoolId,
+          name,
+          grade: grade || null,
+          section: section || null,
+          subject: subject || null,
+        });
+
+      if (error) throw error;
+
+      // Log to system history
+      await supabase.rpc("log_school_history", {
+        p_school_id: schoolId,
+        p_action_type: "class_created",
+        p_action_description: `Class "${name}" created`,
+        p_new_state: { name, grade, section, subject },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["school-classes-with-details"] });
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      toast.success("Class created successfully");
+    },
+    onError: () => {
+      toast.error("Failed to create class");
+    },
+  });
+}
+
+export function useAssignTeacherToClass() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ classId, teacherId }: { classId: string; teacherId: string }) => {
+      const { error } = await supabase
+        .from("classes")
+        .update({ teacher_id: teacherId })
+        .eq("id", classId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["school-classes-with-details"] });
+      queryClient.invalidateQueries({ queryKey: ["school-teachers-with-classes"] });
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      toast.success("Teacher assigned to class");
+    },
+    onError: () => {
+      toast.error("Failed to assign teacher");
+    },
+  });
+}
+
+export function useArchiveClass() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (classId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from("classes")
+        .update({
+          deleted_at: new Date().toISOString(),
+          deleted_by: user?.id || null,
+        })
+        .eq("id", classId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["school-classes-with-details"] });
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      toast.success("Class archived");
+    },
+    onError: () => {
+      toast.error("Failed to archive class");
+    },
+  });
+}
+
 export function useAssignTeacherRole() {
   const queryClient = useQueryClient();
 
