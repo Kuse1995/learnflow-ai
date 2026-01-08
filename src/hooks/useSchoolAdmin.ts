@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useDemoMode, DEMO_USERS } from "@/contexts/DemoModeContext";
+import { isPlatformOwnerEmail } from "@/hooks/usePlatformOwner";
 
 // Types
 export interface SchoolAdminOnboarding {
@@ -75,6 +76,11 @@ export function useIsSchoolAdmin(schoolId?: string) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
+      // Platform owner has universal access
+      if (isPlatformOwnerEmail(user.email)) {
+        return true;
+      }
+
       const query = supabase
         .from("user_roles")
         .select("id")
@@ -117,6 +123,29 @@ export function useSchoolAdminSchool() {
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
+
+      // Platform owner: return first non-demo school, or demo school if none
+      if (isPlatformOwnerEmail(user.email)) {
+        const { data: schools } = await supabase
+          .from("schools")
+          .select("*")
+          .eq("is_demo", false)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        
+        if (schools && schools.length > 0) {
+          return schools[0];
+        }
+        
+        // Fallback to demo school
+        const { data: demoSchool } = await supabase
+          .from("schools")
+          .select("*")
+          .eq("is_demo", true)
+          .limit(1)
+          .single();
+        return demoSchool;
+      }
 
       const { data, error } = await supabase
         .from("user_roles")

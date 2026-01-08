@@ -10,14 +10,17 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { useSchoolAdminSchool, useSchoolClassesWithDetails } from "@/hooks/useSchoolAdmin";
+import { useSchoolAdminSchool, useSchoolClassesWithDetails, useIsSchoolAdmin } from "@/hooks/useSchoolAdmin";
 import { AdminLayout } from "@/components/navigation/AdminNav";
+import { usePlatformOwner } from "@/hooks/usePlatformOwner";
 
 export default function AdminStudents() {
   const { data: school, isLoading: schoolLoading } = useSchoolAdminSchool();
   const { data: classes, isLoading: classesLoading } = useSchoolClassesWithDetails(school?.id);
+  const { data: isAdmin, isLoading: isAdminLoading } = useIsSchoolAdmin();
+  const { isPlatformOwner } = usePlatformOwner();
 
-  const isLoading = schoolLoading || classesLoading;
+  const isLoading = schoolLoading || classesLoading || isAdminLoading;
   const activeClasses = classes?.filter(c => !c.deleted_at) || [];
   const totalStudents = activeClasses.reduce((sum, c) => sum + (c.student_count || 0), 0);
 
@@ -26,6 +29,18 @@ export default function AdminStudents() {
       <div className="p-6 space-y-6">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (!isAdmin && !isPlatformOwner) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-6">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>You don't have school administrator access.</AlertDescription>
+        </Alert>
       </div>
     );
   }

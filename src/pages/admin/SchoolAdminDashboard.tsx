@@ -20,6 +20,7 @@ import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DemoModeBanner } from "@/components/demo";
 import { useIsDemoSchool } from "@/hooks/useDemoSafety";
+import { usePlatformOwner } from "@/hooks/usePlatformOwner";
 
 export default function SchoolAdminDashboard() {
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -27,6 +28,7 @@ export default function SchoolAdminDashboard() {
   const { data: isAdmin, isLoading: isAdminLoading } = useIsSchoolAdmin();
   const { data: school, isLoading: isSchoolLoading } = useSchoolAdminSchool();
   const { data: onboarding, isLoading: isOnboardingLoading } = useSchoolAdminOnboarding();
+  const { isPlatformOwner } = usePlatformOwner();
   const createOnboarding = useCreateSchoolAdminOnboarding();
   const { data: isDemo } = useIsDemoSchool(school?.id);
 
@@ -57,7 +59,7 @@ export default function SchoolAdminDashboard() {
     );
   }
 
-  if (!isAdmin) {
+  if (!isAdmin && !isPlatformOwner) {
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <Alert variant="destructive" className="max-w-md">

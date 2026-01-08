@@ -25,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, ArrowLeft, FileText } from "lucide-react";
 import { AdminLayout } from "@/components/navigation/AdminNav";
+import { usePlatformOwner } from "@/hooks/usePlatformOwner";
 
 export default function SchoolReports() {
   const [selectedReport, setSelectedReport] = useState<TermReport | null>(null);
@@ -33,6 +34,7 @@ export default function SchoolReports() {
   const { data: isAdmin, isLoading: isAdminLoading } = useIsSchoolAdmin();
   const { data: school, isLoading: isSchoolLoading } = useSchoolAdminSchool();
   const { data: reports, isLoading: isReportsLoading } = useTermReports(school?.id);
+  const { isPlatformOwner } = usePlatformOwner();
   
   const createReport = useCreateTermReport();
   const updateReport = useUpdateTermReport();
@@ -50,7 +52,7 @@ export default function SchoolReports() {
     );
   }
 
-  if (!isAdmin) {
+  if (!isAdmin && !isPlatformOwner) {
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <Alert variant="destructive" className="max-w-md">
