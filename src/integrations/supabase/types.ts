@@ -5208,6 +5208,63 @@ export type Database = {
           },
         ]
       }
+      student_diagnostics: {
+        Row: {
+          confidence_level: string | null
+          created_at: string
+          evidence_date: string
+          id: string
+          is_demo: boolean
+          observation: string
+          observation_type: string
+          student_id: string
+          subject: string | null
+          topic: string | null
+          upload_id: string | null
+        }
+        Insert: {
+          confidence_level?: string | null
+          created_at?: string
+          evidence_date?: string
+          id?: string
+          is_demo?: boolean
+          observation: string
+          observation_type: string
+          student_id: string
+          subject?: string | null
+          topic?: string | null
+          upload_id?: string | null
+        }
+        Update: {
+          confidence_level?: string | null
+          created_at?: string
+          evidence_date?: string
+          id?: string
+          is_demo?: boolean
+          observation?: string
+          observation_type?: string
+          student_id?: string
+          subject?: string | null
+          topic?: string | null
+          upload_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_diagnostics_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_diagnostics_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_fee_assignments: {
         Row: {
           assigned_amount: number
@@ -5572,6 +5629,7 @@ export type Database = {
           created_at: string
           error_patterns: Json | null
           id: string
+          is_demo: boolean
           last_updated: string
           strengths: string | null
           student_id: string
@@ -5584,6 +5642,7 @@ export type Database = {
           created_at?: string
           error_patterns?: Json | null
           id?: string
+          is_demo?: boolean
           last_updated?: string
           strengths?: string | null
           student_id: string
@@ -5596,6 +5655,7 @@ export type Database = {
           created_at?: string
           error_patterns?: Json | null
           id?: string
+          is_demo?: boolean
           last_updated?: string
           strengths?: string | null
           student_id?: string
@@ -6426,6 +6486,7 @@ export type Database = {
           created_at: string
           error_message: string | null
           id: string
+          is_demo: boolean
           status: string
           student_diagnostics: Json | null
           updated_at: string
@@ -6438,6 +6499,7 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
+          is_demo?: boolean
           status?: string
           student_diagnostics?: Json | null
           updated_at?: string
@@ -6450,6 +6512,7 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
+          is_demo?: boolean
           status?: string
           student_diagnostics?: Json | null
           updated_at?: string
@@ -6520,6 +6583,7 @@ export type Database = {
           file_type: string
           file_url: string
           id: string
+          is_demo: boolean
           marking_scheme: string | null
           subject: string
           topic: string
@@ -6538,6 +6602,7 @@ export type Database = {
           file_type: string
           file_url: string
           id?: string
+          is_demo?: boolean
           marking_scheme?: string | null
           subject: string
           topic: string
@@ -6556,6 +6621,7 @@ export type Database = {
           file_type?: string
           file_url?: string
           id?: string
+          is_demo?: boolean
           marking_scheme?: string | null
           subject?: string
           topic?: string
