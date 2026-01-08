@@ -5,3 +5,4 @@
 
 export { default as SchoolAdminDashboard } from "./SchoolAdminDashboard";
 export { default as SchoolReports } from "./SchoolReports";
+export { default as AdminReportsDashboard } from "./AdminReportsDashboard";
