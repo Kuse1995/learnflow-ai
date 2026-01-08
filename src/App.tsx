@@ -21,7 +21,7 @@ import {
 } from "./pages/teacher";
 import { ParentDashboard } from "./pages/parent";
 import { StudentPractice } from "./pages/student";
-import { SchoolAdminDashboard, SchoolReports } from "./pages/admin";
+import { SchoolAdminDashboard, SchoolReports, AdminReportsDashboard } from "./pages/admin";
 import { 
   PlatformAdminCompliance, 
   PlatformAdminBackups,
@@ -76,7 +76,8 @@ const App = () => (
           
           {/* School Admin Routes */}
           <Route path="/admin" element={<SchoolAdminDashboard />} />
-          <Route path="/admin/reports" element={<SchoolReports />} />
+          <Route path="/admin/reports" element={<AdminReportsDashboard />} />
+          <Route path="/admin/term-reports" element={<SchoolReports />} />
           
           {/* Platform Admin Routes */}
           <Route path="/platform-admin/compliance" element={<PlatformAdminCompliance />} />
