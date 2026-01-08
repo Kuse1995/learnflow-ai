@@ -5035,6 +5035,7 @@ export type Database = {
           created_at: string
           id: string
           is_archived: boolean
+          is_demo: boolean
           is_pilot: boolean | null
           name: string
           offboarding_status: string | null
@@ -5054,6 +5055,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_archived?: boolean
+          is_demo?: boolean
           is_pilot?: boolean | null
           name: string
           offboarding_status?: string | null
@@ -5073,6 +5075,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_archived?: boolean
+          is_demo?: boolean
           is_pilot?: boolean | null
           name?: string
           offboarding_status?: string | null

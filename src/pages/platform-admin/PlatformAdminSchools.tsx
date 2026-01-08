@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlatformAdminHeader } from "@/components/platform-admin/PlatformAdminHeader";
 import { ActivatePlanDialog } from "@/components/platform-admin/ActivatePlanDialog";
 import { SuspendSchoolDialog } from "@/components/platform-admin/SuspendSchoolDialog";
+import { DemoBadge, isDemoSchool } from "@/components/demo";
 import { Building2, Search, Filter } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -54,7 +55,8 @@ export default function PlatformAdminSchools() {
     const matchesSearch = school.name.toLowerCase().includes(search.toLowerCase());
     const subscription = school.school_subscriptions?.[0];
     const status = subscription?.status || "none";
-    const matchesStatus = statusFilter === "all" || status === statusFilter;
+    const matchesStatus = statusFilter === "all" || 
+      (statusFilter === "demo" ? school.is_demo : status === statusFilter);
     return matchesSearch && matchesStatus;
   });
 
@@ -115,6 +117,7 @@ export default function PlatformAdminSchools() {
                   <SelectItem value="expired">Expired</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="none">No Subscription</SelectItem>
+                  <SelectItem value="demo">Demo Schools</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -152,7 +155,12 @@ export default function PlatformAdminSchools() {
 
                       return (
                         <TableRow key={school.id}>
-                          <TableCell className="font-medium">{school.name}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {school.name}
+                              {isDemoSchool(school) && <DemoBadge size="sm" />}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             {plan ? (
                               <Badge variant="secondary">{plan.display_name}</Badge>
