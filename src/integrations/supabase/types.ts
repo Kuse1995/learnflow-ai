@@ -5227,6 +5227,7 @@ export type Database = {
           billing_notes: string | null
           billing_start_date: string
           billing_status: Database["public"]["Enums"]["billing_status"]
+          class_level_terminology: string | null
           country: string | null
           created_at: string
           id: string
@@ -5250,6 +5251,7 @@ export type Database = {
           billing_notes?: string | null
           billing_start_date?: string
           billing_status?: Database["public"]["Enums"]["billing_status"]
+          class_level_terminology?: string | null
           country?: string | null
           created_at?: string
           id?: string
@@ -5273,6 +5275,7 @@ export type Database = {
           billing_notes?: string | null
           billing_start_date?: string
           billing_status?: Database["public"]["Enums"]["billing_status"]
+          class_level_terminology?: string | null
           country?: string | null
           created_at?: string
           id?: string

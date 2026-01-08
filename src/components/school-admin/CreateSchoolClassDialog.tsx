@@ -35,12 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, School } from "lucide-react";
 import { useCreateSchoolClass } from "@/hooks/useSchoolAdmin";
-
-const GRADES = [
-  "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5",
-  "Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10",
-  "Grade 11", "Grade 12",
-];
+import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
 
 const SUBJECTS = [
   "Mathematics", "English", "Science", "Social Studies",
@@ -70,6 +65,7 @@ export function CreateSchoolClassDialog({
 }: CreateSchoolClassDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const createClass = useCreateSchoolClass();
+  const { config: terminology } = useClassLevelTerminology(schoolId);
 
   const form = useForm<ClassFormData>({
     resolver: zodResolver(classSchema),
@@ -120,7 +116,7 @@ export function CreateSchoolClassDialog({
                 <FormItem>
                   <FormLabel>Class Name *</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Grade 7A Mathematics" {...field} />
+                    <Input placeholder={`e.g., ${terminology.levels[6] || terminology.withNumber(7)}A Mathematics`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -133,17 +129,17 @@ export function CreateSchoolClassDialog({
                 name="grade"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Grade</FormLabel>
+                    <FormLabel>{terminology.singular}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select grade" />
+                          <SelectValue placeholder={`Select ${terminology.singular.toLowerCase()}`} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {GRADES.map((grade) => (
-                          <SelectItem key={grade} value={grade}>
-                            {grade}
+                        {terminology.levels.map((level) => (
+                          <SelectItem key={level} value={level}>
+                            {level}
                           </SelectItem>
                         ))}
                       </SelectContent>

@@ -158,3 +158,9 @@ export {
   isPlatformOwnerEmail,
   PLATFORM_OWNER_EMAIL,
 } from "./usePlatformOwner";
+
+// Class level terminology (Grade/Form/Year awareness)
+export {
+  useClassLevelTerminology,
+  useTerminologyConfig,
+} from "./useClassLevelTerminology";
