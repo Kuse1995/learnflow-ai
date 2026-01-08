@@ -26,6 +26,7 @@ import {
 } from "./pages/platform-admin";
 import PlatformAdminOnboarding from "./pages/platform-admin/PlatformAdminOnboarding";
 import PlatformAdminSystemStatus from "./pages/platform-admin/PlatformAdminSystemStatus";
+import PlatformAdminPilot from "./pages/platform-admin/PlatformAdminPilot";
 import { LegalDocument } from "./pages/legal";
 import { OfflineIndicator } from "./components/common";
 
@@ -73,6 +74,7 @@ const App = () => (
           <Route path="/platform-admin/security" element={<PlatformAdminSecurity />} />
           <Route path="/platform-admin/onboarding" element={<PlatformAdminOnboarding />} />
           <Route path="/platform-admin/system-status" element={<PlatformAdminSystemStatus />} />
+          <Route path="/platform-admin/pilot" element={<PlatformAdminPilot />} />
           
           {/* Legal Routes */}
           <Route path="/legal/:type" element={<LegalDocument />} />
