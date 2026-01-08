@@ -1621,6 +1621,78 @@ export type Database = {
           },
         ]
       }
+      parent_permissions: {
+        Row: {
+          can_receive_notifications: boolean | null
+          can_request_meetings: boolean | null
+          can_view_approved_insights: boolean | null
+          can_view_attendance: boolean | null
+          can_view_fees: boolean | null
+          can_view_learning_updates: boolean | null
+          can_view_reports: boolean | null
+          can_view_timetables: boolean | null
+          created_at: string
+          granted_at: string | null
+          granted_by: string | null
+          guardian_id: string
+          id: string
+          permission_tier: Database["public"]["Enums"]["parent_permission_tier"]
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          can_receive_notifications?: boolean | null
+          can_request_meetings?: boolean | null
+          can_view_approved_insights?: boolean | null
+          can_view_attendance?: boolean | null
+          can_view_fees?: boolean | null
+          can_view_learning_updates?: boolean | null
+          can_view_reports?: boolean | null
+          can_view_timetables?: boolean | null
+          created_at?: string
+          granted_at?: string | null
+          granted_by?: string | null
+          guardian_id: string
+          id?: string
+          permission_tier?: Database["public"]["Enums"]["parent_permission_tier"]
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          can_receive_notifications?: boolean | null
+          can_request_meetings?: boolean | null
+          can_view_approved_insights?: boolean | null
+          can_view_attendance?: boolean | null
+          can_view_fees?: boolean | null
+          can_view_learning_updates?: boolean | null
+          can_view_reports?: boolean | null
+          can_view_timetables?: boolean | null
+          created_at?: string
+          granted_at?: string | null
+          granted_by?: string | null
+          guardian_id?: string
+          id?: string
+          permission_tier?: Database["public"]["Enums"]["parent_permission_tier"]
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_permissions_guardian_id_fkey"
+            columns: ["guardian_id"]
+            isOneToOne: false
+            referencedRelation: "guardians"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_permissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_preference_history: {
         Row: {
           change_type: string
@@ -3898,6 +3970,13 @@ export type Database = {
         Args: { p_end_date: string; p_school_id: string; p_start_date: string }
         Returns: Json
       }
+      get_guardian_accessible_students: {
+        Args: { _guardian_id: string }
+        Returns: {
+          permission_tier: Database["public"]["Enums"]["parent_permission_tier"]
+          student_id: string
+        }[]
+      }
       get_or_create_usage_metrics: {
         Args: { p_school_id: string }
         Returns: string
@@ -3905,6 +3984,10 @@ export type Database = {
       get_parent_delivery_channel: {
         Args: { p_parent_contact_id: string }
         Returns: Database["public"]["Enums"]["delivery_channel"]
+      }
+      get_parent_permission_tier: {
+        Args: { _guardian_id: string; _student_id: string }
+        Returns: Database["public"]["Enums"]["parent_permission_tier"]
       }
       has_role: {
         Args: {
@@ -3959,6 +4042,10 @@ export type Database = {
           p_school_id: string
         }
         Returns: string
+      }
+      parent_can_access: {
+        Args: { _feature: string; _guardian_id: string; _student_id: string }
+        Returns: boolean
       }
       pause_pilot_school_ai: {
         Args: { p_reason: string; p_school_id: string }
@@ -4032,6 +4119,7 @@ export type Database = {
         | "fee_status"
         | "school_announcement"
         | "emergency_notice"
+      parent_permission_tier: "view_only" | "view_notifications" | "full_access"
       platform_audit_action:
         | "plan_activated"
         | "plan_changed"
@@ -4237,6 +4325,11 @@ export const Constants = {
         "fee_status",
         "school_announcement",
         "emergency_notice",
+      ],
+      parent_permission_tier: [
+        "view_only",
+        "view_notifications",
+        "full_access",
       ],
       platform_audit_action: [
         "plan_activated",
