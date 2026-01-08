@@ -32,6 +32,8 @@ import PlatformAdminOnboarding from '@/pages/platform-admin/PlatformAdminOnboard
 import PlatformAdminSystemStatus from '@/pages/platform-admin/PlatformAdminSystemStatus';
 import PlatformAdminPilot from '@/pages/platform-admin/PlatformAdminPilot';
 import PlatformAdmin from '@/pages/platform-admin/PlatformAdmin';
+import PendingAdaptiveSupportPlans from '@/pages/platform-admin/PendingAdaptiveSupportPlans';
+import PendingParentInsights from '@/pages/platform-admin/PendingParentInsights';
 import NotFound from '@/pages/NotFound';
 
 export function AuthenticatedApp() {
@@ -193,6 +195,8 @@ export function AuthenticatedApp() {
             <PlatformAdminPilot />
           </ProtectedRoute>
         } />
+        <Route path="/platform-admin/pending/adaptive-support" element={<PendingAdaptiveSupportPlans />} />
+        <Route path="/platform-admin/pending/parent-insights" element={<PendingParentInsights />} />
         
         {/* Legal Routes - Public */}
         <Route path="/legal/:type" element={<LegalDocument />} />
