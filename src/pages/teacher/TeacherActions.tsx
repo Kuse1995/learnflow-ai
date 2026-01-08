@@ -45,6 +45,7 @@ import {
   useDeleteActionLog,
   type TeacherActionLog,
 } from "@/hooks/useTeacherActionLogs";
+import { useTeacherSchool } from "@/hooks/useTeacherSchool";
 
 type DateRangeFilter = "7" | "30" | "90" | "all";
 type ContextFilter = "all" | "linked" | "general";
@@ -57,6 +58,7 @@ export default function TeacherActions() {
   const { data: actionLogs = [], isLoading: isLoadingLogs } = useClassActionLogs(classId);
   const { mutate: updateLog, isPending: isUpdating } = useUpdateActionLog();
   const { mutate: deleteLog, isPending: isDeleting } = useDeleteActionLog();
+  const { schoolName } = useTeacherSchool();
 
   const [editingLog, setEditingLog] = useState<TeacherActionLog | null>(null);
   const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
@@ -152,7 +154,7 @@ export default function TeacherActions() {
 
   if (isLoadingClass) {
     return (
-      <TeacherLayout schoolName="Omanut Academy">
+      <TeacherLayout schoolName={schoolName}>
         <div className="p-4 space-y-4">
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-24 w-full rounded-xl" />
@@ -163,7 +165,7 @@ export default function TeacherActions() {
 
   if (!classData) {
     return (
-      <TeacherLayout schoolName="Omanut Academy">
+      <TeacherLayout schoolName={schoolName}>
         <div className="p-4">
           <Button variant="ghost" onClick={() => navigate("/teacher/classes")} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -180,7 +182,7 @@ export default function TeacherActions() {
   }
 
   return (
-    <TeacherLayout schoolName="Omanut Academy">
+    <TeacherLayout schoolName={schoolName}>
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
         {/* Header */}
         <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b px-4 pt-4 pb-4">

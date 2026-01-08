@@ -11,6 +11,7 @@ import { useClassReport } from "@/hooks/useTeacherReports";
 import { ExportButton } from "@/components/exports";
 import type { ExportSection, ExportConfig } from "@/lib/export-utils";
 import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
+import { useTeacherSchool } from "@/hooks/useTeacherSchool";
 
 /**
  * Teacher Class Report Page
@@ -29,15 +30,16 @@ export default function TeacherClassReport() {
   const { data: classData, isLoading: isLoadingClass } = useClass(classId);
   const { data: report, isLoading: isLoadingReport } = useClassReport(classId);
   const { config: terminology } = useClassLevelTerminology(classData?.school_id);
+  const { schoolName } = useTeacherSchool();
 
   // Build export sections from report data
   const exportConfig: ExportConfig = useMemo(() => ({
     title: `Class Report: ${classData?.name || "Class"}`,
-    schoolName: "Stitch Academy",
+    schoolName: schoolName,
     term: classData?.grade ? `${terminology.singular} ${classData.grade}` : undefined,
     includeHeader: true,
     includeFooter: true,
-  }), [classData, terminology]);
+  }), [classData, terminology, schoolName]);
 
   const exportSections: ExportSection[] = useMemo(() => {
     if (!report) return [];
@@ -84,7 +86,7 @@ export default function TeacherClassReport() {
 
   if (isLoadingClass) {
     return (
-      <TeacherLayout schoolName="Stitch Academy">
+      <TeacherLayout schoolName={schoolName}>
         <div className="p-4 space-y-4">
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-24 w-full rounded-xl" />
@@ -95,7 +97,7 @@ export default function TeacherClassReport() {
 
   if (!classData) {
     return (
-      <TeacherLayout schoolName="Stitch Academy">
+      <TeacherLayout schoolName={schoolName}>
         <div className="p-4">
           <Button variant="ghost" onClick={() => navigate("/teacher/classes")} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -112,7 +114,7 @@ export default function TeacherClassReport() {
   }
 
   return (
-    <TeacherLayout schoolName="Stitch Academy">
+    <TeacherLayout schoolName={schoolName}>
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
         {/* Header */}
         <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b px-4 pt-4 pb-4">

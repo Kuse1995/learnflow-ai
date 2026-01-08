@@ -4,6 +4,7 @@ import { ConnectedAttendanceSheet } from "@/components/attendance";
 import { useClasses } from "@/hooks/useClasses";
 import { EmptyState } from "@/components/empty-states";
 import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
+import { useTeacherSchool } from "@/hooks/useTeacherSchool";
 import { 
   Select,
   SelectContent,
@@ -27,6 +28,7 @@ export default function TeacherAttendance() {
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const { data: classes = [], isLoading: classesLoading } = useClasses();
+  const { schoolName } = useTeacherSchool();
   
   // Get school ID from first class to determine terminology
   const schoolId = classes[0]?.school_id;
@@ -40,7 +42,7 @@ export default function TeacherAttendance() {
 
   if (classesLoading) {
     return (
-      <TeacherLayout schoolName="Omanut Academy">
+      <TeacherLayout schoolName={schoolName}>
         <div className="p-4 space-y-4">
           <Skeleton className="h-8 w-40" />
           <Skeleton className="h-12 w-full rounded-xl" />
@@ -52,7 +54,7 @@ export default function TeacherAttendance() {
 
   if (classes.length === 0) {
     return (
-      <TeacherLayout schoolName="Omanut Academy">
+      <TeacherLayout schoolName={schoolName}>
         <div className="flex items-center justify-center h-full p-4">
           <EmptyState 
             variant="no-data"
@@ -65,7 +67,7 @@ export default function TeacherAttendance() {
   }
 
   return (
-    <TeacherLayout schoolName="Omanut Academy">
+    <TeacherLayout schoolName={schoolName}>
       <div className="flex flex-col h-full">
         {/* Class & Date Selector */}
         {!selectedClassId ? (
@@ -78,16 +80,16 @@ export default function TeacherAttendance() {
             </header>
 
             <div className="flex-1 p-4 space-y-4">
-              {/* Date Selector */}
+              {/* Date Picker */}
               <div>
                 <label className="text-sm font-medium mb-2 block">Date</label>
                 <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full justify-start text-left font-normal h-12 rounded-xl"
+                      className="w-full justify-start text-left font-normal"
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+                      <CalendarIcon className="mr-2 h-4 w-4" />
                       {formattedDate}
                     </Button>
                   </PopoverTrigger>
@@ -96,9 +98,12 @@ export default function TeacherAttendance() {
                       mode="single"
                       selected={selectedDate}
                       onSelect={(date) => {
-                        if (date) setSelectedDate(date);
-                        setCalendarOpen(false);
+                        if (date) {
+                          setSelectedDate(date);
+                          setCalendarOpen(false);
+                        }
                       }}
+                      disabled={(date) => date > new Date()}
                       initialFocus
                     />
                   </PopoverContent>
@@ -108,51 +113,33 @@ export default function TeacherAttendance() {
               {/* Class Selector */}
               <div>
                 <label className="text-sm font-medium mb-2 block">Select Class</label>
-                <div className="space-y-2">
-                  {classes.map((cls) => (
-                    <Button
-                      key={cls.id}
-                      variant="outline"
-                      className="w-full justify-start h-14 rounded-xl text-left"
-                      onClick={() => setSelectedClassId(cls.id)}
-                    >
-                      <div>
-                        <p className="font-semibold">{cls.name}</p>
-                        {cls.grade && cls.section && (
-                          <p className="text-xs text-muted-foreground">
-                            {terminology.singular} {cls.grade} - Section {cls.section}
-                          </p>
-                        )}
-                      </div>
-                    </Button>
-                  ))}
-                </div>
+                <Select onValueChange={setSelectedClassId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a class..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {classes.map((cls) => (
+                      <SelectItem key={cls.id} value={cls.id}>
+                        {cls.name} {cls.grade && `(${terminology.singular} ${cls.grade}${cls.section ? ` - ${cls.section}` : ''})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
         ) : (
-          // Attendance Sheet
           <div className="flex flex-col h-full">
             <div className="px-4 pt-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedClassId(undefined)}
-                className="mb-2 -ml-2"
-              >
-                ← Back to classes
+              <Button variant="ghost" size="sm" onClick={() => setSelectedClassId(undefined)} className="gap-2">
+                <CalendarIcon className="h-4 w-4" />
+                Change Class/Date
               </Button>
             </div>
             <ConnectedAttendanceSheet
               classId={selectedClassId}
               date={selectedDate}
-              onDateChange={(date) => {
-                setSelectedDate(date);
-                setCalendarOpen(true);
-              }}
-              onSaveSuccess={() => {
-                // Could navigate back or show success state
-              }}
+              onDateChange={(date) => setSelectedDate(date)}
             />
           </div>
         )}

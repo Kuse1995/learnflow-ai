@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-states";
+import { useTeacherSchool } from "@/hooks/useTeacherSchool";
 
 export default function TeacherUploads() {
   const [activeTab, setActiveTab] = useState("upload");
   const { data: classes, isLoading: classesLoading } = useClasses();
   const { data: uploads, isLoading: uploadsLoading } = useUploads();
   const { mutateAsync: uploadFile, uploadProgress, isPending } = useUploadFile();
+  const { schoolName } = useTeacherSchool();
 
   const handleUpload = async (data: Parameters<typeof uploadFile>[0]) => {
     try {
@@ -30,7 +32,7 @@ export default function TeacherUploads() {
   const classOptions = classes?.map((c) => ({ id: c.id, name: c.name })) || [];
 
   return (
-    <TeacherLayout schoolName="Omanut Academy">
+    <TeacherLayout schoolName={schoolName}>
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
         <header className="px-4 pt-6 pb-4 border-b">
           <h1 className="text-xl font-bold">Uploads</h1>

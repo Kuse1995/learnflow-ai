@@ -16,9 +16,11 @@ import { useDemoMode, DEMO_SCHOOL_ID, DEMO_CLASS_ID } from "@/contexts/DemoModeC
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTerminologyConfig } from "@/hooks/useClassLevelTerminology";
+import { useTeacherSchool } from "@/hooks/useTeacherSchool";
 
 export default function TeacherDashboard() {
   const { isDemoMode, demoSchoolId } = useDemoMode();
+  const { schoolName } = useTeacherSchool();
   const terminology = useTerminologyConfig(); // Uses default 'grade' for demo
   
   const currentDate = new Date().toLocaleDateString("en-US", {
@@ -57,39 +59,33 @@ export default function TeacherDashboard() {
     enabled: isDemoMode,
   });
 
-  // Fetch students needing attention (those with adaptive support plans)
+  // Fetch students needing attention for demo
   const { data: studentsNeedingAttention } = useQuery({
     queryKey: ['demo-attention-students', DEMO_CLASS_ID],
     queryFn: async () => {
+      // In demo, just get students from the demo class
       const { data, error } = await supabase
         .from('students')
-        .select(`
-          id, 
-          name,
-          adaptive_support_plans(id, focus_areas)
-        `)
+        .select('id, name')
         .eq('class_id', DEMO_CLASS_ID)
-        .eq('is_demo', true)
         .limit(3);
       if (error) throw error;
-      return (data || []).map(s => ({
+      return data?.map(s => ({
         id: s.id,
         name: s.name,
-        reason: s.adaptive_support_plans?.[0] 
-          ? 'Has adaptive support plan' 
-          : 'Recent assessment data available',
-      }));
+        reason: "Recent absence patterns"
+      })) || [];
     },
     enabled: isDemoMode,
   });
 
-  // Transform demo classes to display format
-  const todaysClasses = isDemoMode && demoClasses
-    ? demoClasses.map((cls, idx) => ({
-        id: cls.id,
-        name: cls.name,
-        grade: `${cls.grade}${cls.section || ''}`,
-        time: idx === 0 ? '8:00 AM' : idx === 1 ? '9:30 AM' : '11:00 AM',
+  // Use demo data or defaults
+  const displayClasses = isDemoMode && demoClasses && demoClasses.length > 0
+    ? demoClasses.map(c => ({
+        id: c.id,
+        name: c.name || "Class",
+        grade: c.grade ? `${terminology.singular} ${c.grade}` : "",
+        time: "Morning",
         students: studentCount || 0,
       }))
     : [
@@ -102,7 +98,7 @@ export default function TeacherDashboard() {
   ];
 
   return (
-    <TeacherLayout schoolName={isDemoMode ? "North Park School (Demo)" : "Stitch Academy"}>
+    <TeacherLayout schoolName={schoolName}>
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
         {/* Demo Mode Banner */}
         {isDemoMode && (
@@ -121,111 +117,107 @@ export default function TeacherDashboard() {
         </header>
 
         {/* Quick Actions */}
-        <section className="px-4 mb-6">
-          <div className="grid grid-cols-2 gap-3">
-            <Link to="/teacher/attendance">
-              <Card className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer h-full">
-                <CardContent className="flex flex-col items-center justify-center p-4 gap-2">
-                  <div className="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center">
-                    <ClipboardCheck className="h-6 w-6" />
-                  </div>
-                  <span className="font-semibold text-sm text-center">Take Attendance</span>
-                </CardContent>
-              </Card>
-            </Link>
-            
-            <Link to="/teacher/uploads">
-              <Card className="bg-secondary hover:bg-secondary/80 transition-colors cursor-pointer h-full">
-                <CardContent className="flex flex-col items-center justify-center p-4 gap-2">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Upload className="h-6 w-6 text-primary" />
-                  </div>
-                  <span className="font-semibold text-sm text-center">Upload Test</span>
-                </CardContent>
-              </Card>
-            </Link>
-          </div>
+        <section className="px-4 grid grid-cols-2 gap-3 mb-6">
+          <Link to="/teacher/attendance" className="block">
+            <Card className="h-full hover:border-primary/50 transition-colors">
+              <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full min-h-[100px]">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                  <ClipboardCheck className="h-5 w-5 text-primary" />
+                </div>
+                <span className="font-medium text-sm">Take Attendance</span>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to="/teacher/uploads" className="block">
+            <Card className="h-full hover:border-primary/50 transition-colors">
+              <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full min-h-[100px]">
+                <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center mb-2">
+                  <Upload className="h-5 w-5 text-accent" />
+                </div>
+                <span className="font-medium text-sm">Upload Work</span>
+              </CardContent>
+            </Card>
+          </Link>
         </section>
 
         {/* Today's Classes */}
         <section className="px-4 mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">Today's Classes</h2>
-            <Link to="/teacher/classes" className="text-primary text-sm font-medium hover:underline">
-              View all
+            <h2 className="font-semibold">Today's Classes</h2>
+            <Link to="/teacher/classes">
+              <Button variant="ghost" size="sm" className="gap-1">
+                View All
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </Link>
           </div>
 
-          <div className="space-y-3">
-            {todaysClasses.map((cls) => (
-              <Card key={cls.id} className="overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <BookOpen className="h-5 w-5 text-primary" />
+          <div className="space-y-2">
+            {displayClasses.map((cls) => (
+              <Link key={cls.id} to={`/teacher/classes/${cls.id}`}>
+                <Card className="hover:border-primary/50 transition-colors">
+                  <CardContent className="p-3 flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <BookOpen className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-sm truncate">{cls.name}</h3>
+                      <p className="text-xs text-muted-foreground">{cls.grade}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {cls.time}
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-sm">{cls.name}</h3>
-                        <p className="text-xs text-muted-foreground">{terminology.singular} {cls.grade}</p>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                        <Users className="h-3 w-3" />
+                        {cls.students}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5" />
-                        <span className="text-sm font-medium">{cls.time}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-muted-foreground mt-0.5">
-                        <Users className="h-3.5 w-3.5" />
-                        <span className="text-xs">{cls.students} students</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </section>
 
         {/* Students Needing Attention */}
         <section className="px-4 mb-6">
-          <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/50">
+          <Card className="border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-950/20">
             <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                  <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                </div>
-                <CardTitle className="text-base font-semibold">Students Needing Attention</CardTitle>
-              </div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                Students Needing Attention
+              </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-xs text-muted-foreground mb-3">
-                AI-powered insights coming soon
-              </p>
+            <CardContent>
               <div className="space-y-2">
-                {attentionList.map((student) => (
-                  <Link
-                    key={student.id}
-                    to={isDemoMode ? `/teacher/classes/${DEMO_CLASS_ID}/students/${student.id}` : '#'}
-                    className="flex items-center justify-between py-2 border-b border-amber-200/50 dark:border-amber-900/30 last:border-0 hover:bg-amber-100/50 dark:hover:bg-amber-900/20 rounded px-1 transition-colors"
-                  >
-                    <div>
+                {attentionList.slice(0, 2).map((student) => (
+                  <div key={student.id} className="flex items-center gap-3 p-2 rounded-lg bg-background/50">
+                    <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                      <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                        {student.name.charAt(0)}
+                      </span>
+                    </div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium">{student.name}</p>
                       <p className="text-xs text-muted-foreground">{student.reason}</p>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </Link>
+                  </div>
                 ))}
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full mt-3 border-amber-300 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/30"
-              >
-                View All Insights
-              </Button>
             </CardContent>
           </Card>
+        </section>
+
+        {/* View All Classes */}
+        <section className="px-4">
+          <Link to="/teacher/classes">
+            <Button variant="outline" className="w-full">
+              View All My Classes
+            </Button>
+          </Link>
         </section>
       </div>
     </TeacherLayout>

@@ -1,10 +1,13 @@
 import { TeacherLayout } from "@/components/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, TrendingUp, Users, Clock } from "lucide-react";
+import { useTeacherSchool } from "@/hooks/useTeacherSchool";
 
 export default function TeacherInsights() {
+  const { schoolName } = useTeacherSchool();
+
   return (
-    <TeacherLayout schoolName="Stitch Academy">
+    <TeacherLayout schoolName={schoolName}>
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
         <header className="px-4 pt-6 pb-4 border-b">
           <h1 className="text-xl font-bold">AI Insights</h1>
