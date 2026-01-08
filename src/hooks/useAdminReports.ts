@@ -85,12 +85,18 @@ export function useSchoolOverview(schoolId: string | undefined) {
         .is("deleted_at", null);
       const { count: classCount } = await classesQuery;
 
-      // Get students count - use any to avoid deep type instantiation
-      const { count: studentCount } = await (supabase
-        .from("students")
+      // Get students count - cast early to avoid deep type instantiation
+      const studentsTable = supabase.from("students") as unknown as {
+        select: (cols: string, opts?: { count: string; head: boolean }) => {
+          eq: (col: string, val: string) => {
+            is: (col: string, val: null) => Promise<{ count: number | null }>;
+          };
+        };
+      };
+      const { count: studentCount } = await studentsTable
         .select("*", { count: "exact", head: true })
         .eq("school_id", schoolId)
-        .is("deleted_at", null) as any);
+        .is("deleted_at", null);
 
       // Get active teachers (distinct teacher_ids from classes)
       const teachersQuery = supabase
