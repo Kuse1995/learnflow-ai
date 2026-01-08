@@ -6844,6 +6844,13 @@ export type Database = {
       }
     }
     Views: {
+      demo_data_summary: {
+        Row: {
+          record_count: number | null
+          table_name: string | null
+        }
+        Relationships: []
+      }
       student_learning_timeline: {
         Row: {
           class_id: string | null
@@ -7188,6 +7195,10 @@ export type Database = {
         Args: { p_school_id: string }
         Returns: boolean
       }
+      is_demo_record: {
+        Args: { record_id: string; table_name: string }
+        Returns: boolean
+      }
       is_school_admin: {
         Args: { _school_id: string; _user_id: string }
         Returns: boolean
@@ -7335,6 +7346,7 @@ export type Database = {
         Args: { p_message_id: string; p_reason: string }
         Returns: Json
       }
+      reset_demo_data: { Args: never; Returns: Json }
       restore_student: { Args: { p_student_id: string }; Returns: boolean }
       resume_pilot_school_ai: {
         Args: { p_school_id: string }
