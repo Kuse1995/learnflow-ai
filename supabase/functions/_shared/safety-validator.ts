@@ -40,11 +40,11 @@ const DEMO_PLACEHOLDER_MESSAGE = "Not enough demo data yet";
 
 /**
  * Check if the system is in demo mode by checking the request or environment
+ * DEMO MODE GLOBALLY DISABLED - Always returns false to treat all data as real
+ * To re-enable: return !Deno.env.get("LOVABLE_API_KEY");
  */
 export function isDemoMode(): boolean {
-  // In demo mode, LOVABLE_API_KEY is typically not set
-  // This is a simple heuristic - real demo detection should check system_config
-  return !Deno.env.get("LOVABLE_API_KEY");
+  return false;
 }
 
 /**
