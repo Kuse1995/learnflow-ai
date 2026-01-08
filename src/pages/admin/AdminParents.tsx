@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { Users2, Plus, Search, Phone, Mail, Link2, UserCheck } from "lucide-react";
+import { Users2, Plus, Search, Phone, Mail, Link2, UserCheck, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,6 +19,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { AlertCircle } from "lucide-react";
 import { useSchoolAdminSchool, useIsSchoolAdmin } from "@/hooks/useSchoolAdmin";
 import { useSchoolGuardians } from "@/hooks/useSchoolGuardians";
@@ -27,6 +37,9 @@ import { AdminLayout } from "@/components/navigation/AdminNav";
 import { usePlatformOwner } from "@/hooks/usePlatformOwner";
 import { AddGuardianDialog } from "@/components/school-admin/AddGuardianDialog";
 import { LinkGuardianDialog } from "@/components/school-admin/LinkGuardianDialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function AdminParents() {
   const { data: school, isLoading: schoolLoading } = useSchoolAdminSchool();
@@ -35,14 +48,55 @@ export default function AdminParents() {
   const { data: isAdmin, isLoading: isAdminLoading } = useIsSchoolAdmin();
   const { isPlatformOwner } = usePlatformOwner();
 
+  const queryClient = useQueryClient();
+  
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedGuardian, setSelectedGuardian] = useState<{
     id: string;
     display_name: string;
     linked_students: Array<{ student_id: string }>;
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const deleteGuardianMutation = useMutation({
+    mutationFn: async (guardianId: string) => {
+      // First delete all links
+      const { error: linksError } = await supabase
+        .from("guardian_student_links")
+        .delete()
+        .eq("guardian_id", guardianId);
+      
+      if (linksError) throw linksError;
+
+      // Then delete the guardian
+      const { error } = await supabase
+        .from("guardians")
+        .delete()
+        .eq("id", guardianId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Guardian deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["school-guardians"] });
+      setShowDeleteDialog(false);
+      setSelectedGuardian(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete guardian");
+    },
+  });
+
+  const handleDeleteClick = (guardian: (typeof filteredGuardians)[0]) => {
+    setSelectedGuardian({
+      id: guardian.id,
+      display_name: guardian.display_name,
+      linked_students: guardian.linked_students,
+    });
+    setShowDeleteDialog(true);
+  };
 
   const isLoading = schoolLoading || guardiansLoading || isAdminLoading || studentsLoading;
 
@@ -205,15 +259,25 @@ export default function AdminParents() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleLinkClick(guardian)}
-                          className="gap-1"
-                        >
-                          <Link2 className="h-3.5 w-3.5" />
-                          Link
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleLinkClick(guardian)}
+                            className="gap-1"
+                          >
+                            <Link2 className="h-3.5 w-3.5" />
+                            Link
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteClick(guardian)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -259,6 +323,28 @@ export default function AdminParents() {
           students={studentsList}
           existingLinks={selectedGuardian?.linked_students.map((l) => l.student_id) || []}
         />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Guardian</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete <strong>{selectedGuardian?.display_name}</strong>?
+                This will also remove all student links. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => selectedGuardian && deleteGuardianMutation.mutate(selectedGuardian.id)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );
