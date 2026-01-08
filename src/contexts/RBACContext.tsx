@@ -75,13 +75,18 @@ export function RBACProvider({
   const { data: userRoles, isLoading } = useUserRoles(effectiveUserId ?? undefined, effectiveSchoolId ?? undefined);
   
   // In demo mode, inject the demo role directly
+  // For Platform Owner, include all roles for simulation
   const roles = useMemo(() => {
+    if (isPlatformOwner) {
+      // Platform Owner can simulate any role
+      return ['platform_admin', 'school_admin', 'teacher', 'parent', 'student'] as AppRole[];
+    }
     if (isDemoMode && demoRole) {
       return [DEMO_USERS[demoRole].role];
     }
     if (!userRoles) return [];
     return userRoles.map(r => r.role);
-  }, [userRoles, isDemoMode, demoRole]);
+  }, [userRoles, isDemoMode, demoRole, isPlatformOwner]);
 
   const sortedRoles = useMemo(() => sortRolesByPriority(roles), [roles]);
   
@@ -91,10 +96,11 @@ export function RBACProvider({
   const effectiveActiveRole = activeRole ?? (sortedRoles[0] || null);
 
   const setActiveRole = useCallback((role: AppRole) => {
-    if (roles.includes(role)) {
+    // Platform Owner can set any role for simulation
+    if (isPlatformOwner || roles.includes(role)) {
       setActiveRoleState(role);
     }
-  }, [roles]);
+  }, [roles, isPlatformOwner]);
 
   const hasRole = useCallback((role: AppRole) => {
     if (isPlatformOwner) return true; // Platform Owner bypass
