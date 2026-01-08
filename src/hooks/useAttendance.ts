@@ -43,6 +43,7 @@ export function useSaveAttendance() {
         student_id: entry.studentId,
         date: date,
         present: entry.present,
+        updated_at: new Date().toISOString(),
         // marked_by would be set to current user when auth is implemented
       }));
 
@@ -55,13 +56,33 @@ export function useSaveAttendance() {
         })
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("[useSaveAttendance] Error:", error);
+        
+        // Provide specific error messages
+        if (error.code === "23505") {
+          throw new Error("Attendance already recorded for this date. Refreshing...");
+        }
+        if (error.code === "23503") {
+          throw new Error("Invalid student or class reference");
+        }
+        if (error.message?.includes("duplicate")) {
+          throw new Error("Attendance already recorded for this date");
+        }
+        
+        throw new Error(error.message || "Failed to save attendance");
+      }
+      
       return data;
     },
     onSuccess: (_, variables) => {
-      // Invalidate attendance query for this class/date
+      // Invalidate attendance queries for this class/date
       queryClient.invalidateQueries({
         queryKey: ["attendance", variables.classId, variables.date],
+      });
+      // Also invalidate attendance history
+      queryClient.invalidateQueries({
+        queryKey: ["attendance-history", variables.classId],
       });
     },
   });
