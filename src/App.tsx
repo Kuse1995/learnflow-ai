@@ -33,8 +33,8 @@ const App = () => (
               <Route path="/demo/enter" element={<DemoLanding />} />
               <Route path="/demo" element={<Navigate to="/demo/enter" replace />} />
               
-              {/* Default redirect */}
-              <Route path="/" element={<Navigate to="/auth" replace />} />
+              {/* Default redirect - goes to role-based home */}
+              <Route path="/" element={<Navigate to="/home" replace />} />
               
               {/* All authenticated/demo routes */}
               <Route path="/*" element={<AuthenticatedApp />} />
