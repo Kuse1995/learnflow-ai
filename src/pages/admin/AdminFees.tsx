@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { CreditCard, LayoutDashboard, List, Users, FileText, Calendar, Lock } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminLayout } from '@/components/navigation/AdminNav';
 import { useSchoolAdminSchool } from '@/hooks/useSchoolAdmin';
@@ -23,6 +24,16 @@ import { PaymentPlanManager } from '@/components/fees/PaymentPlanManager';
 export default function AdminFees() {
   const { data: school, isLoading } = useSchoolAdminSchool();
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Academic year and term state for term management
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedTerm, setSelectedTerm] = useState(1);
+  
+  // Generate year options (current year ± 2 years)
+  const yearOptions = useMemo(() => {
+    return [currentYear - 2, currentYear - 1, currentYear, currentYear + 1].filter(y => y > 2020);
+  }, [currentYear]);
 
   if (isLoading) {
     return (
@@ -103,7 +114,41 @@ export default function AdminFees() {
 
           {/* Term Management Tab */}
           <TabsContent value="terms" className="space-y-4">
-            <TermClosureControl schoolId={school?.id || ''} />
+            {/* Year/Term Selectors */}
+            <div className="flex gap-4 items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Year:</span>
+                <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(Number(v))}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearOptions.map(year => (
+                      <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Term:</span>
+                <Select value={String(selectedTerm)} onValueChange={(v) => setSelectedTerm(Number(v))}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Term 1</SelectItem>
+                    <SelectItem value="2">Term 2</SelectItem>
+                    <SelectItem value="3">Term 3</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <TermClosureControl 
+              schoolId={school?.id || ''} 
+              academicYear={selectedYear}
+              term={selectedTerm}
+              canCloseTerm={true}
+            />
           </TabsContent>
         </Tabs>
       </div>

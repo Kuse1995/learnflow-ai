@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import type { PaymentPlan, Installment, PaymentPlanInput, PaymentPlanStatus } from '@/lib/payment-plan-system';
+import type { PaymentPlan, Installment, PaymentPlanInput, PaymentPlanStatus, ParentAgreementMethod } from '@/lib/payment-plan-system';
 
 /**
  * Extended plan with student name for display
@@ -78,7 +78,7 @@ export function useSchoolPaymentPlans(
         syncedAt: row.synced_at,
         notes: row.notes,
         parentAgreementDate: row.parent_agreement_date,
-        parentAgreementMethod: row.parent_agreement_method,
+        parentAgreementMethod: row.parent_agreement_method as ParentAgreementMethod | undefined,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       }));
@@ -163,7 +163,7 @@ export function usePaymentPlan(planId: string | undefined) {
         syncedAt: plan.synced_at,
         notes: plan.notes,
         parentAgreementDate: plan.parent_agreement_date,
-        parentAgreementMethod: plan.parent_agreement_method,
+        parentAgreementMethod: plan.parent_agreement_method as ParentAgreementMethod | undefined,
         createdAt: plan.created_at,
         updatedAt: plan.updated_at,
         installments,
@@ -259,7 +259,7 @@ export function useStudentPaymentPlan(
         syncedAt: data.synced_at,
         notes: data.notes,
         parentAgreementDate: data.parent_agreement_date,
-        parentAgreementMethod: data.parent_agreement_method,
+        parentAgreementMethod: data.parent_agreement_method as ParentAgreementMethod | undefined,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         installments,
