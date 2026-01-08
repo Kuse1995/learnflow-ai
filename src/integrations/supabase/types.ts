@@ -885,6 +885,68 @@ export type Database = {
           },
         ]
       }
+      manual_plan_assignments: {
+        Row: {
+          assigned_by: string
+          created_at: string | null
+          duration_type: string
+          end_date: string | null
+          id: string
+          internal_notes: string | null
+          is_active: boolean | null
+          paused_at: string | null
+          paused_reason: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          plan_type: string
+          school_id: string
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_by: string
+          created_at?: string | null
+          duration_type: string
+          end_date?: string | null
+          id?: string
+          internal_notes?: string | null
+          is_active?: boolean | null
+          paused_at?: string | null
+          paused_reason?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          plan_type: string
+          school_id: string
+          start_date?: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_by?: string
+          created_at?: string | null
+          duration_type?: string
+          end_date?: string | null
+          id?: string
+          internal_notes?: string | null
+          is_active?: boolean | null
+          paused_at?: string | null
+          paused_reason?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          plan_type?: string
+          school_id?: string
+          start_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_plan_assignments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       migration_logs: {
         Row: {
           applied_at: string
@@ -1586,6 +1648,91 @@ export type Database = {
           },
         ]
       }
+      school_admin_metrics: {
+        Row: {
+          active_classes_count: number | null
+          active_teachers_count: number | null
+          adaptive_plans_generated_count: number | null
+          created_at: string | null
+          id: string
+          last_calculated_at: string | null
+          parent_insights_approved_count: number | null
+          school_id: string
+          updated_at: string | null
+          uploads_this_term: number | null
+        }
+        Insert: {
+          active_classes_count?: number | null
+          active_teachers_count?: number | null
+          adaptive_plans_generated_count?: number | null
+          created_at?: string | null
+          id?: string
+          last_calculated_at?: string | null
+          parent_insights_approved_count?: number | null
+          school_id: string
+          updated_at?: string | null
+          uploads_this_term?: number | null
+        }
+        Update: {
+          active_classes_count?: number | null
+          active_teachers_count?: number | null
+          adaptive_plans_generated_count?: number | null
+          created_at?: string | null
+          id?: string
+          last_calculated_at?: string | null
+          parent_insights_approved_count?: number | null
+          school_id?: string
+          updated_at?: string | null
+          uploads_this_term?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_admin_metrics_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_admin_onboarding: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_step: number | null
+          id: string
+          school_id: string
+          steps_completed: Json | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_step?: number | null
+          id?: string
+          school_id: string
+          steps_completed?: Json | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_step?: number | null
+          id?: string
+          school_id?: string
+          steps_completed?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_admin_onboarding_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_ai_controls: {
         Row: {
           ai_enabled: boolean | null
@@ -1797,6 +1944,50 @@ export type Database = {
             columns: ["suspended_by"]
             isOneToOne: false
             referencedRelation: "super_admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_system_history: {
+        Row: {
+          action_description: string
+          action_type: string
+          created_at: string | null
+          id: string
+          new_state: Json | null
+          performed_by: string
+          performed_by_role: string | null
+          previous_state: Json | null
+          school_id: string
+        }
+        Insert: {
+          action_description: string
+          action_type: string
+          created_at?: string | null
+          id?: string
+          new_state?: Json | null
+          performed_by: string
+          performed_by_role?: string | null
+          previous_state?: Json | null
+          school_id: string
+        }
+        Update: {
+          action_description?: string
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          new_state?: Json | null
+          performed_by?: string
+          performed_by_role?: string | null
+          previous_state?: Json | null
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_system_history_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
         ]
@@ -2998,7 +3189,21 @@ export type Database = {
         Args: { p_school_id: string }
         Returns: boolean
       }
+      is_school_admin: {
+        Args: { _school_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      log_school_history: {
+        Args: {
+          p_action_description: string
+          p_action_type: string
+          p_new_state?: Json
+          p_previous_state?: Json
+          p_school_id: string
+        }
+        Returns: string
+      }
       pause_pilot_school_ai: {
         Args: { p_reason: string; p_school_id: string }
         Returns: boolean
