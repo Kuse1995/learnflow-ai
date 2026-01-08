@@ -6,3 +6,6 @@ export { ReceiptHistory } from './ReceiptHistory';
 export { ReceiptPreview } from './ReceiptPreview';
 export { StudentStatementViewer } from './StudentStatementViewer';
 export { FinancialExports } from './FinancialExports';
+export { SendReminderDialog } from './SendReminderDialog';
+export { ReminderHistory } from './ReminderHistory';
+export { ReminderTemplateManager } from './ReminderTemplateManager';
