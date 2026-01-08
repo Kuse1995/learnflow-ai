@@ -8,6 +8,10 @@ import {
   ParentInsightsTable,
   SystemHealthPanel,
   AccessOverridesPanel,
+  QuickNavigationPanel,
+  SchoolManagementPanel,
+  UserManagementPanel,
+  ClassManagementPanel,
 } from '@/components/owner';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -58,44 +62,52 @@ export default function OwnerControl() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto p-6">
+      <main className="container mx-auto p-6 space-y-6">
+        {/* Quick Navigation - Full Width */}
+        <QuickNavigationPanel />
+
+        {/* School & User Management Row */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Section 2: Access & Role Overrides */}
+          <SchoolManagementPanel />
+          <UserManagementPanel />
+        </div>
+
+        {/* Access Overrides & Class Management Row */}
+        <div className="grid gap-6 lg:grid-cols-2">
           <AccessOverridesPanel />
+          <ClassManagementPanel />
+        </div>
 
-          {/* Section 5: System Health */}
-          <SystemHealthPanel />
+        {/* System Actions - Full Width */}
+        <SystemActionsPanel />
 
-          {/* Section 3: System Actions - Full Width */}
-          <div className="lg:col-span-2">
-            <SystemActionsPanel />
+        {/* Pending Reviews Section */}
+        <div>
+          <div className="flex items-center gap-4 mb-4">
+            <h2 className="text-xl font-semibold">Pending Reviews</h2>
+            <div className="flex gap-2">
+              {pendingCounts && pendingCounts.adaptivePlans > 0 && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Brain className="h-3 w-3" />
+                  {pendingCounts.adaptivePlans} plans
+                </Badge>
+              )}
+              {pendingCounts && pendingCounts.parentInsights > 0 && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <FileText className="h-3 w-3" />
+                  {pendingCounts.parentInsights} insights
+                </Badge>
+              )}
+            </div>
           </div>
-
-          {/* Section 4: Pending Reviews */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-4 mb-4">
-              <h2 className="text-xl font-semibold">Pending Reviews</h2>
-              <div className="flex gap-2">
-                {pendingCounts && pendingCounts.adaptivePlans > 0 && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <Brain className="h-3 w-3" />
-                    {pendingCounts.adaptivePlans} plans
-                  </Badge>
-                )}
-                {pendingCounts && pendingCounts.parentInsights > 0 && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <FileText className="h-3 w-3" />
-                    {pendingCounts.parentInsights} insights
-                  </Badge>
-                )}
-              </div>
-            </div>
-            <div className="grid gap-6 lg:grid-cols-2">
-              <AdaptivePlansTable />
-              <ParentInsightsTable />
-            </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <AdaptivePlansTable />
+            <ParentInsightsTable />
           </div>
         </div>
+
+        {/* System Health - Full Width */}
+        <SystemHealthPanel />
       </main>
     </div>
   );
