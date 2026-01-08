@@ -11,3 +11,5 @@ export { ReminderHistory } from './ReminderHistory';
 export { ReminderTemplateManager } from './ReminderTemplateManager';
 export { AddAdjustmentDialog } from './AddAdjustmentDialog';
 export { AdjustmentHistory } from './AdjustmentHistory';
+export { TermClosureControl } from './TermClosureControl';
+export { TermClosedBanner, TermClosedIndicator, TermClosedWarning, ParentTermFinalizedMessage } from './TermClosedBanner';

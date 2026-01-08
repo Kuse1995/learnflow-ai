@@ -1713,6 +1713,65 @@ export type Database = {
           },
         ]
       }
+      fee_term_closures: {
+        Row: {
+          academic_year: number
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          id: string
+          is_closed: boolean
+          outstanding_balance: number | null
+          school_id: string
+          student_count: number | null
+          term: number
+          total_adjustments: number | null
+          total_fees_charged: number | null
+          total_payments_received: number | null
+          updated_at: string
+        }
+        Insert: {
+          academic_year: number
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          id?: string
+          is_closed?: boolean
+          outstanding_balance?: number | null
+          school_id: string
+          student_count?: number | null
+          term: number
+          total_adjustments?: number | null
+          total_fees_charged?: number | null
+          total_payments_received?: number | null
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: number
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          id?: string
+          is_closed?: boolean
+          outstanding_balance?: number | null
+          school_id?: string
+          student_count?: number | null
+          term?: number
+          total_adjustments?: number | null
+          total_fees_charged?: number | null
+          total_payments_received?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_term_closures_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guardian_link_audit_log: {
         Row: {
           action: string
@@ -6046,6 +6105,15 @@ export type Database = {
         Args: { p_guardian_id: string; p_student_id: string }
         Returns: Json
       }
+      close_fee_term: {
+        Args: {
+          p_academic_year: number
+          p_closed_by: string
+          p_school_id: string
+          p_term: number
+        }
+        Returns: Json
+      }
       compute_fee_audit_hash: {
         Args: {
           p_action_type: string
@@ -6298,6 +6366,10 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_term_closed: {
+        Args: { p_academic_year: number; p_school_id: string; p_term: number }
+        Returns: boolean
+      }
       log_guardian_link_change: {
         Args: {
           p_action: string
