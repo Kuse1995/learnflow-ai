@@ -6881,6 +6881,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      assign_dev_user_roles: { Args: { user_email: string }; Returns: boolean }
       calculate_installment_status: {
         Args: { p_amount: number; p_amount_paid: number; p_due_date: string }
         Returns: string
