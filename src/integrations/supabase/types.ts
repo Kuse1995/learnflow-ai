@@ -539,6 +539,59 @@ export type Database = {
           },
         ]
       }
+      communication_rules: {
+        Row: {
+          allowed_send_hours_end: number | null
+          allowed_send_hours_start: number | null
+          category: Database["public"]["Enums"]["message_category"]
+          created_at: string
+          id: string
+          max_messages_per_week: number | null
+          priority_level: number
+          requires_approval: boolean
+          retry_attempts: number | null
+          retry_delay_hours: number | null
+          school_id: string
+          updated_at: string
+        }
+        Insert: {
+          allowed_send_hours_end?: number | null
+          allowed_send_hours_start?: number | null
+          category: Database["public"]["Enums"]["message_category"]
+          created_at?: string
+          id?: string
+          max_messages_per_week?: number | null
+          priority_level?: number
+          requires_approval?: boolean
+          retry_attempts?: number | null
+          retry_delay_hours?: number | null
+          school_id: string
+          updated_at?: string
+        }
+        Update: {
+          allowed_send_hours_end?: number | null
+          allowed_send_hours_start?: number | null
+          category?: Database["public"]["Enums"]["message_category"]
+          created_at?: string
+          id?: string
+          max_messages_per_week?: number | null
+          priority_level?: number
+          requires_approval?: boolean
+          retry_attempts?: number | null
+          retry_delay_hours?: number | null
+          school_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_rules_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_settings: {
         Row: {
           compliance_mode: Database["public"]["Enums"]["compliance_mode"]
@@ -947,6 +1000,100 @@ export type Database = {
           },
         ]
       }
+      message_queue: {
+        Row: {
+          attempts: number | null
+          channel: Database["public"]["Enums"]["delivery_channel"]
+          created_at: string
+          id: string
+          last_error: string | null
+          max_attempts: number | null
+          message_id: string
+          priority_level: number
+          processed_at: string | null
+          scheduled_for: string
+        }
+        Insert: {
+          attempts?: number | null
+          channel: Database["public"]["Enums"]["delivery_channel"]
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          max_attempts?: number | null
+          message_id: string
+          priority_level?: number
+          processed_at?: string | null
+          scheduled_for?: string
+        }
+        Update: {
+          attempts?: number | null
+          channel?: Database["public"]["Enums"]["delivery_channel"]
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          max_attempts?: number | null
+          message_id?: string
+          priority_level?: number
+          processed_at?: string | null
+          scheduled_for?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_queue_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "parent_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_templates: {
+        Row: {
+          category: Database["public"]["Enums"]["message_category"]
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          requires_teacher_approval: boolean | null
+          school_id: string
+          template_body: string
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["message_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          requires_teacher_approval?: boolean | null
+          school_id: string
+          template_body: string
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["message_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          requires_teacher_approval?: boolean | null
+          school_id?: string
+          template_body?: string
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_templates_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       migration_logs: {
         Row: {
           applied_at: string
@@ -1038,6 +1185,71 @@ export type Database = {
           },
         ]
       }
+      parent_contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          last_successful_contact_at: string | null
+          parent_name: string
+          preferred_language: string | null
+          receives_announcements: boolean | null
+          receives_attendance_notices: boolean | null
+          receives_emergency: boolean | null
+          receives_fee_updates: boolean | null
+          receives_learning_updates: boolean | null
+          relationship: string | null
+          sms_number: string | null
+          student_id: string
+          updated_at: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_successful_contact_at?: string | null
+          parent_name: string
+          preferred_language?: string | null
+          receives_announcements?: boolean | null
+          receives_attendance_notices?: boolean | null
+          receives_emergency?: boolean | null
+          receives_fee_updates?: boolean | null
+          receives_learning_updates?: boolean | null
+          relationship?: string | null
+          sms_number?: string | null
+          student_id: string
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_successful_contact_at?: string | null
+          parent_name?: string
+          preferred_language?: string | null
+          receives_announcements?: boolean | null
+          receives_attendance_notices?: boolean | null
+          receives_emergency?: boolean | null
+          receives_fee_updates?: boolean | null
+          receives_learning_updates?: boolean | null
+          relationship?: string | null
+          sms_number?: string | null
+          student_id?: string
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_contacts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_insight_summaries: {
         Row: {
           approved_at: string | null
@@ -1076,6 +1288,127 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      parent_messages: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          attempted_channel:
+            | Database["public"]["Enums"]["delivery_channel"]
+            | null
+          category: Database["public"]["Enums"]["message_category"]
+          created_at: string
+          created_by: string | null
+          delivered_at: string | null
+          delivery_status: Database["public"]["Enums"]["delivery_status"]
+          email_attempted: boolean | null
+          email_failed_at: string | null
+          first_attempt_at: string | null
+          id: string
+          internal_notes: string | null
+          last_attempt_at: string | null
+          message_body: string
+          parent_contact_id: string
+          priority_level: number
+          rejection_reason: string | null
+          requires_approval: boolean | null
+          retry_count: number | null
+          school_id: string
+          sms_attempted: boolean | null
+          sms_failed_at: string | null
+          student_id: string
+          subject: string | null
+          updated_at: string
+          whatsapp_attempted: boolean | null
+          whatsapp_failed_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          attempted_channel?:
+            | Database["public"]["Enums"]["delivery_channel"]
+            | null
+          category: Database["public"]["Enums"]["message_category"]
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          delivery_status?: Database["public"]["Enums"]["delivery_status"]
+          email_attempted?: boolean | null
+          email_failed_at?: string | null
+          first_attempt_at?: string | null
+          id?: string
+          internal_notes?: string | null
+          last_attempt_at?: string | null
+          message_body: string
+          parent_contact_id: string
+          priority_level?: number
+          rejection_reason?: string | null
+          requires_approval?: boolean | null
+          retry_count?: number | null
+          school_id: string
+          sms_attempted?: boolean | null
+          sms_failed_at?: string | null
+          student_id: string
+          subject?: string | null
+          updated_at?: string
+          whatsapp_attempted?: boolean | null
+          whatsapp_failed_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          attempted_channel?:
+            | Database["public"]["Enums"]["delivery_channel"]
+            | null
+          category?: Database["public"]["Enums"]["message_category"]
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          delivery_status?: Database["public"]["Enums"]["delivery_status"]
+          email_attempted?: boolean | null
+          email_failed_at?: string | null
+          first_attempt_at?: string | null
+          id?: string
+          internal_notes?: string | null
+          last_attempt_at?: string | null
+          message_body?: string
+          parent_contact_id?: string
+          priority_level?: number
+          rejection_reason?: string | null
+          requires_approval?: boolean | null
+          retry_count?: number | null
+          school_id?: string
+          sms_attempted?: boolean | null
+          sms_failed_at?: string | null
+          student_id?: string
+          subject?: string | null
+          updated_at?: string
+          whatsapp_attempted?: boolean | null
+          whatsapp_failed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_messages_parent_contact_id_fkey"
+            columns: ["parent_contact_id"]
+            isOneToOne: false
+            referencedRelation: "parent_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_messages_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_messages_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pilot_exit_criteria: {
         Row: {
@@ -3306,6 +3639,10 @@ export type Database = {
         Args: { p_school_id: string }
         Returns: string
       }
+      get_parent_delivery_channel: {
+        Args: { p_parent_contact_id: string }
+        Returns: Database["public"]["Enums"]["delivery_channel"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3324,6 +3661,10 @@ export type Database = {
       increment_usage_metric: {
         Args: { p_limit: number; p_metric: string; p_school_id: string }
         Returns: Json
+      }
+      initialize_communication_rules: {
+        Args: { p_school_id: string }
+        Returns: undefined
       }
       is_ai_enabled_for_school: {
         Args: { p_school_id: string }
@@ -3398,6 +3739,20 @@ export type Database = {
       billing_status: "active" | "trial" | "suspended"
       compliance_mode: "standard" | "strict"
       confidence_trend: "increasing" | "stable" | "declining"
+      delivery_channel: "whatsapp" | "sms" | "email"
+      delivery_status:
+        | "pending"
+        | "queued"
+        | "sent"
+        | "delivered"
+        | "failed"
+        | "no_channel"
+      message_category:
+        | "learning_update"
+        | "attendance_notice"
+        | "fee_status"
+        | "school_announcement"
+        | "emergency_notice"
       platform_audit_action:
         | "plan_activated"
         | "plan_changed"
@@ -3583,6 +3938,22 @@ export const Constants = {
       billing_status: ["active", "trial", "suspended"],
       compliance_mode: ["standard", "strict"],
       confidence_trend: ["increasing", "stable", "declining"],
+      delivery_channel: ["whatsapp", "sms", "email"],
+      delivery_status: [
+        "pending",
+        "queued",
+        "sent",
+        "delivered",
+        "failed",
+        "no_channel",
+      ],
+      message_category: [
+        "learning_update",
+        "attendance_notice",
+        "fee_status",
+        "school_announcement",
+        "emergency_notice",
+      ],
       platform_audit_action: [
         "plan_activated",
         "plan_changed",
