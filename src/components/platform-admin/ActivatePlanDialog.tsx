@@ -44,6 +44,7 @@ export function ActivatePlanDialog({
         planId: selectedPlanId,
         expiresAt: expiresAt || undefined,
         notes: notes || undefined,
+        superAdminOverride: true, // Bypass all billing/demo checks
       },
       {
         onSuccess: () => {
@@ -67,6 +68,9 @@ export function ActivatePlanDialog({
             {currentPlanId
               ? `Change the subscription plan for "${school.name}"`
               : `Activate a subscription plan for "${school.name}"`}
+            <span className="block text-xs mt-1 text-primary font-medium">
+              Super Admin Override: Bypasses billing checks • Changes apply immediately
+            </span>
           </DialogDescription>
         </DialogHeader>
 

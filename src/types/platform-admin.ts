@@ -182,6 +182,8 @@ export interface ActivatePlanPayload {
   planId: string;
   expiresAt?: string;
   notes?: string;
+  /** Super Admin bypass - ignores billing checks and demo flags */
+  superAdminOverride?: boolean;
 }
 
 export interface SuspendSchoolPayload {
