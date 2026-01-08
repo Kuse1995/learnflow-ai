@@ -649,6 +649,47 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_adoption_events: {
+        Row: {
+          count: number
+          created_at: string
+          event_date: string
+          event_type: string
+          feature_key: string
+          id: string
+          metadata: Json | null
+          school_id: string | null
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          event_date?: string
+          event_type: string
+          feature_key: string
+          id?: string
+          metadata?: Json | null
+          school_id?: string | null
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          event_date?: string
+          event_type?: string
+          feature_key?: string
+          id?: string
+          metadata?: Json | null
+          school_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_adoption_events_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_flags: {
         Row: {
           created_at: string
@@ -689,6 +730,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      help_dismissals: {
+        Row: {
+          dismissed_at: string
+          help_key: string
+          id: string
+          never_show_again: boolean | null
+          teacher_id: string
+        }
+        Insert: {
+          dismissed_at?: string
+          help_key: string
+          id?: string
+          never_show_again?: boolean | null
+          teacher_id: string
+        }
+        Update: {
+          dismissed_at?: string
+          help_key?: string
+          id?: string
+          never_show_again?: boolean | null
+          teacher_id?: string
+        }
+        Relationships: []
       }
       legal_documents: {
         Row: {
@@ -2298,6 +2363,30 @@ export type Database = {
           },
         ]
       }
+      teacher_feature_first_use: {
+        Row: {
+          feature_key: string
+          first_used_at: string
+          id: string
+          teacher_id: string
+          time_since_signup_hours: number | null
+        }
+        Insert: {
+          feature_key: string
+          first_used_at?: string
+          id?: string
+          teacher_id: string
+          time_since_signup_hours?: number | null
+        }
+        Update: {
+          feature_key?: string
+          first_used_at?: string
+          id?: string
+          teacher_id?: string
+          time_since_signup_hours?: number | null
+        }
+        Relationships: []
+      }
       teacher_feedback: {
         Row: {
           admin_notes: string | null
@@ -2360,6 +2449,183 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      teacher_onboarding: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          id: string
+          school_id: string | null
+          skipped: boolean | null
+          started_at: string
+          teacher_id: string
+          total_steps: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          school_id?: string | null
+          skipped?: boolean | null
+          started_at?: string
+          teacher_id: string
+          total_steps?: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          school_id?: string | null
+          skipped?: boolean | null
+          started_at?: string
+          teacher_id?: string
+          total_steps?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_onboarding_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_quick_feedback: {
+        Row: {
+          admin_notes: string | null
+          feature_area: string | null
+          feedback_type: string
+          id: string
+          message: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          school_id: string | null
+          submitted_at: string
+          teacher_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          feature_area?: string | null
+          feedback_type: string
+          id?: string
+          message: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id?: string | null
+          submitted_at?: string
+          teacher_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          feature_area?: string | null
+          feedback_type?: string
+          id?: string
+          message?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id?: string | null
+          submitted_at?: string
+          teacher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_quick_feedback_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_training_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          module_id: string
+          progress_percent: number
+          started_at: string
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          module_id: string
+          progress_percent?: number
+          started_at?: string
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          module_id?: string
+          progress_percent?: number
+          started_at?: string
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_training_progress_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "training_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_modules: {
+        Row: {
+          category: string
+          content: Json
+          created_at: string
+          description: string
+          duration_minutes: number
+          id: string
+          is_active: boolean | null
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          content?: Json
+          created_at?: string
+          description: string
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: Json
+          created_at?: string
+          description?: string
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       upload_analyses: {
         Row: {
