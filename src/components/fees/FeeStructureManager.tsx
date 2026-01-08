@@ -44,6 +44,7 @@ import {
   useFormatBalance,
 } from '@/hooks/useStudentFees';
 import { useClassLevelTerminology } from '@/hooks/useClassLevelTerminology';
+import { PaymentPlanTemplateManager } from './PaymentPlanTemplateManager';
 
 interface FeeStructureManagerProps {
   schoolId: string;
@@ -195,6 +196,9 @@ export function FeeStructureManager({ schoolId }: FeeStructureManagerProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Payment Plan Templates Section */}
+      <PaymentPlanTemplateManager schoolId={schoolId} />
     </div>
   );
 }

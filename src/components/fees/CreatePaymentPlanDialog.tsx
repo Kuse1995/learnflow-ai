@@ -43,6 +43,7 @@ import {
   type InstallmentInput,
   type ParentAgreementMethod,
 } from '@/lib/payment-plan-system';
+import { usePaymentPlanTemplates, generateInstallmentsFromTemplate, PaymentPlanTemplate } from '@/hooks/usePaymentPlanTemplates';
 
 interface CreatePaymentPlanDialogProps {
   open: boolean;
@@ -75,23 +76,53 @@ export function CreatePaymentPlanDialog({
   const [notes, setNotes] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [studentSearchOpen, setStudentSearchOpen] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('custom');
 
   // Get students with balances
   const { data: studentBalances } = useSchoolStudentBalances(schoolId, academicYear, term);
+  
+  // Get payment plan templates
+  const { data: templates } = usePaymentPlanTemplates(schoolId);
 
   // Filter students with outstanding balances
   const studentsWithBalance = useMemo(() => {
     return (studentBalances || []).filter(s => s.currentBalance > 0);
   }, [studentBalances]);
 
+  // Handle template selection
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    if (templateId === 'custom') return;
+    
+    const template = templates?.find(t => t.id === templateId);
+    if (template) {
+      setInstallmentCount(template.installment_count);
+      // Map template frequency to form frequency
+      if (template.frequency === 'weekly') setFrequency('weekly');
+      else if (template.frequency === 'bi-weekly') setFrequency('biweekly');
+      else setFrequency('monthly');
+    }
+  };
+
   // Calculate installments preview
   const installmentsPreview = useMemo(() => {
     const amount = parseFloat(totalAmount) || studentBalance;
     if (amount <= 0 || installmentCount <= 0) return [];
 
+    // Check if using a template with custom splits
+    const template = templates?.find(t => t.id === selectedTemplateId);
+    if (template && template.split_percentages && template.split_percentages.length > 0) {
+      const templateInstallments = generateInstallmentsFromTemplate(template, amount, new Date(startDate));
+      // Convert to InstallmentInput format (dueDate as string)
+      return templateInstallments.map(inst => ({
+        amount: inst.amount,
+        dueDate: format(inst.dueDate, 'yyyy-MM-dd'),
+      }));
+    }
+
     const intervalDays = frequency === 'weekly' ? 7 : frequency === 'biweekly' ? 14 : 30;
     return generateEqualInstallments(amount, installmentCount, new Date(startDate), intervalDays);
-  }, [totalAmount, studentBalance, installmentCount, frequency, startDate]);
+  }, [totalAmount, studentBalance, installmentCount, frequency, startDate, selectedTemplateId, templates]);
 
   // Handle student selection
   const handleSelectStudent = (student: typeof studentsWithBalance[0]) => {
@@ -219,6 +250,27 @@ export function CreatePaymentPlanDialog({
               </p>
             )}
           </div>
+
+          {/* Template Selection */}
+          {templates && templates.length > 0 && (
+            <div className="space-y-2">
+              <Label>Payment Plan Template</Label>
+              <Select value={selectedTemplateId} onValueChange={handleTemplateSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select template or custom" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="custom">Custom Configuration</SelectItem>
+                  {templates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                      {template.is_default && ' (Default)'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Plan Amount */}
           <div className="space-y-2">
