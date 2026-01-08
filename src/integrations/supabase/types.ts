@@ -887,6 +887,124 @@ export type Database = {
           },
         ]
       }
+      fee_audit_logs: {
+        Row: {
+          academic_year: number
+          action_type: string
+          amount_affected: number | null
+          approval_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          correction_type: string | null
+          corrects_audit_id: string | null
+          created_at: string
+          currency: string
+          effective_date: string
+          entity_id: string
+          entity_type: string
+          entry_hash: string
+          id: string
+          is_correction: boolean
+          new_values: Json
+          notes: string | null
+          performed_by: string | null
+          performed_by_role: string
+          previous_hash: string | null
+          previous_values: Json | null
+          reason: string
+          related_entity_id: string | null
+          requires_approval: boolean
+          school_id: string
+          sequence_number: number
+          student_id: string
+          term: number | null
+        }
+        Insert: {
+          academic_year: number
+          action_type: string
+          amount_affected?: number | null
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          correction_type?: string | null
+          corrects_audit_id?: string | null
+          created_at?: string
+          currency?: string
+          effective_date?: string
+          entity_id: string
+          entity_type: string
+          entry_hash: string
+          id?: string
+          is_correction?: boolean
+          new_values: Json
+          notes?: string | null
+          performed_by?: string | null
+          performed_by_role: string
+          previous_hash?: string | null
+          previous_values?: Json | null
+          reason: string
+          related_entity_id?: string | null
+          requires_approval?: boolean
+          school_id: string
+          sequence_number: number
+          student_id: string
+          term?: number | null
+        }
+        Update: {
+          academic_year?: number
+          action_type?: string
+          amount_affected?: number | null
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          correction_type?: string | null
+          corrects_audit_id?: string | null
+          created_at?: string
+          currency?: string
+          effective_date?: string
+          entity_id?: string
+          entity_type?: string
+          entry_hash?: string
+          id?: string
+          is_correction?: boolean
+          new_values?: Json
+          notes?: string | null
+          performed_by?: string | null
+          performed_by_role?: string
+          previous_hash?: string | null
+          previous_values?: Json | null
+          reason?: string
+          related_entity_id?: string | null
+          requires_approval?: boolean
+          school_id?: string
+          sequence_number?: number
+          student_id?: string
+          term?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_audit_logs_corrects_audit_id_fkey"
+            columns: ["corrects_audit_id"]
+            isOneToOne: false
+            referencedRelation: "fee_audit_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_audit_logs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_audit_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fee_categories: {
         Row: {
           code: string
@@ -930,6 +1048,138 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_correction_requests: {
+        Row: {
+          applied_at: string | null
+          applied_by: string | null
+          corrected_amount: number | null
+          corrected_category_id: string | null
+          corrected_payment_date: string | null
+          corrected_payment_method: string | null
+          correction_type: string
+          created_at: string
+          id: string
+          original_amount: number
+          original_ledger_entry_id: string
+          original_payment_date: string | null
+          original_payment_id: string | null
+          original_payment_method: string | null
+          reason: string
+          rejection_reason: string | null
+          requested_at: string
+          requested_by: string
+          requested_by_role: string
+          resulting_audit_log_id: string | null
+          resulting_ledger_entry_id: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          school_id: string
+          status: string
+          student_id: string
+          supporting_evidence: string | null
+          updated_at: string
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by?: string | null
+          corrected_amount?: number | null
+          corrected_category_id?: string | null
+          corrected_payment_date?: string | null
+          corrected_payment_method?: string | null
+          correction_type: string
+          created_at?: string
+          id?: string
+          original_amount: number
+          original_ledger_entry_id: string
+          original_payment_date?: string | null
+          original_payment_id?: string | null
+          original_payment_method?: string | null
+          reason: string
+          rejection_reason?: string | null
+          requested_at?: string
+          requested_by: string
+          requested_by_role: string
+          resulting_audit_log_id?: string | null
+          resulting_ledger_entry_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id: string
+          status?: string
+          student_id: string
+          supporting_evidence?: string | null
+          updated_at?: string
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string | null
+          corrected_amount?: number | null
+          corrected_category_id?: string | null
+          corrected_payment_date?: string | null
+          corrected_payment_method?: string | null
+          correction_type?: string
+          created_at?: string
+          id?: string
+          original_amount?: number
+          original_ledger_entry_id?: string
+          original_payment_date?: string | null
+          original_payment_id?: string | null
+          original_payment_method?: string | null
+          reason?: string
+          rejection_reason?: string | null
+          requested_at?: string
+          requested_by?: string
+          requested_by_role?: string
+          resulting_audit_log_id?: string | null
+          resulting_ledger_entry_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          school_id?: string
+          status?: string
+          student_id?: string
+          supporting_evidence?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_correction_requests_corrected_category_id_fkey"
+            columns: ["corrected_category_id"]
+            isOneToOne: false
+            referencedRelation: "fee_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_correction_requests_original_payment_id_fkey"
+            columns: ["original_payment_id"]
+            isOneToOne: false
+            referencedRelation: "fee_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_correction_requests_resulting_audit_log_id_fkey"
+            columns: ["resulting_audit_log_id"]
+            isOneToOne: false
+            referencedRelation: "fee_audit_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_correction_requests_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_correction_requests_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
@@ -5108,6 +5358,18 @@ export type Database = {
         Args: { p_guardian_id: string; p_student_id: string }
         Returns: Json
       }
+      compute_fee_audit_hash: {
+        Args: {
+          p_action_type: string
+          p_amount: number
+          p_created_at: string
+          p_entity_id: string
+          p_performed_by: string
+          p_previous_hash: string
+          p_reason: string
+        }
+        Returns: string
+      }
       compute_ledger_hash: {
         Args: {
           p_credit: number
@@ -5173,6 +5435,10 @@ export type Database = {
           student_id: string
         }[]
       }
+      get_next_fee_audit_sequence: {
+        Args: { p_student_id: string }
+        Returns: number
+      }
       get_next_ledger_sequence: {
         Args: { p_student_id: string }
         Returns: number
@@ -5237,6 +5503,30 @@ export type Database = {
           p_requires_confirmation?: boolean
           p_student_id: string
           p_verification_notes?: string
+        }
+        Returns: string
+      }
+      insert_fee_audit_log: {
+        Args: {
+          p_academic_year: number
+          p_action_type: string
+          p_amount_affected: number
+          p_correction_type?: string
+          p_corrects_audit_id?: string
+          p_entity_id: string
+          p_entity_type: string
+          p_is_correction?: boolean
+          p_new_values: Json
+          p_notes?: string
+          p_performed_by: string
+          p_performed_by_role: string
+          p_previous_values?: Json
+          p_reason: string
+          p_related_entity_id?: string
+          p_requires_approval?: boolean
+          p_school_id: string
+          p_student_id: string
+          p_term?: number
         }
         Returns: string
       }
