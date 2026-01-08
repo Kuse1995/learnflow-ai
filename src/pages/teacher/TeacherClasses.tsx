@@ -6,17 +6,19 @@ import { EmptyState } from "@/components/empty-states";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen, Users, ChevronRight } from "lucide-react";
 import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
+import { useTeacherSchool } from "@/hooks/useTeacherSchool";
 
 export default function TeacherClasses() {
   const navigate = useNavigate();
   const { data: classes = [], isLoading } = useClasses();
+  const { schoolName } = useTeacherSchool();
   
   // Get school ID from first class to determine terminology
   const schoolId = classes[0]?.school_id;
   const { config: terminology } = useClassLevelTerminology(schoolId);
 
   return (
-    <TeacherLayout schoolName="Omanut Academy">
+    <TeacherLayout schoolName={schoolName}>
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
         <header className="px-4 pt-6 pb-4 border-b">
           <h1 className="text-xl font-bold">My Classes</h1>

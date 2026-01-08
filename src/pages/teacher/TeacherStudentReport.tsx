@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/empty-states";
 import { StudentReportView, StudentReportSkeleton } from "@/components/reports/teacher-reports-index";
 import { useStudent } from "@/hooks/useStudents";
 import { useStudentReport } from "@/hooks/useTeacherReports";
+import { useTeacherSchool } from "@/hooks/useTeacherSchool";
 
 /**
  * Teacher Student Report Page

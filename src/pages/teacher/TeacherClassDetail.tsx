@@ -27,6 +27,7 @@ import { useAttendanceByClassAndDate, useSaveAttendance } from "@/hooks/useAtten
 import { useClassActionLogs } from "@/hooks/useTeacherActionLogs";
 import { usePendingParentInsightsCount } from "@/hooks/usePendingParentInsights";
 import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
+import { useTeacherSchool } from "@/hooks/useTeacherSchool";
 
 export default function TeacherClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -43,6 +44,7 @@ export default function TeacherClassDetail() {
   const { data: actionLogs = [] } = useClassActionLogs(classId);
   const { data: pendingInsightsCount = 0 } = usePendingParentInsightsCount(classId);
   const { config: terminology } = useClassLevelTerminology(classData?.school_id);
+  const { schoolName } = useTeacherSchool();
 
   const handleSaveAttendance = async (entries: { studentId: string; present: boolean }[]) => {
     if (!classId || !selectedDate) return;
@@ -58,7 +60,7 @@ export default function TeacherClassDetail() {
 
   if (isLoadingClass) {
     return (
-      <TeacherLayout schoolName="Omanut Academy">
+      <TeacherLayout schoolName={schoolName}>
         <div className="p-4 space-y-4">
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-24 w-full rounded-xl" />
@@ -70,7 +72,7 @@ export default function TeacherClassDetail() {
 
   if (!classData) {
     return (
-      <TeacherLayout schoolName="Omanut Academy">
+      <TeacherLayout schoolName={schoolName}>
         <div className="p-4">
           <Button variant="ghost" onClick={() => navigate("/teacher/classes")} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -87,7 +89,7 @@ export default function TeacherClassDetail() {
   }
 
   return (
-    <TeacherLayout schoolName="Omanut Academy">
+    <TeacherLayout schoolName={schoolName}>
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
         {/* Header */}
         <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b px-4 pt-4 pb-4">
