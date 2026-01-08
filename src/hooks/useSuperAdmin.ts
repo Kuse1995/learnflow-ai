@@ -16,6 +16,17 @@ import type {
 } from "@/types/platform-admin";
 import { toast } from "sonner";
 
+// Super Admin Email constant
+export const SUPER_ADMIN_EMAIL = 'abkanyanta@gmail.com';
+
+/**
+ * Check if a specific email is the super admin email
+ */
+export function isSuperAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+}
+
 // Check if current user is a super admin
 export function useIsSuperAdmin() {
   return useQuery({
