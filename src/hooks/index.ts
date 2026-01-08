@@ -116,5 +116,16 @@ export {
   useCurrentParentPermissions,
 } from "./useParentPermissions";
 
+// Term closure
+export {
+  useIsTermClosed,
+  useTermClosure,
+  useSchoolTermClosures,
+  useTermSummary,
+  useCloseTerm,
+  getTermLabel,
+  formatClosureDate,
+} from "./useTermClosure";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";
