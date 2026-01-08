@@ -113,8 +113,10 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(DEMO_STORAGE_KEY);
   }, []);
 
-  const isDemoMode = demoRole !== null;
-  const isSuperAdmin = demoRole === 'super_admin' && superAdminInfo !== null;
+  // DEMO MODE GLOBALLY DISABLED - Set to false to treat all data as real
+  // To re-enable: change isDemoMode to: demoRole !== null
+  const isDemoMode = false;
+  const isSuperAdmin = false; // Disabled with demo mode
   const currentDemoUser = demoRole ? DEMO_USERS[demoRole] : null;
 
   // For super admin, use their actual info
