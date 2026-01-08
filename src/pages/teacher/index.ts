@@ -8,3 +8,5 @@ export { default as TeacherInsights } from "./TeacherInsights";
 export { default as TeacherActions } from "./TeacherActions";
 export { default as TeacherParentInsights } from "./TeacherParentInsights";
 export { default as TeacherTraining } from "./TeacherTraining";
+export { default as TeacherClassReport } from "./TeacherClassReport";
+export { default as TeacherStudentReport } from "./TeacherStudentReport";
