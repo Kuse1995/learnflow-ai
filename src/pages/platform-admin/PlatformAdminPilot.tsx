@@ -39,11 +39,14 @@ import {
   useNonPilotSchools,
 } from "@/hooks/usePilotDeployment";
 
-import { Beaker, Plus, School, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Beaker, Plus, School, CheckCircle2, AlertTriangle, ArrowLeft, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function PlatformAdminPilot() {
+  const navigate = useNavigate();
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>("");
   const [showInitDialog, setShowInitDialog] = useState(false);
   const [newPilotSchoolId, setNewPilotSchoolId] = useState("");
@@ -90,10 +93,22 @@ export default function PlatformAdminPilot() {
 
   return (
     <div className="container mx-auto space-y-6 p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Pilot Deployment</h1>
-        <p className="text-muted-foreground">Manage pilot school rollouts and monitor progress</p>
-      </div>
+      {/* Header with Back and Logout */}
+      <header className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Pilot Deployment</h1>
+            <p className="text-muted-foreground">Manage pilot school rollouts and monitor progress</p>
+          </div>
+        </div>
+        <Button variant="outline" onClick={async () => { await supabase.auth.signOut(); navigate('/auth'); }} className="gap-2">
+          <LogOut className="h-4 w-4" />
+          <span className="hidden sm:inline">Logout</span>
+        </Button>
+      </header>
 
       {/* Pilot Schools Overview */}
       <div className="grid gap-6 lg:grid-cols-3">

@@ -16,7 +16,9 @@ import {
   BellOff, 
   Shield,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  ArrowLeft,
+  LogOut
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -113,12 +115,21 @@ export default function PlatformAdmin() {
       {/* Header */}
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <Shield className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold">Platform Administration</h1>
-              <p className="text-muted-foreground">Manage system settings and monitor platform health</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Shield className="h-8 w-8 text-primary" />
+              <div>
+                <h1 className="text-2xl font-bold">Platform Administration</h1>
+                <p className="text-muted-foreground">Manage system settings and monitor platform health</p>
+              </div>
             </div>
+            <Button variant="outline" onClick={async () => { await supabase.auth.signOut(); navigate('/auth'); }} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
           </div>
         </div>
       </header>
