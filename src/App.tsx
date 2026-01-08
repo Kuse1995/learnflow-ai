@@ -8,6 +8,7 @@ import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { AuthenticatedApp } from "@/components/auth/AuthenticatedApp";
 import DemoLanding from "@/pages/DemoLanding";
 import Auth from "@/pages/Auth";
+import AcceptInvitation from "@/pages/auth/AcceptInvitation";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,7 @@ const App = () => (
             <Routes>
               {/* Public routes */}
               <Route path="/auth" element={<Auth />} />
+              <Route path="/invite/:token" element={<AcceptInvitation />} />
               <Route path="/demo/enter" element={<DemoLanding />} />
               <Route path="/demo" element={<Navigate to="/demo/enter" replace />} />
               
