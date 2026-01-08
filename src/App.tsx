@@ -19,6 +19,7 @@ import {
 } from "./pages/teacher";
 import { ParentDashboard } from "./pages/parent";
 import { StudentPractice } from "./pages/student";
+import { SchoolAdminDashboard, SchoolReports } from "./pages/admin";
 import { 
   PlatformAdminCompliance, 
   PlatformAdminBackups,
@@ -68,6 +69,10 @@ const App = () => (
           
           {/* Student Routes */}
           <Route path="/student/:classId/:studentId/practice" element={<StudentPractice />} />
+          
+          {/* School Admin Routes */}
+          <Route path="/admin" element={<SchoolAdminDashboard />} />
+          <Route path="/admin/reports" element={<SchoolReports />} />
           
           {/* Platform Admin Routes */}
           <Route path="/platform-admin/compliance" element={<PlatformAdminCompliance />} />

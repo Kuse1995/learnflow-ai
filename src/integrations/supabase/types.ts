@@ -2776,6 +2776,142 @@ export type Database = {
           },
         ]
       }
+      term_report_exports: {
+        Row: {
+          export_format: string
+          exported_at: string
+          exported_by: string
+          file_url: string | null
+          id: string
+          notes: string | null
+          term_report_id: string
+        }
+        Insert: {
+          export_format: string
+          exported_at?: string
+          exported_by: string
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          term_report_id: string
+        }
+        Update: {
+          export_format?: string
+          exported_at?: string
+          exported_by?: string
+          file_url?: string | null
+          id?: string
+          notes?: string | null
+          term_report_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "term_report_exports_term_report_id_fkey"
+            columns: ["term_report_id"]
+            isOneToOne: false
+            referencedRelation: "term_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      term_reports: {
+        Row: {
+          academic_year: string
+          active_classes_count: number
+          active_teachers_count: number
+          adaptive_plans_generated: number
+          admin_notes: string | null
+          ai_suggestions_used_count: number
+          common_subjects_engaged: Json | null
+          created_at: string
+          emerging_adoption_areas: Json | null
+          end_date: string
+          finalized_at: string | null
+          finalized_by: string | null
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          least_used_features: Json | null
+          most_used_features: Json | null
+          parent_insights_approved: number
+          parent_insights_count: number
+          school_id: string
+          start_date: string
+          status: string
+          support_plans_count: number
+          term_name: string
+          term_number: number
+          updated_at: string
+          uploads_analyzed_count: number
+        }
+        Insert: {
+          academic_year: string
+          active_classes_count?: number
+          active_teachers_count?: number
+          adaptive_plans_generated?: number
+          admin_notes?: string | null
+          ai_suggestions_used_count?: number
+          common_subjects_engaged?: Json | null
+          created_at?: string
+          emerging_adoption_areas?: Json | null
+          end_date: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          least_used_features?: Json | null
+          most_used_features?: Json | null
+          parent_insights_approved?: number
+          parent_insights_count?: number
+          school_id: string
+          start_date: string
+          status?: string
+          support_plans_count?: number
+          term_name: string
+          term_number: number
+          updated_at?: string
+          uploads_analyzed_count?: number
+        }
+        Update: {
+          academic_year?: string
+          active_classes_count?: number
+          active_teachers_count?: number
+          adaptive_plans_generated?: number
+          admin_notes?: string | null
+          ai_suggestions_used_count?: number
+          common_subjects_engaged?: Json | null
+          created_at?: string
+          emerging_adoption_areas?: Json | null
+          end_date?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          least_used_features?: Json | null
+          most_used_features?: Json | null
+          parent_insights_approved?: number
+          parent_insights_count?: number
+          school_id?: string
+          start_date?: string
+          status?: string
+          support_plans_count?: number
+          term_name?: string
+          term_number?: number
+          updated_at?: string
+          uploads_analyzed_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "term_reports_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_modules: {
         Row: {
           category: string
@@ -3162,6 +3298,10 @@ export type Database = {
         Returns: string
       }
       generate_backup_version_id: { Args: never; Returns: string }
+      generate_term_report_data: {
+        Args: { p_end_date: string; p_school_id: string; p_start_date: string }
+        Returns: Json
+      }
       get_or_create_usage_metrics: {
         Args: { p_school_id: string }
         Returns: string
