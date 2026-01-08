@@ -29,6 +29,7 @@ import {
   AdminTeachers, 
   AdminClasses,
   AdminStudents,
+  AdminParents,
   AdminSettings,
   AdminAlerts,
   AdminFeesSetup,
@@ -186,6 +187,11 @@ export function AuthenticatedApp() {
         <Route path="/admin/students" element={
           <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
             <AdminStudents />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/parents" element={
+          <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+            <AdminParents />
           </ProtectedRoute>
         } />
         <Route path="/admin/settings" element={
