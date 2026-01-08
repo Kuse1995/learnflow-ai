@@ -8,7 +8,6 @@ import { StudentReportView, StudentReportSkeleton } from "@/components/reports/t
 import { useStudent } from "@/hooks/useStudents";
 import { useStudentReport } from "@/hooks/useTeacherReports";
 import { useTeacherSchool } from "@/hooks/useTeacherSchool";
-
 /**
  * Teacher Student Report Page
  * 
@@ -26,6 +25,7 @@ export default function TeacherStudentReport() {
 
   const { data: student, isLoading: isLoadingStudent } = useStudent(studentId);
   const { data: report, isLoading: isLoadingReport } = useStudentReport(studentId);
+  const { schoolName } = useTeacherSchool();
 
   const handleBack = () => {
     // Try to go back, or fallback to classes
@@ -38,7 +38,7 @@ export default function TeacherStudentReport() {
 
   if (isLoadingStudent) {
     return (
-      <TeacherLayout schoolName="Omanut Academy">
+      <TeacherLayout schoolName={schoolName}>
         <div className="p-4 space-y-4">
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-24 w-full rounded-xl" />
@@ -49,7 +49,7 @@ export default function TeacherStudentReport() {
 
   if (!student) {
     return (
-      <TeacherLayout schoolName="Omanut Academy">
+      <TeacherLayout schoolName={schoolName}>
         <div className="p-4">
           <Button variant="ghost" onClick={handleBack} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -66,7 +66,7 @@ export default function TeacherStudentReport() {
   }
 
   return (
-    <TeacherLayout schoolName="Omanut Academy">
+    <TeacherLayout schoolName={schoolName}>
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
         {/* Header */}
         <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b px-4 pt-4 pb-4">
