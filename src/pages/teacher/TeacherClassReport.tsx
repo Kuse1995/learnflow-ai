@@ -10,6 +10,7 @@ import { useClass } from "@/hooks/useClasses";
 import { useClassReport } from "@/hooks/useTeacherReports";
 import { ExportButton } from "@/components/exports";
 import type { ExportSection, ExportConfig } from "@/lib/export-utils";
+import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
 
 /**
  * Teacher Class Report Page
@@ -27,15 +28,16 @@ export default function TeacherClassReport() {
 
   const { data: classData, isLoading: isLoadingClass } = useClass(classId);
   const { data: report, isLoading: isLoadingReport } = useClassReport(classId);
+  const { config: terminology } = useClassLevelTerminology(classData?.school_id);
 
   // Build export sections from report data
   const exportConfig: ExportConfig = useMemo(() => ({
     title: `Class Report: ${classData?.name || "Class"}`,
     schoolName: "Stitch Academy",
-    term: classData?.grade ? `Grade ${classData.grade}` : undefined,
+    term: classData?.grade ? `${terminology.singular} ${classData.grade}` : undefined,
     includeHeader: true,
     includeFooter: true,
-  }), [classData]);
+  }), [classData, terminology]);
 
   const exportSections: ExportSection[] = useMemo(() => {
     if (!report) return [];
@@ -133,7 +135,7 @@ export default function TeacherClassReport() {
               <p className="text-sm text-muted-foreground">
                 {classData.name}
                 {classData.grade && classData.section && (
-                  <> • Grade {classData.grade}, Section {classData.section}</>
+                  <> • {terminology.singular} {classData.grade}, Section {classData.section}</>
                 )}
               </p>
               <p className="text-xs text-muted-foreground mt-1">

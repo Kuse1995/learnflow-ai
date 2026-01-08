@@ -5,10 +5,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-states";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen, Users, ChevronRight } from "lucide-react";
+import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
 
 export default function TeacherClasses() {
   const navigate = useNavigate();
   const { data: classes = [], isLoading } = useClasses();
+  
+  // Get school ID from first class to determine terminology
+  const schoolId = classes[0]?.school_id;
+  const { config: terminology } = useClassLevelTerminology(schoolId);
 
   return (
     <TeacherLayout schoolName="Omanut Academy">
@@ -50,7 +55,7 @@ export default function TeacherClasses() {
                         <h3 className="font-semibold">{cls.name}</h3>
                         {cls.grade && cls.section && (
                           <p className="text-sm text-muted-foreground">
-                            Grade {cls.grade} - Section {cls.section}
+                            {terminology.singular} {cls.grade} - Section {cls.section}
                           </p>
                         )}
                         <div className="flex items-center gap-1 text-muted-foreground mt-2">

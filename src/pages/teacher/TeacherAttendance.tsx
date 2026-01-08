@@ -3,6 +3,7 @@ import { TeacherLayout } from "@/components/navigation";
 import { ConnectedAttendanceSheet } from "@/components/attendance";
 import { useClasses } from "@/hooks/useClasses";
 import { EmptyState } from "@/components/empty-states";
+import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
 import { 
   Select,
   SelectContent,
@@ -26,6 +27,10 @@ export default function TeacherAttendance() {
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const { data: classes = [], isLoading: classesLoading } = useClasses();
+  
+  // Get school ID from first class to determine terminology
+  const schoolId = classes[0]?.school_id;
+  const { config: terminology } = useClassLevelTerminology(schoolId);
 
   const formattedDate = selectedDate.toLocaleDateString("en-US", {
     weekday: "short",
@@ -115,7 +120,7 @@ export default function TeacherAttendance() {
                         <p className="font-semibold">{cls.name}</p>
                         {cls.grade && cls.section && (
                           <p className="text-xs text-muted-foreground">
-                            Grade {cls.grade} - Section {cls.section}
+                            {terminology.singular} {cls.grade} - Section {cls.section}
                           </p>
                         )}
                       </div>

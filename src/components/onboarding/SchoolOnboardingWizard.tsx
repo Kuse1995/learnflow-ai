@@ -23,6 +23,7 @@ import {
   ArrowLeft,
   Upload
 } from "lucide-react";
+import { getDefaultTerminology, getTerminologyConfig } from "@/lib/class-level-terminology";
 
 type Step = 'school' | 'classes' | 'teachers' | 'students' | 'complete';
 
@@ -49,7 +50,10 @@ export function SchoolOnboardingWizard() {
   const [teachers, setTeachers] = useState<TeacherData[]>([{ name: '', email: '' }]);
   const [studentsCsv, setStudentsCsv] = useState('');
   const [selectedClassId, setSelectedClassId] = useState<string>('');
-
+  const [country] = useState<string>('Zambia'); // Default country, could be made dynamic
+  
+  // Get terminology based on country
+  const terminology = getTerminologyConfig(getDefaultTerminology(country));
   const createSchool = useCreateSchool();
   const createClass = useCreateClass();
   const createUserAccount = useCreateUserAccount();
@@ -208,7 +212,7 @@ export function SchoolOnboardingWizard() {
                         updated[index].name = e.target.value;
                         setClasses(updated);
                       }}
-                      placeholder="Class name (e.g., Grade 5A)"
+                      placeholder={`Class name (e.g., ${terminology.singular} 5A)`}
                     />
                     <Input
                       value={cls.grade}
@@ -217,7 +221,7 @@ export function SchoolOnboardingWizard() {
                         updated[index].grade = e.target.value;
                         setClasses(updated);
                       }}
-                      placeholder="Grade"
+                      placeholder={terminology.singular}
                       className="w-24"
                     />
                   </div>
