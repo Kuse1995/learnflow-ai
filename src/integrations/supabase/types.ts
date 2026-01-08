@@ -286,6 +286,56 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_schedule_config: {
+        Row: {
+          created_at: string
+          enabled: boolean | null
+          id: string
+          incremental_retention_days: number
+          last_snapshot_at: string | null
+          next_snapshot_at: string | null
+          school_id: string | null
+          snapshot_retention_days: number
+          snapshot_time: string
+          snapshot_timezone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean | null
+          id?: string
+          incremental_retention_days?: number
+          last_snapshot_at?: string | null
+          next_snapshot_at?: string | null
+          school_id?: string | null
+          snapshot_retention_days?: number
+          snapshot_time?: string
+          snapshot_timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean | null
+          id?: string
+          incremental_retention_days?: number
+          last_snapshot_at?: string | null
+          next_snapshot_at?: string | null
+          school_id?: string | null
+          snapshot_retention_days?: number
+          snapshot_time?: string
+          snapshot_timezone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backup_schedule_config_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       backup_schedules: {
         Row: {
           backup_type: Database["public"]["Enums"]["backup_type"]
@@ -326,6 +376,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "backup_schedules_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      backup_snapshots: {
+        Row: {
+          backup_type: string
+          checksum: string | null
+          completed_at: string | null
+          created_at: string
+          encrypted: boolean | null
+          error_message: string | null
+          expires_at: string | null
+          file_size_bytes: number | null
+          id: string
+          record_counts: Json | null
+          scheduled_at: string
+          school_id: string | null
+          started_at: string | null
+          status: string
+          storage_location: string | null
+        }
+        Insert: {
+          backup_type?: string
+          checksum?: string | null
+          completed_at?: string | null
+          created_at?: string
+          encrypted?: boolean | null
+          error_message?: string | null
+          expires_at?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          record_counts?: Json | null
+          scheduled_at: string
+          school_id?: string | null
+          started_at?: string | null
+          status?: string
+          storage_location?: string | null
+        }
+        Update: {
+          backup_type?: string
+          checksum?: string | null
+          completed_at?: string | null
+          created_at?: string
+          encrypted?: boolean | null
+          error_message?: string | null
+          expires_at?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          record_counts?: Json | null
+          scheduled_at?: string
+          school_id?: string | null
+          started_at?: string | null
+          status?: string
+          storage_location?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backup_snapshots_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
@@ -2887,6 +2999,84 @@ export type Database = {
           },
         ]
       }
+      offline_sync_queue: {
+        Row: {
+          class_id: string | null
+          conflict_resolution: string | null
+          conflict_resolved_at: string | null
+          conflict_resolved_by: string | null
+          created_at: string
+          device_id: string | null
+          entity_data: Json
+          entity_type: string
+          error_message: string | null
+          id: string
+          last_retry_at: string | null
+          local_timestamp: string
+          retry_count: number | null
+          school_id: string
+          server_timestamp: string | null
+          sync_status: string
+          synced_at: string | null
+          user_id: string
+        }
+        Insert: {
+          class_id?: string | null
+          conflict_resolution?: string | null
+          conflict_resolved_at?: string | null
+          conflict_resolved_by?: string | null
+          created_at?: string
+          device_id?: string | null
+          entity_data: Json
+          entity_type: string
+          error_message?: string | null
+          id?: string
+          last_retry_at?: string | null
+          local_timestamp: string
+          retry_count?: number | null
+          school_id: string
+          server_timestamp?: string | null
+          sync_status?: string
+          synced_at?: string | null
+          user_id: string
+        }
+        Update: {
+          class_id?: string | null
+          conflict_resolution?: string | null
+          conflict_resolved_at?: string | null
+          conflict_resolved_by?: string | null
+          created_at?: string
+          device_id?: string | null
+          entity_data?: Json
+          entity_type?: string
+          error_message?: string | null
+          id?: string
+          last_retry_at?: string | null
+          local_timestamp?: string
+          retry_count?: number | null
+          school_id?: string
+          server_timestamp?: string | null
+          sync_status?: string
+          synced_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offline_sync_queue_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offline_sync_queue_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_contacts: {
         Row: {
           created_at: string
@@ -4187,6 +4377,93 @@ export type Database = {
           },
         ]
       }
+      restore_requests: {
+        Row: {
+          affected_modules: string[] | null
+          audit_log_id: string | null
+          backup_snapshot_id: string | null
+          completed_at: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          data_loss_window_hours: number | null
+          dry_run: boolean | null
+          error_message: string | null
+          id: string
+          integrity_check_at: string | null
+          integrity_check_passed: boolean | null
+          records_restored: number | null
+          requested_at: string
+          requested_by: string
+          restore_point: string
+          restore_scope: string
+          school_id: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          affected_modules?: string[] | null
+          audit_log_id?: string | null
+          backup_snapshot_id?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          data_loss_window_hours?: number | null
+          dry_run?: boolean | null
+          error_message?: string | null
+          id?: string
+          integrity_check_at?: string | null
+          integrity_check_passed?: boolean | null
+          records_restored?: number | null
+          requested_at?: string
+          requested_by: string
+          restore_point: string
+          restore_scope: string
+          school_id: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          affected_modules?: string[] | null
+          audit_log_id?: string | null
+          backup_snapshot_id?: string | null
+          completed_at?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          data_loss_window_hours?: number | null
+          dry_run?: boolean | null
+          error_message?: string | null
+          id?: string
+          integrity_check_at?: string | null
+          integrity_check_passed?: boolean | null
+          records_restored?: number | null
+          requested_at?: string
+          requested_by?: string
+          restore_point?: string
+          restore_scope?: string
+          school_id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restore_requests_backup_snapshot_id_fkey"
+            columns: ["backup_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "backup_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restore_requests_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rollout_phase_history: {
         Row: {
           changed_by: string | null
@@ -5405,6 +5682,65 @@ export type Database = {
           },
         ]
       }
+      system_incidents: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          affected_services: string[] | null
+          auto_resolved: boolean | null
+          created_at: string
+          detected_at: string
+          id: string
+          incident_type: string
+          internal_details: Json | null
+          resolution_action: string | null
+          resolved_at: string | null
+          school_id: string | null
+          severity: string
+          user_message: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          affected_services?: string[] | null
+          auto_resolved?: boolean | null
+          created_at?: string
+          detected_at?: string
+          id?: string
+          incident_type: string
+          internal_details?: Json | null
+          resolution_action?: string | null
+          resolved_at?: string | null
+          school_id?: string | null
+          severity?: string
+          user_message?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          affected_services?: string[] | null
+          auto_resolved?: boolean | null
+          created_at?: string
+          detected_at?: string
+          id?: string
+          incident_type?: string
+          internal_details?: Json | null
+          resolution_action?: string | null
+          resolved_at?: string | null
+          school_id?: string | null
+          severity?: string
+          user_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_incidents_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_recovery_mode: {
         Row: {
           activated_at: string | null
@@ -6383,6 +6719,11 @@ export type Database = {
         }
         Returns: Json
       }
+      enter_read_only_mode: {
+        Args: { p_auto?: boolean; p_reason: string; p_school_id: string }
+        Returns: boolean
+      }
+      exit_read_only_mode: { Args: { p_school_id: string }; Returns: boolean }
       generate_audit_hash: {
         Args: {
           p_action: string
@@ -6606,6 +6947,7 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_system_read_only: { Args: { p_school_id?: string }; Returns: boolean }
       is_term_closed: {
         Args: { p_academic_year: number; p_school_id: string; p_term: number }
         Returns: boolean
@@ -6679,6 +7021,18 @@ export type Database = {
       pause_pilot_school_ai: {
         Args: { p_reason: string; p_school_id: string }
         Returns: boolean
+      }
+      queue_offline_data: {
+        Args: {
+          p_class_id: string
+          p_device_id: string
+          p_entity_data: Json
+          p_entity_type: string
+          p_local_timestamp: string
+          p_school_id: string
+          p_user_id: string
+        }
+        Returns: string
       }
       record_delivery_attempt: {
         Args: {
