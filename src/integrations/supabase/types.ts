@@ -6946,6 +6946,7 @@ export type Database = {
         Args: { _school_id: string; _user_id: string }
         Returns: boolean
       }
+      is_service_role: { Args: never; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_system_read_only: { Args: { p_school_id?: string }; Returns: boolean }
       is_term_closed: {
