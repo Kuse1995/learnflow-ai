@@ -5159,6 +5159,71 @@ export type Database = {
         }
         Relationships: []
       }
+      system_audit_logs: {
+        Row: {
+          action: string
+          action_category: string
+          created_at: string
+          details: Json | null
+          entity_id: string | null
+          entity_name: string | null
+          entity_type: string
+          failure_reason: string | null
+          id: string
+          ip_address: string | null
+          role_used: Database["public"]["Enums"]["app_role"]
+          school_id: string | null
+          success: boolean
+          user_agent: string | null
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          action: string
+          action_category: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          role_used: Database["public"]["Enums"]["app_role"]
+          school_id?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          action?: string
+          action_category?: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          role_used?: Database["public"]["Enums"]["app_role"]
+          school_id?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_audit_logs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_environment: {
         Row: {
           debug_mode_enabled: boolean
@@ -6019,24 +6084,39 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          assigned_at: string | null
+          assigned_by: string | null
           created_at: string | null
           id: string
+          is_active: boolean
+          notes: string | null
           role: Database["public"]["Enums"]["app_role"]
           school_id: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
           created_at?: string | null
           id?: string
+          is_active?: boolean
+          notes?: string | null
           role: Database["public"]["Enums"]["app_role"]
           school_id?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
           created_at?: string | null
           id?: string
+          is_active?: boolean
+          notes?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           school_id?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -6245,17 +6325,38 @@ export type Database = {
         Args: { p_student_id: string }
         Returns: number
       }
+      get_user_roles: {
+        Args: { p_school_id?: string; p_user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
       has_active_payment_plan: {
         Args: { p_academic_year: number; p_student_id: string; p_term: number }
         Returns: boolean
       }
-      has_role: {
+      has_any_role: {
         Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
+          p_roles: Database["public"]["Enums"]["app_role"][]
+          p_school_id?: string
+          p_user_id: string
         }
         Returns: boolean
       }
+      has_role:
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              p_role: Database["public"]["Enums"]["app_role"]
+              p_school_id?: string
+              p_user_id: string
+            }
+            Returns: boolean
+          }
       has_school_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -6407,6 +6508,23 @@ export type Database = {
         }
         Returns: string
       }
+      log_sensitive_action: {
+        Args: {
+          p_action: string
+          p_action_category: string
+          p_details?: Json
+          p_entity_id?: string
+          p_entity_name?: string
+          p_entity_type: string
+          p_failure_reason?: string
+          p_role_used: Database["public"]["Enums"]["app_role"]
+          p_school_id: string
+          p_success?: boolean
+          p_user_id: string
+          p_user_name: string
+        }
+        Returns: string
+      }
       parent_can_access: {
         Args: { _feature: string; _guardian_id: string; _student_id: string }
         Returns: boolean
@@ -6541,6 +6659,9 @@ export type Database = {
         | "teacher"
         | "parent"
         | "student"
+        | "bursar"
+        | "staff"
+        | "admin"
       audit_actor_type: "system" | "admin" | "teacher" | "ai_agent"
       backup_scope: "system" | "school" | "class" | "student"
       backup_status: "pending" | "in_progress" | "completed" | "failed"
@@ -6781,6 +6902,9 @@ export const Constants = {
         "teacher",
         "parent",
         "student",
+        "bursar",
+        "staff",
+        "admin",
       ],
       audit_actor_type: ["system", "admin", "teacher", "ai_agent"],
       backup_scope: ["system", "school", "class", "student"],
