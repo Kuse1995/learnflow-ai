@@ -31,7 +31,7 @@ export type ActionCategory =
   | 'system';
 
 export type PermissionAction =
-  // Fee Management
+  // Fee Management (Teachers CANNOT access)
   | 'view_fees'
   | 'record_payment'
   | 'add_adjustment'
@@ -43,50 +43,73 @@ export type PermissionAction =
   | 'view_attendance'
   | 'mark_attendance'
   | 'edit_attendance'
-  // Academics
+  // Academics (Teachers CAN access for their classes)
   | 'view_student_profiles'
   | 'edit_student_profiles'
   | 'view_grades'
   | 'record_grades'
   | 'upload_work'
   | 'view_uploads'
-  // AI Tools
+  | 'view_learning_profiles'
+  | 'view_teaching_actions'
+  // AI Tools (Teachers CAN access for their classes)
   | 'generate_lesson_plans'
   | 'generate_adaptive_support'
   | 'generate_learning_paths'
+  | 'create_adaptive_support_plan'
+  | 'edit_adaptive_support_plan'
+  | 'acknowledge_adaptive_support_plan'
+  | 'create_parent_insight'
+  | 'edit_parent_insight'
   | 'approve_parent_insights'
   | 'view_ai_suggestions'
+  | 'view_ai_analyses'
   // Communication
   | 'send_parent_messages'
   | 'view_messages'
   | 'approve_messages'
-  // Reports
+  // Reports (Teachers CAN access for their classes)
   | 'view_class_reports'
   | 'view_student_reports'
   | 'generate_term_reports'
   | 'export_reports'
-  // Admin
+  // Admin (Teachers CANNOT access)
   | 'manage_classes'
   | 'manage_students'
   | 'manage_teachers'
   | 'manage_fee_structures'
   | 'activate_plans'
   | 'view_audit_logs'
-  // Role Management
+  | 'modify_billing'
+  | 'modify_subscription'
+  | 'modify_system_config'
+  // Role Management (Teachers CANNOT access)
   | 'assign_roles'
   | 'revoke_roles'
   | 'view_roles'
-  // System
+  // System (Teachers CANNOT access)
   | 'access_platform_admin'
   | 'access_school_admin'
-  | 'view_system_status';
+  | 'view_system_status'
+  | 'view_ai_diagnostics'
+  | 'view_raw_prompts';
 
 // =============================================================================
 // PERMISSION MATRIX
 // =============================================================================
 
+/**
+ * PERMISSION MATRIX
+ * 
+ * Teacher Permissions Summary:
+ * ✅ CAN: View/manage own classes, view assigned students, upload assessments,
+ *         view AI analyses, create/edit/acknowledge Adaptive Support Plans,
+ *         create/edit/approve Parent Insights, view Teaching Actions & Learning Profiles
+ * ❌ CANNOT: View other teachers' classes/students, modify billing/subscription,
+ *            modify system config, see raw AI prompts/diagnostics
+ */
 const PERMISSION_MATRIX: Record<PermissionAction, AppRole[]> = {
-  // Fee Management
+  // Fee Management - Teachers CANNOT access billing/fees
   view_fees: ['platform_admin', 'school_admin', 'admin', 'bursar', 'parent'],
   record_payment: ['school_admin', 'admin', 'bursar'],
   add_adjustment: ['school_admin', 'admin', 'bursar'],
@@ -95,54 +118,67 @@ const PERMISSION_MATRIX: Record<PermissionAction, AppRole[]> = {
   view_financial_reports: ['platform_admin', 'school_admin', 'admin', 'bursar'],
   export_financial_data: ['school_admin', 'admin', 'bursar'],
 
-  // Attendance
+  // Attendance - Teachers CAN mark/view attendance for their classes
   view_attendance: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
   mark_attendance: ['teacher', 'school_admin', 'admin'],
   edit_attendance: ['teacher', 'school_admin', 'admin'],
 
-  // Academics
+  // Academics - Teachers CAN access for their assigned classes only
   view_student_profiles: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
   edit_student_profiles: ['school_admin', 'admin', 'teacher'],
   view_grades: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent', 'student'],
   record_grades: ['teacher', 'school_admin', 'admin'],
   upload_work: ['teacher'],
   view_uploads: ['platform_admin', 'school_admin', 'admin', 'teacher'],
+  view_learning_profiles: ['platform_admin', 'school_admin', 'admin', 'teacher'],
+  view_teaching_actions: ['platform_admin', 'school_admin', 'admin', 'teacher'],
 
-  // AI Tools
+  // AI Tools - Teachers CAN use AI for their classes
   generate_lesson_plans: ['teacher'],
   generate_adaptive_support: ['teacher'],
   generate_learning_paths: ['teacher'],
+  create_adaptive_support_plan: ['teacher'],
+  edit_adaptive_support_plan: ['teacher'],
+  acknowledge_adaptive_support_plan: ['teacher'],
+  create_parent_insight: ['teacher'],
+  edit_parent_insight: ['teacher'],
   approve_parent_insights: ['teacher'],
   view_ai_suggestions: ['teacher'],
+  view_ai_analyses: ['platform_admin', 'school_admin', 'admin', 'teacher'],
 
-  // Communication
+  // Communication - Teachers CAN send messages to parents
   send_parent_messages: ['school_admin', 'admin', 'teacher'],
   view_messages: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
   approve_messages: ['school_admin', 'admin'],
 
-  // Reports
+  // Reports - Teachers CAN access for their classes
   view_class_reports: ['platform_admin', 'school_admin', 'admin', 'teacher'],
   view_student_reports: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
   generate_term_reports: ['school_admin', 'admin', 'teacher'],
   export_reports: ['school_admin', 'admin', 'teacher'],
 
-  // Admin
+  // Admin - Teachers CANNOT access
   manage_classes: ['school_admin', 'admin'],
   manage_students: ['school_admin', 'admin'],
   manage_teachers: ['school_admin', 'admin'],
   manage_fee_structures: ['school_admin', 'admin', 'bursar'],
   activate_plans: ['platform_admin', 'school_admin', 'admin'],
   view_audit_logs: ['platform_admin', 'school_admin', 'admin'],
+  modify_billing: ['platform_admin', 'school_admin'],
+  modify_subscription: ['platform_admin', 'school_admin'],
+  modify_system_config: ['platform_admin'],
 
-  // Role Management
+  // Role Management - Teachers CANNOT access
   assign_roles: ['platform_admin', 'school_admin', 'admin'],
   revoke_roles: ['platform_admin', 'school_admin', 'admin'],
   view_roles: ['platform_admin', 'school_admin', 'admin'],
 
-  // System
+  // System - Teachers CANNOT access
   access_platform_admin: ['platform_admin'],
   access_school_admin: ['school_admin', 'admin'],
   view_system_status: ['platform_admin', 'school_admin', 'admin'],
+  view_ai_diagnostics: ['platform_admin'],
+  view_raw_prompts: ['platform_admin'],
 };
 
 // =============================================================================
@@ -273,4 +309,55 @@ export function sortRolesByPriority(roles: AppRole[]): AppRole[] {
   return [...roles].sort((a, b) => 
     (ROLE_CONFIG[a]?.priority ?? 99) - (ROLE_CONFIG[b]?.priority ?? 99)
   );
+}
+
+// =============================================================================
+// TEACHER SCOPE CONSTRAINTS
+// =============================================================================
+
+/**
+ * Teacher permissions are scoped to their assigned classes.
+ * Database functions can_access_class() and can_access_student() enforce this.
+ */
+export const TEACHER_SCOPE_RULES = {
+  // What teachers CAN do (within their class scope)
+  allowed: [
+    'view_own_classes',
+    'view_assigned_students',
+    'upload_assessments',
+    'view_ai_analyses',
+    'create_adaptive_support_plan',
+    'edit_adaptive_support_plan',
+    'acknowledge_adaptive_support_plan',
+    'create_parent_insight',
+    'edit_parent_insight',
+    'approve_parent_insight',
+    'view_teaching_actions',
+    'view_learning_profiles',
+  ] as const,
+  
+  // What teachers CANNOT do
+  forbidden: [
+    'view_other_teachers_classes',
+    'view_students_outside_classes',
+    'modify_billing',
+    'modify_subscription',
+    'modify_system_config',
+    'view_raw_ai_prompts',
+    'view_ai_diagnostics',
+  ] as const,
+} as const;
+
+/**
+ * Check if an action is explicitly forbidden for teachers
+ */
+export function isTeacherForbidden(action: string): boolean {
+  return (TEACHER_SCOPE_RULES.forbidden as readonly string[]).includes(action);
+}
+
+/**
+ * Get all permissions available to teachers
+ */
+export function getTeacherPermissions(): PermissionAction[] {
+  return getRolePermissions('teacher');
 }
