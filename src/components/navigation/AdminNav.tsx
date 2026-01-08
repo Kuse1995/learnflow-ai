@@ -71,13 +71,11 @@ export function AdminLayout({ children, schoolName = "School SMS" }: AdminLayout
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-screen w-full">
-        <AdminSidebar schoolName={schoolName} />
-        <SidebarInset>
-          <AdminHeader />
-          <main className="flex-1 p-6">{children}</main>
-        </SidebarInset>
-      </div>
+      <AdminSidebar schoolName={schoolName} />
+      <SidebarInset className="flex-1">
+        <AdminHeader />
+        <main className="flex-1 p-6">{children}</main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }
