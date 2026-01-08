@@ -14,3 +14,5 @@ export { default as AdminSettings } from "./AdminSettings";
 export { default as AdminAlerts } from "./AdminAlerts";
 export { default as AdminFeesSetup } from "./AdminFeesSetup";
 export { default as AdminClassFees } from "./AdminClassFees";
+export { default as AdminFees } from "./AdminFees";
+export { default as AdminStudentFees } from "./AdminStudentFees";
