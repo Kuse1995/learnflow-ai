@@ -79,7 +79,7 @@ export function useIsSchoolAdmin(schoolId?: string) {
         .from("user_roles")
         .select("id")
         .eq("user_id", user.id)
-        .in("role", ["school_admin", "admin"]);
+        .in("role", ["platform_admin", "school_admin", "admin"]);
 
       if (schoolId) {
         query.eq("school_id", schoolId);
@@ -122,7 +122,7 @@ export function useSchoolAdminSchool() {
         .from("user_roles")
         .select("school_id")
         .eq("user_id", user.id)
-        .in("role", ["school_admin", "admin"])
+        .in("role", ["platform_admin", "school_admin", "admin"])
         .maybeSingle();
 
       if (error || !data?.school_id) return null;
