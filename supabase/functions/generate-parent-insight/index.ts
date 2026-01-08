@@ -1,28 +1,43 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeaders, createDemoPlaceholderResponse, createDemoSafeErrorResponse } from "../_shared/safety-validator.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// Demo fallback insight
+function getDemoFallbackInsight(studentFirstName: string) {
+  return {
+    summary_text: `${studentFirstName} is continuing to engage with classroom activities and building understanding across various topics. We appreciate your support at home!`,
+    home_support_tips: [
+      "Encourage regular reading for 15-20 minutes daily",
+      "Celebrate effort and persistence, not just outcomes",
+      "Ask open-ended questions about what they're learning",
+    ],
+    is_demo_generated: true,
+  };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const context = "generate-parent-insight";
+
   try {
     const { studentId, classId } = await req.json();
 
     if (!studentId || !classId) {
-      return new Response(
-        JSON.stringify({ success: false, error: "studentId and classId are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      console.log(`[${context}] Missing required fields`);
+      return createDemoPlaceholderResponse({}, "Student and class information required");
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error(`[${context}] Missing Supabase configuration`);
+      return createDemoPlaceholderResponse({}, "Database configuration not available");
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch student info
@@ -33,10 +48,45 @@ serve(async (req) => {
       .single();
 
     if (studentError || !student) {
-      console.error("Student fetch error:", studentError);
+      console.error(`[${context}] Student fetch error:`, studentError);
+      return createDemoPlaceholderResponse({}, "Student not found in demo data");
+    }
+
+    const studentFirstName = student.name.split(' ')[0];
+
+    // Check for AI API key - use demo fallback if not available
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.log(`[${context}] LOVABLE_API_KEY not configured, using demo fallback`);
+      
+      const demoInsight = getDemoFallbackInsight(studentFirstName);
+      
+      const { data: savedSummary, error: saveError } = await supabase
+        .from("parent_insight_summaries")
+        .insert({
+          student_id: studentId,
+          class_id: classId,
+          source_analysis_ids: [],
+          summary_text: demoInsight.summary_text + " (Demo-generated)",
+          home_support_tips: demoInsight.home_support_tips,
+          teacher_approved: false,
+        })
+        .select()
+        .single();
+
+      if (saveError) {
+        console.error(`[${context}] Demo insight save error:`, saveError);
+        return createDemoPlaceholderResponse({ summary: demoInsight }, "Demo insight generated (not saved)");
+      }
+
       return new Response(
-        JSON.stringify({ success: false, error: "Student not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: true,
+          isDemoGenerated: true,
+          message: "Demo insight generated - AI service not configured",
+          summary: savedSummary,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -47,7 +97,7 @@ serve(async (req) => {
       .eq("student_id", studentId)
       .maybeSingle();
 
-    // Fetch recent completed analyses for this class
+    // Fetch recent completed analyses
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
@@ -60,7 +110,7 @@ serve(async (req) => {
       .order("analyzed_at", { ascending: false })
       .limit(5);
 
-    // Fetch recent teacher actions for context
+    // Fetch recent teacher actions
     const { data: teacherActions } = await supabase
       .from("teacher_action_logs")
       .select("action_taken, topic")
@@ -68,32 +118,17 @@ serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(5);
 
-    // Build context for AI
+    // Build context
     const analysisIds = analyses?.map(a => a.id) || [];
-    
-    // Extract student-specific diagnostics from analyses
-    const studentDiagnostics: any[] = [];
-    analyses?.forEach(analysis => {
-      const diagnostics = analysis.student_diagnostics as any[];
-      if (diagnostics) {
-        const studentData = diagnostics.find((d: any) => d.student_id === studentId);
-        if (studentData) {
-          studentDiagnostics.push(studentData);
-        }
-      }
-    });
-
-    // Prepare AI context (sanitized, no raw data exposed)
     const contextSummary = {
       hasLearningProfile: !!learningProfile,
       profileStrengths: learningProfile?.strengths || null,
       weakTopics: learningProfile?.weak_topics || [],
       confidenceTrend: learningProfile?.confidence_trend || "stable",
       recentTopicsWorkedOn: teacherActions?.map(a => a.topic).filter(Boolean) || [],
-      hasAnalyses: studentDiagnostics.length > 0,
+      hasAnalyses: analyses && analyses.length > 0,
     };
 
-    // System prompt with strict language rules
     const systemPrompt = `You are a parent communication specialist. Your role is to translate internal learning observations into warm, supportive summaries for parents.
 
 CRITICAL LANGUAGE RULES:
@@ -120,7 +155,7 @@ TONE: Warm, supportive, encouraging, accessible to all parents regardless of edu
 
     const userPrompt = `Generate a parent-safe summary for a student based on these observations:
 
-Student first name: ${student.name.split(' ')[0]}
+Student first name: ${studentFirstName}
 
 Learning context:
 - Areas of strength: ${contextSummary.profileStrengths || "developing across multiple areas"}
@@ -130,11 +165,7 @@ Learning context:
 
 Remember: This summary will be read by the student's parent. Keep it warm, brief, and encouraging.`;
 
-    // Call AI to generate summary
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+    console.log(`[${context}] Calling AI Gateway...`);
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -157,15 +188,8 @@ Remember: This summary will be read by the student's parent. Keep it warm, brief
               parameters: {
                 type: "object",
                 properties: {
-                  summary_text: {
-                    type: "string",
-                    description: "A warm, encouraging 2-3 sentence summary for parents",
-                  },
-                  home_support_tips: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "1-3 simple, actionable tips for home support (optional)",
-                  },
+                  summary_text: { type: "string" },
+                  home_support_tips: { type: "array", items: { type: "string" } },
                 },
                 required: ["summary_text"],
                 additionalProperties: false,
@@ -178,29 +202,41 @@ Remember: This summary will be read by the student's parent. Keep it warm, brief
     });
 
     if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ success: false, error: "Rate limit exceeded. Please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ success: false, error: "Usage credits exhausted." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const errorText = await aiResponse.text();
-      console.error("AI Gateway error:", aiResponse.status, errorText);
-      throw new Error(`AI Gateway error: ${aiResponse.status}`);
+      console.error(`[${context}] AI Gateway error:`, aiResponse.status);
+      
+      // Demo-safe: return fallback
+      const demoInsight = getDemoFallbackInsight(studentFirstName);
+      
+      const { data: savedSummary } = await supabase
+        .from("parent_insight_summaries")
+        .insert({
+          student_id: studentId,
+          class_id: classId,
+          source_analysis_ids: analysisIds,
+          summary_text: demoInsight.summary_text + " (Demo-generated)",
+          home_support_tips: demoInsight.home_support_tips,
+          teacher_approved: false,
+        })
+        .select()
+        .single();
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          isDemoGenerated: true,
+          message: "Demo insight generated - AI service temporarily unavailable",
+          summary: savedSummary || demoInsight,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const aiData = await aiResponse.json();
     
-    // Extract from tool call
     const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall?.function?.arguments) {
-      throw new Error("Invalid AI response structure");
+      console.error(`[${context}] Invalid AI response structure`);
+      return createDemoSafeErrorResponse(new Error("Invalid AI response"), {}, context);
     }
 
     const generatedSummary = JSON.parse(toolCall.function.arguments);
@@ -220,24 +256,17 @@ Remember: This summary will be read by the student's parent. Keep it warm, brief
       .single();
 
     if (saveError) {
-      console.error("Save error:", saveError);
-      throw new Error("Failed to save summary");
+      console.error(`[${context}] Save error:`, saveError);
+      return createDemoSafeErrorResponse(saveError, { summary: generatedSummary }, context);
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        summary: savedSummary,
-      }),
+      JSON.stringify({ success: true, summary: savedSummary }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
-  } catch (error: unknown) {
-    console.error("Error in generate-parent-insight:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
-    return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+  } catch (error) {
+    console.error(`[${context}] Error:`, error);
+    return createDemoSafeErrorResponse(error, {}, context);
   }
 });

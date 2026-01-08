@@ -5,6 +5,12 @@
  * This is a HARD SAFETY LAYER for edge functions.
  */
 
+// CORS headers for all edge functions
+export const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
 // Banned terms that must never appear in AI output
 const BANNED_TERMS = [
   // Deficit language
@@ -30,6 +36,70 @@ const BANNED_TERMS = [
 ];
 
 const FALLBACK_MESSAGE = "Learning observations are currently being refined. Please check back later.";
+const DEMO_PLACEHOLDER_MESSAGE = "Not enough demo data yet";
+
+/**
+ * Check if the system is in demo mode by checking the request or environment
+ */
+export function isDemoMode(): boolean {
+  // In demo mode, LOVABLE_API_KEY is typically not set
+  // This is a simple heuristic - real demo detection should check system_config
+  return !Deno.env.get("LOVABLE_API_KEY");
+}
+
+/**
+ * Create a demo-safe response for when data is missing
+ */
+export function createDemoPlaceholderResponse(
+  data: Record<string, unknown> = {},
+  message: string = DEMO_PLACEHOLDER_MESSAGE
+): Response {
+  return new Response(
+    JSON.stringify({
+      success: true,
+      isDemoPlaceholder: true,
+      message,
+      ...data,
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+/**
+ * Create a demo-safe error response (always returns 200)
+ * Logs the error internally but returns a safe placeholder to the client
+ */
+export function createDemoSafeErrorResponse(
+  error: unknown,
+  fallbackData: Record<string, unknown> = {},
+  context: string = "edge-function"
+): Response {
+  const errorMessage = error instanceof Error ? error.message : "Unknown error";
+  console.error(`[${context}] Demo-safe error:`, errorMessage);
+  
+  return new Response(
+    JSON.stringify({
+      success: true,
+      isDemoPlaceholder: true,
+      message: DEMO_PLACEHOLDER_MESSAGE,
+      ...fallbackData,
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+/**
+ * Wrap error handling for demo mode - never returns non-2xx
+ */
+export function wrapDemoSafe<T>(
+  fn: () => Promise<Response>,
+  fallbackData: Record<string, unknown> = {},
+  context: string = "edge-function"
+): Promise<Response> {
+  return fn().catch((error) => {
+    return createDemoSafeErrorResponse(error, fallbackData, context);
+  });
+}
 
 /**
  * Escape special regex characters
