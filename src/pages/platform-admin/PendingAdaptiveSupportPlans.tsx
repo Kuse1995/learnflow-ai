@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
+import { useTerminologyConfig } from '@/hooks/useClassLevelTerminology';
 
 interface PendingPlan {
   id: string;
@@ -47,6 +48,7 @@ export default function PendingAdaptiveSupportPlans() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuthContext();
   const { isPlatformOwner, isLoading: loadingOwner } = usePlatformOwner();
   const { data: isSuperAdmin, isLoading: loadingSuperAdmin } = useIsSuperAdmin();
+  const terminology = useTerminologyConfig(); // Default terminology for platform admin
 
   // Fetch all pending adaptive support plans
   const { data: pendingPlans = [], isLoading: loadingPlans } = useQuery({
@@ -216,7 +218,7 @@ export default function PendingAdaptiveSupportPlans() {
                         <CardDescription className="flex items-center gap-2">
                           <BookOpen className="h-3 w-3" />
                           {plan.class?.name || 'Unknown Class'}
-                          {plan.class?.grade && ` • Grade ${plan.class.grade}`}
+                          {plan.class?.grade && ` • ${terminology.singular} ${plan.class.grade}`}
                           {plan.class?.section && ` • Section ${plan.class.section}`}
                         </CardDescription>
                       </div>

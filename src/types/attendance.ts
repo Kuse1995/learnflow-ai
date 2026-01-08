@@ -9,6 +9,7 @@ export interface Class {
   grade: string | null;
   section: string | null;
   teacher_id: string | null;
+  school_id: string | null;
   created_at: string;
   updated_at: string;
 }

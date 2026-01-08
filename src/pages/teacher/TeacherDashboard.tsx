@@ -15,9 +15,11 @@ import { DemoModeBanner, DemoExitButton } from "@/components/demo";
 import { useDemoMode, DEMO_SCHOOL_ID, DEMO_CLASS_ID } from "@/contexts/DemoModeContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTerminologyConfig } from "@/hooks/useClassLevelTerminology";
 
 export default function TeacherDashboard() {
   const { isDemoMode, demoSchoolId } = useDemoMode();
+  const terminology = useTerminologyConfig(); // Uses default 'grade' for demo
   
   const currentDate = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -165,7 +167,7 @@ export default function TeacherDashboard() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-sm">{cls.name}</h3>
-                        <p className="text-xs text-muted-foreground">Grade {cls.grade}</p>
+                        <p className="text-xs text-muted-foreground">{terminology.singular} {cls.grade}</p>
                       </div>
                     </div>
                     <div className="text-right">

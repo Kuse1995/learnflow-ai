@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { generateCSV, generateJSON, printSummary } from "@/hooks/useOfflineMode";
 import { useToast } from "@/hooks/use-toast";
+import { useTerminologyConfig } from "@/hooks/useClassLevelTerminology";
 
 interface ExportOption {
   id: string;
@@ -61,6 +62,7 @@ export function OfflineExportPanel({ schoolId, classId }: OfflineExportPanelProp
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('csv');
+  const terminology = useTerminologyConfig(); // Uses default terminology
 
   const toggleOption = (optionId: string) => {
     setSelectedOptions(prev => 
@@ -147,7 +149,7 @@ export function OfflineExportPanel({ schoolId, classId }: OfflineExportPanelProp
         },
         {
           heading: 'Classes',
-          content: classes?.map(c => `${c.name} - Grade ${c.grade || 'N/A'}`) || ['No classes found'],
+          content: classes?.map(c => `${c.name} - ${terminology.singular} ${c.grade || 'N/A'}`) || ['No classes found'],
         },
       ]);
     } catch {

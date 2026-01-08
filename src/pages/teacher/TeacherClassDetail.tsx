@@ -26,6 +26,7 @@ import { useUploadsByClass } from "@/hooks/useUploadsByClass";
 import { useAttendanceByClassAndDate, useSaveAttendance } from "@/hooks/useAttendance";
 import { useClassActionLogs } from "@/hooks/useTeacherActionLogs";
 import { usePendingParentInsightsCount } from "@/hooks/usePendingParentInsights";
+import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
 
 export default function TeacherClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -41,6 +42,7 @@ export default function TeacherClassDetail() {
   const { mutateAsync: saveAttendance } = useSaveAttendance();
   const { data: actionLogs = [] } = useClassActionLogs(classId);
   const { data: pendingInsightsCount = 0 } = usePendingParentInsightsCount(classId);
+  const { config: terminology } = useClassLevelTerminology(classData?.school_id);
 
   const handleSaveAttendance = async (entries: { studentId: string; present: boolean }[]) => {
     if (!classId || !selectedDate) return;
@@ -102,7 +104,7 @@ export default function TeacherClassDetail() {
               <h1 className="text-xl font-bold">{classData.name}</h1>
               {classData.grade && classData.section && (
                 <p className="text-sm text-muted-foreground">
-                  Grade {classData.grade} • Section {classData.section}
+                  {terminology.singular} {classData.grade} • Section {classData.section}
                 </p>
               )}
               <p className="text-xs text-muted-foreground mt-1">

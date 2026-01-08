@@ -21,6 +21,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useTerminologyConfig } from '@/hooks/useClassLevelTerminology';
 
 export default function PlatformAdmin() {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export default function PlatformAdmin() {
   const { isPlatformOwner, isLoading: loadingOwner } = usePlatformOwner();
   const { data: isSuperAdmin, isLoading: loadingSuperAdmin } = useIsSuperAdmin();
   const { data: pendingByClass = [], isLoading: loadingPendingByClass } = usePendingParentInsightsByClass();
+  const terminology = useTerminologyConfig(); // Default terminology for platform admin
 
   // Fetch pending counts
   const { data: pendingCounts, isLoading: loadingCounts } = useQuery({
@@ -242,7 +244,7 @@ export default function PlatformAdmin() {
                             <p className="font-medium text-sm">{item.className}</p>
                             {item.grade && item.section && (
                               <p className="text-xs text-muted-foreground">
-                                Grade {item.grade} • Section {item.section}
+                                {terminology.singular} {item.grade} • Section {item.section}
                               </p>
                             )}
                           </div>

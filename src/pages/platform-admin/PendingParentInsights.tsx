@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Navigate } from 'react-router-dom';
+import { useTerminologyConfig } from '@/hooks/useClassLevelTerminology';
 
 interface PendingInsight {
   id: string;
@@ -47,6 +48,7 @@ export default function PendingParentInsights() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuthContext();
   const { isPlatformOwner, isLoading: loadingOwner } = usePlatformOwner();
   const { data: isSuperAdmin, isLoading: loadingSuperAdmin } = useIsSuperAdmin();
+  const terminology = useTerminologyConfig(); // Default terminology for platform admin
 
   // Fetch all pending parent insights
   const { data: pendingInsights = [], isLoading: loadingInsights } = useQuery({
@@ -205,7 +207,7 @@ export default function PendingParentInsights() {
                         <CardDescription className="flex items-center gap-2">
                           <BookOpen className="h-3 w-3" />
                           {insight.class?.name || 'Unknown Class'}
-                          {insight.class?.grade && ` • Grade ${insight.class.grade}`}
+                          {insight.class?.grade && ` • ${terminology.singular} ${insight.class.grade}`}
                           {insight.class?.section && ` • Section ${insight.class.section}`}
                         </CardDescription>
                       </div>
