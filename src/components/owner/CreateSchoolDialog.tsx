@@ -83,12 +83,12 @@ export function CreateSchoolDialog() {
 
           <div className="space-y-2">
             <Label htmlFor="plan">Subscription Plan</Label>
-            <Select value={planId} onValueChange={setPlanId}>
+            <Select value={planId} onValueChange={(v) => setPlanId(v === 'none' ? '' : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a plan (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No plan</SelectItem>
+                <SelectItem value="none">No plan</SelectItem>
                 {plans?.map((plan) => (
                   <SelectItem key={plan.id} value={plan.id}>
                     {plan.name}
