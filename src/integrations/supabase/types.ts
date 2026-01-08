@@ -1550,6 +1550,106 @@ export type Database = {
           },
         ]
       }
+      message_approval_log: {
+        Row: {
+          action: string
+          id: string
+          ip_address: string | null
+          message_id: string
+          metadata: Json | null
+          new_status: string | null
+          performed_at: string
+          performed_by: string
+          previous_status: string | null
+          reason: string | null
+          role_at_action: string
+        }
+        Insert: {
+          action: string
+          id?: string
+          ip_address?: string | null
+          message_id: string
+          metadata?: Json | null
+          new_status?: string | null
+          performed_at?: string
+          performed_by: string
+          previous_status?: string | null
+          reason?: string | null
+          role_at_action: string
+        }
+        Update: {
+          action?: string
+          id?: string
+          ip_address?: string | null
+          message_id?: string
+          metadata?: Json | null
+          new_status?: string | null
+          performed_at?: string
+          performed_by?: string
+          previous_status?: string | null
+          reason?: string | null
+          role_at_action?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_approval_log_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "parent_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_edit_history: {
+        Row: {
+          change_summary: string | null
+          edit_type: string
+          edited_at: string
+          edited_by: string
+          id: string
+          message_id: string
+          metadata: Json | null
+          new_body: string | null
+          new_subject: string | null
+          previous_body: string | null
+          previous_subject: string | null
+        }
+        Insert: {
+          change_summary?: string | null
+          edit_type: string
+          edited_at?: string
+          edited_by: string
+          id?: string
+          message_id: string
+          metadata?: Json | null
+          new_body?: string | null
+          new_subject?: string | null
+          previous_body?: string | null
+          previous_subject?: string | null
+        }
+        Update: {
+          change_summary?: string | null
+          edit_type?: string
+          edited_at?: string
+          edited_by?: string
+          id?: string
+          message_id?: string
+          metadata?: Json | null
+          new_body?: string | null
+          new_subject?: string | null
+          previous_body?: string | null
+          previous_subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_edit_history_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "parent_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_queue: {
         Row: {
           attempts: number | null
@@ -1868,6 +1968,8 @@ export type Database = {
       }
       parent_messages: {
         Row: {
+          ai_source_id: string | null
+          ai_source_type: string | null
           approved_at: string | null
           approved_by: string | null
           attempted_channel:
@@ -1878,13 +1980,21 @@ export type Database = {
           created_by: string | null
           delivered_at: string | null
           delivery_status: Database["public"]["Enums"]["delivery_status"]
+          edit_count: number | null
           email_attempted: boolean | null
           email_failed_at: string | null
           first_attempt_at: string | null
           id: string
           internal_notes: string | null
+          is_ai_generated: boolean | null
+          is_locked: boolean | null
           last_attempt_at: string | null
+          last_edited_at: string | null
+          last_edited_by: string | null
+          locked_at: string | null
+          locked_by: string | null
           message_body: string
+          original_ai_body: string | null
           parent_contact_id: string
           priority_level: number
           rejection_reason: string | null
@@ -1895,11 +2005,16 @@ export type Database = {
           sms_failed_at: string | null
           student_id: string
           subject: string | null
+          submitted_for_approval_at: string | null
+          submitted_for_approval_by: string | null
           updated_at: string
+          was_edited_before_approval: boolean | null
           whatsapp_attempted: boolean | null
           whatsapp_failed_at: string | null
         }
         Insert: {
+          ai_source_id?: string | null
+          ai_source_type?: string | null
           approved_at?: string | null
           approved_by?: string | null
           attempted_channel?:
@@ -1910,13 +2025,21 @@ export type Database = {
           created_by?: string | null
           delivered_at?: string | null
           delivery_status?: Database["public"]["Enums"]["delivery_status"]
+          edit_count?: number | null
           email_attempted?: boolean | null
           email_failed_at?: string | null
           first_attempt_at?: string | null
           id?: string
           internal_notes?: string | null
+          is_ai_generated?: boolean | null
+          is_locked?: boolean | null
           last_attempt_at?: string | null
+          last_edited_at?: string | null
+          last_edited_by?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
           message_body: string
+          original_ai_body?: string | null
           parent_contact_id: string
           priority_level?: number
           rejection_reason?: string | null
@@ -1927,11 +2050,16 @@ export type Database = {
           sms_failed_at?: string | null
           student_id: string
           subject?: string | null
+          submitted_for_approval_at?: string | null
+          submitted_for_approval_by?: string | null
           updated_at?: string
+          was_edited_before_approval?: boolean | null
           whatsapp_attempted?: boolean | null
           whatsapp_failed_at?: string | null
         }
         Update: {
+          ai_source_id?: string | null
+          ai_source_type?: string | null
           approved_at?: string | null
           approved_by?: string | null
           attempted_channel?:
@@ -1942,13 +2070,21 @@ export type Database = {
           created_by?: string | null
           delivered_at?: string | null
           delivery_status?: Database["public"]["Enums"]["delivery_status"]
+          edit_count?: number | null
           email_attempted?: boolean | null
           email_failed_at?: string | null
           first_attempt_at?: string | null
           id?: string
           internal_notes?: string | null
+          is_ai_generated?: boolean | null
+          is_locked?: boolean | null
           last_attempt_at?: string | null
+          last_edited_at?: string | null
+          last_edited_by?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
           message_body?: string
+          original_ai_body?: string | null
           parent_contact_id?: string
           priority_level?: number
           rejection_reason?: string | null
@@ -1959,7 +2095,10 @@ export type Database = {
           sms_failed_at?: string | null
           student_id?: string
           subject?: string | null
+          submitted_for_approval_at?: string | null
+          submitted_for_approval_by?: string | null
           updated_at?: string
+          was_edited_before_approval?: boolean | null
           whatsapp_attempted?: boolean | null
           whatsapp_failed_at?: string | null
         }
@@ -4293,6 +4432,10 @@ export type Database = {
         Args: { p_reason?: string; p_school_id: string }
         Returns: Database["public"]["Enums"]["rollout_phase"]
       }
+      approve_and_lock_message: {
+        Args: { p_message_id: string; p_reason?: string }
+        Returns: Json
+      }
       approve_guardian_link: {
         Args: {
           p_request_id: string
@@ -4337,6 +4480,15 @@ export type Database = {
           p_summary: string
         }
         Returns: string
+      }
+      edit_message_draft: {
+        Args: {
+          p_change_summary?: string
+          p_message_id: string
+          p_new_body: string
+          p_new_subject: string
+        }
+        Returns: Json
       }
       generate_audit_hash: {
         Args: {
@@ -4476,6 +4628,10 @@ export type Database = {
         Args: { p_reason: string; p_request_id: string }
         Returns: boolean
       }
+      reject_message_with_reason: {
+        Args: { p_message_id: string; p_reason: string }
+        Returns: Json
+      }
       restore_student: { Args: { p_student_id: string }; Returns: boolean }
       resume_pilot_school_ai: {
         Args: { p_school_id: string }
@@ -4495,6 +4651,10 @@ export type Database = {
       soft_delete_student: {
         Args: { p_deleted_by: string; p_student_id: string }
         Returns: boolean
+      }
+      submit_message_for_approval: {
+        Args: { p_message_id: string }
+        Returns: Json
       }
       unlink_guardian_student: {
         Args: {
