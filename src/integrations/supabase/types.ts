@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      adaptive_support_plans: {
+        Row: {
+          confidence_support_notes: string | null
+          created_at: string
+          focus_areas: Json
+          id: string
+          is_demo: boolean
+          recommended_practice_types: Json
+          source_window_days: number
+          student_id: string
+          support_strategies: Json
+          teacher_acknowledged: boolean
+          teacher_acknowledged_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          confidence_support_notes?: string | null
+          created_at?: string
+          focus_areas?: Json
+          id?: string
+          is_demo?: boolean
+          recommended_practice_types?: Json
+          source_window_days?: number
+          student_id: string
+          support_strategies?: Json
+          teacher_acknowledged?: boolean
+          teacher_acknowledged_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          confidence_support_notes?: string | null
+          created_at?: string
+          focus_areas?: Json
+          id?: string
+          is_demo?: boolean
+          recommended_practice_types?: Json
+          source_window_days?: number
+          student_id?: string
+          support_strategies?: Json
+          teacher_acknowledged?: boolean
+          teacher_acknowledged_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adaptive_support_plans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_abuse_attempts: {
         Row: {
           attempt_type: string
