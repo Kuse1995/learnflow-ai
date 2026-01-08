@@ -22,7 +22,9 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, UserPlus } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Loader2, UserPlus, KeyRound } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AddGuardianDialogProps {
   open: boolean;
@@ -44,6 +46,10 @@ export function AddGuardianDialog({
   const [primaryPhone, setPrimaryPhone] = useState("");
   const [email, setEmail] = useState("");
 
+  // Account creation
+  const [createAccount, setCreateAccount] = useState(false);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+
   // Link to students (multiple)
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [relationship, setRelationship] = useState("Parent");
@@ -52,6 +58,8 @@ export function AddGuardianDialog({
     setDisplayName("");
     setPrimaryPhone("");
     setEmail("");
+    setCreateAccount(false);
+    setTempPassword(null);
     setSelectedStudentIds([]);
     setRelationship("Parent");
   };
@@ -101,25 +109,65 @@ export function AddGuardianDialog({
         if (linkError) throw linkError;
       }
 
-      return guardian;
+      // 3. Create account if requested
+      let accountPassword: string | null = null;
+      if (createAccount && email.trim()) {
+        const { data: accountData, error: accountError } = await supabase.functions.invoke(
+          "create-parent-account",
+          {
+            body: {
+              guardianId: guardian.id,
+              email: email.trim(),
+              displayName: displayName.trim(),
+              schoolId,
+            },
+          }
+        );
+
+        if (accountError) {
+          console.error("Account creation error:", accountError);
+          toast.error("Guardian added but account creation failed");
+        } else if (accountData?.tempPassword) {
+          accountPassword = accountData.tempPassword;
+        } else if (accountData?.existingAccount) {
+          toast.info("Linked to existing account");
+        }
+      }
+
+      return { guardian, tempPassword: accountPassword };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       const count = selectedStudentIds.length;
-      toast.success(
-        count > 0
-          ? `Guardian added and linked to ${count} student${count > 1 ? "s" : ""}`
-          : "Guardian added successfully"
-      );
-      queryClient.invalidateQueries({ queryKey: ["school-guardians"] });
-      queryClient.invalidateQueries({ queryKey: ["school-students"] });
-      resetForm();
-      onOpenChange(false);
+      
+      if (data.tempPassword) {
+        setTempPassword(data.tempPassword);
+        toast.success("Guardian added with account created!");
+      } else {
+        toast.success(
+          count > 0
+            ? `Guardian added and linked to ${count} student${count > 1 ? "s" : ""}`
+            : "Guardian added successfully"
+        );
+        queryClient.invalidateQueries({ queryKey: ["school-guardians"] });
+        queryClient.invalidateQueries({ queryKey: ["school-students"] });
+        resetForm();
+        onOpenChange(false);
+      }
     },
     onError: (error: any) => {
       console.error("Error adding guardian:", error);
       toast.error(error.message || "Failed to add guardian");
     },
   });
+
+  const handleClose = () => {
+    if (tempPassword) {
+      queryClient.invalidateQueries({ queryKey: ["school-guardians"] });
+      queryClient.invalidateQueries({ queryKey: ["school-students"] });
+      resetForm();
+    }
+    onOpenChange(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,19 +183,47 @@ export function AddGuardianDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            Add New Guardian
+            {tempPassword ? "Account Created" : "Add New Guardian"}
           </DialogTitle>
           <DialogDescription>
-            Add a parent or guardian. You can link them to multiple students (e.g., siblings).
+            {tempPassword 
+              ? "Share these login credentials with the parent securely."
+              : "Add a parent or guardian. You can link them to multiple students (e.g., siblings)."}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {tempPassword ? (
+          <div className="space-y-4 py-4">
+            <Alert>
+              <KeyRound className="h-4 w-4" />
+              <AlertDescription className="space-y-3">
+                <p className="font-medium">Login credentials for {displayName}:</p>
+                <div className="bg-muted p-3 rounded-md space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Email:</span>
+                    <span className="font-mono">{email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Temp Password:</span>
+                    <span className="font-mono">{tempPassword}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  The parent should change this password after first login.
+                </p>
+              </AlertDescription>
+            </Alert>
+            <DialogFooter>
+              <Button onClick={handleClose}>Done</Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-3">
             <div>
               <Label htmlFor="displayName">Full Name *</Label>
@@ -184,6 +260,25 @@ export function AddGuardianDialog({
               </div>
             </div>
 
+            {/* Create Account Option */}
+            {email.trim() && (
+              <div className="flex items-center justify-between py-3 px-3 bg-muted/50 rounded-md">
+                <div className="space-y-0.5">
+                  <Label htmlFor="createAccount" className="text-sm font-medium">
+                    Create login account
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Generate credentials so this parent can log in
+                  </p>
+                </div>
+                <Switch
+                  id="createAccount"
+                  checked={createAccount}
+                  onCheckedChange={setCreateAccount}
+                />
+              </div>
+            )}
+
             <div className="pt-2 border-t space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-muted-foreground text-sm">
@@ -215,7 +310,7 @@ export function AddGuardianDialog({
 
               <div>
                 <Label className="text-sm">Select Students</Label>
-                <ScrollArea className="h-[140px] border rounded-md p-2 mt-1">
+                <ScrollArea className="h-[120px] border rounded-md p-2 mt-1">
                   {students.length > 0 ? (
                     <div className="space-y-2">
                       {students.map((student) => (
@@ -251,7 +346,7 @@ export function AddGuardianDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleClose}
               disabled={addGuardianMutation.isPending}
             >
               Cancel
@@ -268,6 +363,7 @@ export function AddGuardianDialog({
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );
