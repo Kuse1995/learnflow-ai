@@ -611,9 +611,11 @@ export type Database = {
           deleted_by: string | null
           grade: string | null
           id: string
+          is_demo: boolean
           name: string
           school_id: string | null
           section: string | null
+          subject: string | null
           teacher_id: string | null
           updated_at: string
         }
@@ -623,9 +625,11 @@ export type Database = {
           deleted_by?: string | null
           grade?: string | null
           id?: string
+          is_demo?: boolean
           name: string
           school_id?: string | null
           section?: string | null
+          subject?: string | null
           teacher_id?: string | null
           updated_at?: string
         }
@@ -635,9 +639,11 @@ export type Database = {
           deleted_by?: string | null
           grade?: string | null
           id?: string
+          is_demo?: boolean
           name?: string
           school_id?: string | null
           section?: string | null
+          subject?: string | null
           teacher_id?: string | null
           updated_at?: string
         }
@@ -5433,6 +5439,47 @@ export type Database = {
           },
         ]
       }
+      student_guardians: {
+        Row: {
+          created_at: string
+          guardian_id: string
+          guardian_type: string
+          id: string
+          is_demo: boolean | null
+          is_primary: boolean | null
+          relationship: string | null
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          guardian_id: string
+          guardian_type?: string
+          id?: string
+          is_demo?: boolean | null
+          is_primary?: boolean | null
+          relationship?: string | null
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          guardian_id?: string
+          guardian_type?: string
+          id?: string
+          is_demo?: boolean | null
+          is_primary?: boolean | null
+          relationship?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_guardians_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_intervention_plans: {
         Row: {
           class_id: string
@@ -5572,6 +5619,7 @@ export type Database = {
           deleted_at: string | null
           deleted_by: string | null
           id: string
+          is_demo: boolean
           name: string
           student_id: string
           updated_at: string
@@ -5583,6 +5631,7 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           id?: string
+          is_demo?: boolean
           name: string
           student_id: string
           updated_at?: string
@@ -5594,6 +5643,7 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           id?: string
+          is_demo?: boolean
           name?: string
           student_id?: string
           updated_at?: string
