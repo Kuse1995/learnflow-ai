@@ -26,7 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, ArrowUpCircle, ArrowDownCircle, Bell } from 'lucide-react';
+import { Plus, ArrowUpCircle, ArrowDownCircle, Bell, Gift } from 'lucide-react';
 import {
   useStudentLedger,
   useStudentBalance,
@@ -35,6 +35,8 @@ import {
 import { RecordPaymentForm } from './RecordPaymentForm';
 import { SendReminderDialog } from './SendReminderDialog';
 import { ReminderHistory } from './ReminderHistory';
+import { AddAdjustmentDialog } from './AddAdjustmentDialog';
+import { AdjustmentHistory } from './AdjustmentHistory';
 interface StudentFeesTabProps {
   studentId: string;
   studentName: string;
@@ -44,6 +46,7 @@ interface StudentFeesTabProps {
   term?: number;
   canRecordPayment?: boolean;
   canSendReminder?: boolean;
+  canAddAdjustment?: boolean;
 }
 
 /**
@@ -61,9 +64,11 @@ export function StudentFeesTab({
   term,
   canRecordPayment = false,
   canSendReminder = false,
+  canAddAdjustment = false,
 }: StudentFeesTabProps) {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
+  const [isAdjustmentDialogOpen, setIsAdjustmentDialogOpen] = useState(false);
   
   const { data: balance, isLoading: isLoadingBalance } = useStudentBalance(studentId);
   const { data: ledger, isLoading: isLoadingLedger } = useStudentLedger(
@@ -122,8 +127,8 @@ export function StudentFeesTab({
             </div>
           </div>
 
-          {(canRecordPayment || canSendReminder) && (
-            <div className="mt-4 pt-4 border-t flex gap-2">
+          {(canRecordPayment || canSendReminder || canAddAdjustment) && (
+            <div className="mt-4 pt-4 border-t flex flex-wrap gap-2">
               {canRecordPayment && (
                 <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
                   <DialogTrigger asChild>
@@ -153,6 +158,16 @@ export function StudentFeesTab({
                 </Dialog>
               )}
               
+              {canAddAdjustment && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsAdjustmentDialogOpen(true)}
+                >
+                  <Gift className="h-4 w-4 mr-2" />
+                  Add Adjustment
+                </Button>
+              )}
+              
               {canSendReminder && balance && balance.currentBalance > 0 && (
                 <Button 
                   variant="outline" 
@@ -166,6 +181,21 @@ export function StudentFeesTab({
           )}
         </CardContent>
       </Card>
+
+      {/* Adjustment Dialog */}
+      {canAddAdjustment && (
+        <AddAdjustmentDialog
+          open={isAdjustmentDialogOpen}
+          onOpenChange={setIsAdjustmentDialogOpen}
+          studentId={studentId}
+          studentName={studentName}
+          schoolId={schoolId}
+          classId={classId}
+          currentBalance={balance?.currentBalance || 0}
+          academicYear={academicYear}
+          term={term}
+        />
+      )}
 
       {/* Reminder Dialog */}
       {canSendReminder && (
@@ -183,6 +213,9 @@ export function StudentFeesTab({
           term={term}
         />
       )}
+
+      {/* Adjustment History */}
+      <AdjustmentHistory studentId={studentId} maxItems={3} />
 
       {/* Reminder History */}
       <ReminderHistory studentId={studentId} maxItems={5} />
