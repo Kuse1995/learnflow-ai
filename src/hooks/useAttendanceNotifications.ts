@@ -12,6 +12,7 @@ import {
   TRIGGER_TO_MESSAGE_MAP,
 } from '@/lib/attendance-notification-rules';
 import { queueNotificationLocally, QueuedNotification } from '@/lib/notification-rule-engine';
+import { shouldSuppressNotification, simulateDemoNotification } from '@/lib/demo-safety';
 
 // ============================================================================
 // ATTENDANCE NOTIFICATION HOOKS
@@ -25,7 +26,31 @@ export function useTriggerAttendanceNotification() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (event: AttendanceEvent): Promise<AttendanceNotificationResult & { notificationId?: string }> => {
+    mutationFn: async (event: AttendanceEvent & { schoolId?: string }): Promise<AttendanceNotificationResult & { notificationId?: string; suppressed?: boolean }> => {
+      // ========================================================================
+      // DEMO SAFETY CHECK - Suppress notifications for demo schools
+      // ========================================================================
+      if (event.schoolId) {
+        const isDemo = await shouldSuppressNotification(event.schoolId);
+        if (isDemo) {
+          // Log the attempt but don't actually send
+          simulateDemoNotification({
+            type: 'parent_message',
+            studentId: event.studentId,
+            classId: event.classId,
+            schoolId: event.schoolId,
+            content: `Attendance notification for ${event.studentName}`,
+          });
+          
+          return {
+            shouldSend: false,
+            suppressed: true,
+            reason: 'Demo mode - notification simulated but not sent',
+            scheduledFor: new Date().toISOString(),
+          };
+        }
+      }
+
       // Clean up old suppression records periodically
       clearOldSuppressionRecords();
 
@@ -96,7 +121,13 @@ export function useTriggerAttendanceNotification() {
       return { ...result, notificationId: notification.id };
     },
     onSuccess: (result) => {
-      if (result.shouldSend) {
+      if (result.suppressed) {
+        // Demo mode - show simulated success
+        toast({
+          title: 'Notification simulated',
+          description: 'Demo mode: notification logged but not sent',
+        });
+      } else if (result.shouldSend) {
         toast({
           title: 'Notification scheduled',
           description: 'Parent will be notified shortly',
