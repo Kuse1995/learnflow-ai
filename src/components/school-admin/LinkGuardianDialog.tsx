@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Link2 } from "lucide-react";
 
 interface LinkGuardianDialogProps {
@@ -37,48 +39,59 @@ export function LinkGuardianDialog({
   existingLinks,
 }: LinkGuardianDialogProps) {
   const queryClient = useQueryClient();
-  const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [relationship, setRelationship] = useState("Parent");
 
   const availableStudents = students.filter((s) => !existingLinks.includes(s.id));
 
+  const toggleStudent = (studentId: string) => {
+    setSelectedStudentIds((prev) =>
+      prev.includes(studentId)
+        ? prev.filter((id) => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
   const linkMutation = useMutation({
     mutationFn: async () => {
-      if (!guardian || !selectedStudentId) return;
+      if (!guardian || selectedStudentIds.length === 0) return;
 
-      const { error } = await supabase.from("guardian_student_links").insert({
+      const links = selectedStudentIds.map((studentId) => ({
         guardian_id: guardian.id,
-        student_id: selectedStudentId,
-        role: "secondary_guardian",
+        student_id: studentId,
+        role: "secondary_guardian" as const,
         relationship_label: relationship,
         can_pickup: true,
         can_make_decisions: false,
-      });
+      }));
+
+      const { error } = await supabase.from("guardian_student_links").insert(links);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Student linked successfully");
+      const count = selectedStudentIds.length;
+      toast.success(`${count} student${count > 1 ? "s" : ""} linked successfully`);
       queryClient.invalidateQueries({ queryKey: ["school-guardians"] });
       queryClient.invalidateQueries({ queryKey: ["school-students"] });
-      setSelectedStudentId("");
+      setSelectedStudentIds([]);
       setRelationship("Parent");
       onOpenChange(false);
     },
     onError: (error: any) => {
-      console.error("Error linking student:", error);
+      console.error("Error linking students:", error);
       if (error.code === "23505") {
-        toast.error("This student is already linked to this guardian");
+        toast.error("One or more students are already linked to this guardian");
       } else {
-        toast.error(error.message || "Failed to link student");
+        toast.error(error.message || "Failed to link students");
       }
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedStudentId) {
-      toast.error("Please select a student");
+    if (selectedStudentIds.length === 0) {
+      toast.error("Please select at least one student");
       return;
     }
     linkMutation.mutate();
@@ -88,46 +101,19 @@ export function LinkGuardianDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Link2 className="h-5 w-5" />
-            Link Student
+            Link Students
           </DialogTitle>
           <DialogDescription>
-            Link a student to {guardian.display_name}
+            Link one or more students to {guardian.display_name}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-3">
-            <div>
-              <Label htmlFor="studentId">Student *</Label>
-              <Select
-                value={selectedStudentId || "none"}
-                onValueChange={(val) => setSelectedStudentId(val === "none" ? "" : val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a student" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none" disabled>
-                    Select a student
-                  </SelectItem>
-                  {availableStudents.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {availableStudents.length === 0 && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  All students are already linked to this guardian
-                </p>
-              )}
-            </div>
-
             <div>
               <Label htmlFor="relationship">Relationship</Label>
               <Select value={relationship} onValueChange={setRelationship}>
@@ -144,6 +130,45 @@ export function LinkGuardianDialog({
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <Label className="text-sm">Select Students *</Label>
+                {selectedStudentIds.length > 0 && (
+                  <span className="text-xs text-primary font-medium">
+                    {selectedStudentIds.length} selected
+                  </span>
+                )}
+              </div>
+              <ScrollArea className="h-[180px] border rounded-md p-2">
+                {availableStudents.length > 0 ? (
+                  <div className="space-y-2">
+                    {availableStudents.map((student) => (
+                      <div
+                        key={student.id}
+                        className="flex items-center space-x-2 py-1"
+                      >
+                        <Checkbox
+                          id={`link-student-${student.id}`}
+                          checked={selectedStudentIds.includes(student.id)}
+                          onCheckedChange={() => toggleStudent(student.id)}
+                        />
+                        <label
+                          htmlFor={`link-student-${student.id}`}
+                          className="text-sm cursor-pointer flex-1"
+                        >
+                          {student.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    All students are already linked to this guardian
+                  </p>
+                )}
+              </ScrollArea>
+            </div>
           </div>
 
           <DialogFooter>
@@ -157,7 +182,7 @@ export function LinkGuardianDialog({
             </Button>
             <Button
               type="submit"
-              disabled={linkMutation.isPending || availableStudents.length === 0}
+              disabled={linkMutation.isPending || availableStudents.length === 0 || selectedStudentIds.length === 0}
             >
               {linkMutation.isPending ? (
                 <>
@@ -165,7 +190,7 @@ export function LinkGuardianDialog({
                   Linking...
                 </>
               ) : (
-                "Link Student"
+                `Link ${selectedStudentIds.length > 0 ? selectedStudentIds.length : ""} Student${selectedStudentIds.length !== 1 ? "s" : ""}`
               )}
             </Button>
           </DialogFooter>

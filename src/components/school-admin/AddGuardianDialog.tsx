@@ -20,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, UserPlus } from "lucide-react";
 
 interface AddGuardianDialogProps {
@@ -42,16 +44,24 @@ export function AddGuardianDialog({
   const [primaryPhone, setPrimaryPhone] = useState("");
   const [email, setEmail] = useState("");
 
-  // Link to student
-  const [selectedStudentId, setSelectedStudentId] = useState("");
+  // Link to students (multiple)
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [relationship, setRelationship] = useState("Parent");
 
   const resetForm = () => {
     setDisplayName("");
     setPrimaryPhone("");
     setEmail("");
-    setSelectedStudentId("");
+    setSelectedStudentIds([]);
     setRelationship("Parent");
+  };
+
+  const toggleStudent = (studentId: string) => {
+    setSelectedStudentIds((prev) =>
+      prev.includes(studentId)
+        ? prev.filter((id) => id !== studentId)
+        : [...prev, studentId]
+    );
   };
 
   const addGuardianMutation = useMutation({
@@ -70,18 +80,23 @@ export function AddGuardianDialog({
 
       if (guardianError) throw guardianError;
 
-      // 2. Link to student if selected
-      if (selectedStudentId && selectedStudentId !== "none") {
-        const { error: linkError } = await supabase
-          .from("guardian_student_links")
-          .insert({
+      // 2. Link to all selected students
+      if (selectedStudentIds.length > 0) {
+        const links = selectedStudentIds.map((studentId, index) => {
+          const role: "primary_guardian" | "secondary_guardian" = index === 0 ? "primary_guardian" : "secondary_guardian";
+          return {
             guardian_id: guardian.id,
-            student_id: selectedStudentId,
-            role: "primary_guardian",
+            student_id: studentId,
+            role,
             relationship_label: relationship,
             can_pickup: true,
-            can_make_decisions: true,
-          });
+            can_make_decisions: index === 0,
+          };
+        });
+
+        const { error: linkError } = await supabase
+          .from("guardian_student_links")
+          .insert(links);
 
         if (linkError) throw linkError;
       }
@@ -89,7 +104,12 @@ export function AddGuardianDialog({
       return guardian;
     },
     onSuccess: () => {
-      toast.success("Guardian added successfully");
+      const count = selectedStudentIds.length;
+      toast.success(
+        count > 0
+          ? `Guardian added and linked to ${count} student${count > 1 ? "s" : ""}`
+          : "Guardian added successfully"
+      );
       queryClient.invalidateQueries({ queryKey: ["school-guardians"] });
       queryClient.invalidateQueries({ queryKey: ["school-students"] });
       resetForm();
@@ -116,14 +136,14 @@ export function AddGuardianDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
             Add New Guardian
           </DialogTitle>
           <DialogDescription>
-            Add a parent or guardian to your school. You can link them to students now or later.
+            Add a parent or guardian. You can link them to multiple students (e.g., siblings).
           </DialogDescription>
         </DialogHeader>
 
@@ -164,45 +184,65 @@ export function AddGuardianDialog({
               </div>
             </div>
 
-            <div className="pt-2 border-t">
-              <Label className="text-muted-foreground text-sm">Link to Student (Optional)</Label>
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                <div>
-                  <Label htmlFor="studentId">Student</Label>
-                  <Select
-                    value={selectedStudentId || "none"}
-                    onValueChange={(val) => setSelectedStudentId(val === "none" ? "" : val)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select student" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Link later</SelectItem>
-                      {students.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="pt-2 border-t space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-muted-foreground text-sm">
+                  Link to Students (Optional)
+                </Label>
+                {selectedStudentIds.length > 0 && (
+                  <span className="text-xs text-primary font-medium">
+                    {selectedStudentIds.length} selected
+                  </span>
+                )}
+              </div>
 
-                <div>
-                  <Label htmlFor="relationship">Relationship</Label>
-                  <Select value={relationship} onValueChange={setRelationship}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Parent">Parent</SelectItem>
-                      <SelectItem value="Mother">Mother</SelectItem>
-                      <SelectItem value="Father">Father</SelectItem>
-                      <SelectItem value="Guardian">Guardian</SelectItem>
-                      <SelectItem value="Grandparent">Grandparent</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <Label htmlFor="relationship">Relationship</Label>
+                <Select value={relationship} onValueChange={setRelationship}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Parent">Parent</SelectItem>
+                    <SelectItem value="Mother">Mother</SelectItem>
+                    <SelectItem value="Father">Father</SelectItem>
+                    <SelectItem value="Guardian">Guardian</SelectItem>
+                    <SelectItem value="Grandparent">Grandparent</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm">Select Students</Label>
+                <ScrollArea className="h-[140px] border rounded-md p-2 mt-1">
+                  {students.length > 0 ? (
+                    <div className="space-y-2">
+                      {students.map((student) => (
+                        <div
+                          key={student.id}
+                          className="flex items-center space-x-2 py-1"
+                        >
+                          <Checkbox
+                            id={`student-${student.id}`}
+                            checked={selectedStudentIds.includes(student.id)}
+                            onCheckedChange={() => toggleStudent(student.id)}
+                          />
+                          <label
+                            htmlFor={`student-${student.id}`}
+                            className="text-sm cursor-pointer flex-1"
+                          >
+                            {student.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No students available
+                    </p>
+                  )}
+                </ScrollArea>
               </div>
             </div>
           </div>
