@@ -846,6 +846,123 @@ export type Database = {
           },
         ]
       }
+      guardian_link_incidents: {
+        Row: {
+          created_at: string
+          data_accessed_during_incident: boolean | null
+          description: string
+          discovered_at: string
+          discovered_by: string
+          discovered_by_role: string
+          guardian_id: string
+          id: string
+          incident_type: string
+          link_id: string | null
+          link_removed: boolean | null
+          link_request_id: string | null
+          parent_notified: boolean | null
+          preventive_measures: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          root_cause: string | null
+          school_admin_notified: boolean | null
+          school_id: string
+          severity: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_accessed_during_incident?: boolean | null
+          description: string
+          discovered_at?: string
+          discovered_by: string
+          discovered_by_role: string
+          guardian_id: string
+          id?: string
+          incident_type: string
+          link_id?: string | null
+          link_removed?: boolean | null
+          link_request_id?: string | null
+          parent_notified?: boolean | null
+          preventive_measures?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          root_cause?: string | null
+          school_admin_notified?: boolean | null
+          school_id: string
+          severity?: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_accessed_during_incident?: boolean | null
+          description?: string
+          discovered_at?: string
+          discovered_by?: string
+          discovered_by_role?: string
+          guardian_id?: string
+          id?: string
+          incident_type?: string
+          link_id?: string | null
+          link_removed?: boolean | null
+          link_request_id?: string | null
+          parent_notified?: boolean | null
+          preventive_measures?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          root_cause?: string | null
+          school_admin_notified?: boolean | null
+          school_id?: string
+          severity?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guardian_link_incidents_guardian_id_fkey"
+            columns: ["guardian_id"]
+            isOneToOne: false
+            referencedRelation: "guardians"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guardian_link_incidents_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "guardian_student_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guardian_link_incidents_link_request_id_fkey"
+            columns: ["link_request_id"]
+            isOneToOne: false
+            referencedRelation: "guardian_link_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guardian_link_incidents_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guardian_link_incidents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guardian_link_requests: {
         Row: {
           activated_at: string | null
@@ -970,6 +1087,60 @@ export type Database = {
           },
         ]
       }
+      guardian_link_retention: {
+        Row: {
+          created_at: string
+          deleted_at: string
+          deleted_by: string
+          deletion_reason: string
+          guardian_id: string
+          id: string
+          original_link_id: string | null
+          permanent_delete_scheduled: boolean | null
+          permission_tier: string | null
+          recovered_at: string | null
+          recovered_by: string | null
+          relationship_type: string | null
+          retention_until: string
+          school_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string
+          deleted_by: string
+          deletion_reason: string
+          guardian_id: string
+          id?: string
+          original_link_id?: string | null
+          permanent_delete_scheduled?: boolean | null
+          permission_tier?: string | null
+          recovered_at?: string | null
+          recovered_by?: string | null
+          relationship_type?: string | null
+          retention_until: string
+          school_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string
+          deleted_by?: string
+          deletion_reason?: string
+          guardian_id?: string
+          id?: string
+          original_link_id?: string | null
+          permanent_delete_scheduled?: boolean | null
+          permission_tier?: string | null
+          recovered_at?: string | null
+          recovered_by?: string | null
+          relationship_type?: string | null
+          retention_until?: string
+          school_id?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       guardian_phone_registry: {
         Row: {
           created_at: string
@@ -1017,6 +1188,9 @@ export type Database = {
           contact_priority: number | null
           created_at: string
           created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          deletion_reason: string | null
           guardian_id: string
           id: string
           link_reason: string | null
@@ -1037,6 +1211,9 @@ export type Database = {
           contact_priority?: number | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
           guardian_id: string
           id?: string
           link_reason?: string | null
@@ -1057,6 +1234,9 @@ export type Database = {
           contact_priority?: number | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string | null
           guardian_id?: string
           id?: string
           link_reason?: string | null
@@ -1818,6 +1998,8 @@ export type Database = {
           can_view_reports: boolean | null
           can_view_timetables: boolean | null
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           granted_at: string | null
           granted_by: string | null
           guardian_id: string
@@ -1836,6 +2018,8 @@ export type Database = {
           can_view_reports?: boolean | null
           can_view_timetables?: boolean | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           granted_at?: string | null
           granted_by?: string | null
           guardian_id: string
@@ -1854,6 +2038,8 @@ export type Database = {
           can_view_reports?: boolean | null
           can_view_timetables?: boolean | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           granted_at?: string | null
           granted_by?: string | null
           guardian_id?: string
@@ -4131,6 +4317,10 @@ export type Database = {
         }
         Returns: Json
       }
+      check_relink_warning: {
+        Args: { p_guardian_id: string; p_student_id: string }
+        Returns: Json
+      }
       confirm_guardian_link: {
         Args: { p_confirmation_code: string; p_request_id: string }
         Returns: boolean
@@ -4278,6 +4468,10 @@ export type Database = {
         Args: { p_reason: string; p_school_id: string }
         Returns: boolean
       }
+      recover_guardian_link: {
+        Args: { p_reason: string; p_retention_id: string }
+        Returns: Json
+      }
       reject_guardian_link: {
         Args: { p_reason: string; p_request_id: string }
         Returns: boolean
@@ -4301,6 +4495,15 @@ export type Database = {
       soft_delete_student: {
         Args: { p_deleted_by: string; p_student_id: string }
         Returns: boolean
+      }
+      unlink_guardian_student: {
+        Args: {
+          p_guardian_id: string
+          p_is_mislink?: boolean
+          p_reason: string
+          p_student_id: string
+        }
+        Returns: Json
       }
       verify_audit_chain: {
         Args: { p_environment: string }
