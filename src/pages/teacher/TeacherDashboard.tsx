@@ -11,41 +11,104 @@ import {
   ChevronRight,
   BookOpen
 } from "lucide-react";
-import { DemoModeBanner } from "@/components/demo";
-import { useIsDemoSchool } from "@/hooks/useDemoSafety";
-
-// Demo school ID for development
-const DEMO_SCHOOL_ID = "5e508bfd-bd20-4461-8687-450a450111b8";
-
-// Placeholder data - will be replaced with real data later
-const todaysClasses = [
-  { id: "1", name: "Mathematics 101", grade: "10A", time: "8:00 AM", students: 28 },
-  { id: "2", name: "Mathematics 101", grade: "10B", time: "9:30 AM", students: 25 },
-  { id: "3", name: "Advanced Calculus", grade: "12A", time: "11:00 AM", students: 18 },
-];
-
-const studentsNeedingAttention = [
-  { id: "1", name: "Alex Thompson", reason: "Missed 3 classes this week" },
-  { id: "2", name: "Sarah Chen", reason: "Grades dropping in recent tests" },
-  { id: "3", name: "Marcus Johnson", reason: "Incomplete homework submissions" },
-];
+import { DemoModeBanner, DemoExitButton } from "@/components/demo";
+import { useDemoMode, DEMO_SCHOOL_ID, DEMO_CLASS_ID } from "@/contexts/DemoModeContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function TeacherDashboard() {
+  const { isDemoMode, demoSchoolId } = useDemoMode();
+  
   const currentDate = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
   });
 
-  const { data: isDemo } = useIsDemoSchool(DEMO_SCHOOL_ID);
+  // Fetch demo class data when in demo mode
+  const { data: demoClasses } = useQuery({
+    queryKey: ['demo-classes', demoSchoolId],
+    queryFn: async () => {
+      if (!demoSchoolId) return [];
+      const { data, error } = await supabase
+        .from('classes')
+        .select('id, name, grade, section, subject')
+        .eq('school_id', demoSchoolId)
+        .eq('is_demo', true);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: isDemoMode && !!demoSchoolId,
+  });
+
+  // Fetch student count for demo class
+  const { data: studentCount } = useQuery({
+    queryKey: ['demo-student-count', DEMO_CLASS_ID],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('students')
+        .select('*', { count: 'exact', head: true })
+        .eq('class_id', DEMO_CLASS_ID);
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: isDemoMode,
+  });
+
+  // Fetch students needing attention (those with adaptive support plans)
+  const { data: studentsNeedingAttention } = useQuery({
+    queryKey: ['demo-attention-students', DEMO_CLASS_ID],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('students')
+        .select(`
+          id, 
+          name,
+          adaptive_support_plans(id, focus_areas)
+        `)
+        .eq('class_id', DEMO_CLASS_ID)
+        .eq('is_demo', true)
+        .limit(3);
+      if (error) throw error;
+      return (data || []).map(s => ({
+        id: s.id,
+        name: s.name,
+        reason: s.adaptive_support_plans?.[0] 
+          ? 'Has adaptive support plan' 
+          : 'Recent assessment data available',
+      }));
+    },
+    enabled: isDemoMode,
+  });
+
+  // Transform demo classes to display format
+  const todaysClasses = isDemoMode && demoClasses
+    ? demoClasses.map((cls, idx) => ({
+        id: cls.id,
+        name: cls.name,
+        grade: `${cls.grade}${cls.section || ''}`,
+        time: idx === 0 ? '8:00 AM' : idx === 1 ? '9:30 AM' : '11:00 AM',
+        students: studentCount || 0,
+      }))
+    : [
+        { id: "1", name: "Mathematics 101", grade: "10A", time: "8:00 AM", students: 28 },
+        { id: "2", name: "Mathematics 101", grade: "10B", time: "9:30 AM", students: 25 },
+      ];
+
+  const attentionList = studentsNeedingAttention || [
+    { id: "1", name: "Loading...", reason: "Checking student data..." },
+  ];
 
   return (
-    <TeacherLayout schoolName="Stitch Academy">
+    <TeacherLayout schoolName={isDemoMode ? "North Park School (Demo)" : "Stitch Academy"}>
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
         {/* Demo Mode Banner */}
-        {isDemo && (
-          <div className="px-4 pt-4">
+        {isDemoMode && (
+          <div className="px-4 pt-4 flex flex-col gap-2">
             <DemoModeBanner schoolId={DEMO_SCHOOL_ID} context="teacher" />
+            <div className="flex justify-end">
+              <DemoExitButton />
+            </div>
           </div>
         )}
 
@@ -138,17 +201,18 @@ export default function TeacherDashboard() {
                 AI-powered insights coming soon
               </p>
               <div className="space-y-2">
-                {studentsNeedingAttention.map((student) => (
-                  <div
+                {attentionList.map((student) => (
+                  <Link
                     key={student.id}
-                    className="flex items-center justify-between py-2 border-b border-amber-200/50 dark:border-amber-900/30 last:border-0"
+                    to={isDemoMode ? `/teacher/classes/${DEMO_CLASS_ID}/students/${student.id}` : '#'}
+                    className="flex items-center justify-between py-2 border-b border-amber-200/50 dark:border-amber-900/30 last:border-0 hover:bg-amber-100/50 dark:hover:bg-amber-900/20 rounded px-1 transition-colors"
                   >
                     <div>
                       <p className="text-sm font-medium">{student.name}</p>
                       <p className="text-xs text-muted-foreground">{student.reason}</p>
                     </div>
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
+                  </Link>
                 ))}
               </div>
               <Button

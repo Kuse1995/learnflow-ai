@@ -3,8 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { RBACProvider } from "@/contexts/RBACContext";
 import { ProtectedRoute, ROUTE_PERMISSIONS, AccessDeniedPage } from "@/components/rbac";
+import DemoLanding from "@/pages/DemoLanding";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import {
@@ -51,15 +53,20 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      {/* 
-        RBACProvider - temporarily using null userId during development.
-        In production, this would come from auth context.
-      */}
-      <RBACProvider userId={null} schoolId={null}>
-        <BrowserRouter>
-          <Routes>
-            {/* Default redirect to teacher dashboard for now */}
-            <Route path="/" element={<Navigate to="/teacher" replace />} />
+      <DemoModeProvider>
+        {/* 
+          RBACProvider - temporarily using null userId during development.
+          In production, this would come from auth context.
+          Demo mode injects credentials automatically.
+        */}
+        <RBACProvider userId={null} schoolId={null}>
+          <BrowserRouter>
+            <Routes>
+              {/* Default redirect to demo landing for now */}
+              <Route path="/" element={<Navigate to="/demo/enter" replace />} />
+              
+              {/* Demo entry page - Public */}
+              <Route path="/demo/enter" element={<DemoLanding />} />
             
             {/* Access denied route */}
             <Route path="/access-denied" element={<AccessDeniedPage />} />
@@ -198,7 +205,7 @@ const App = () => (
             <Route path="/legal/:type" element={<LegalDocument />} />
             
             {/* Demo page - Public for development */}
-            <Route path="/demo" element={<Index />} />
+            <Route path="/demo" element={<Navigate to="/demo/enter" replace />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
@@ -208,6 +215,7 @@ const App = () => (
           <OfflineIndicator />
         </BrowserRouter>
       </RBACProvider>
+      </DemoModeProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
