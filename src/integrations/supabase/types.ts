@@ -2911,6 +2911,185 @@ export type Database = {
           },
         ]
       }
+      payment_plan_installments: {
+        Row: {
+          amount: number
+          amount_paid: number
+          created_at: string
+          due_date: string
+          id: string
+          installment_number: number
+          ledger_entry_ids: string[] | null
+          notes: string | null
+          paid_date: string | null
+          payment_reference: string | null
+          plan_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          amount_paid?: number
+          created_at?: string
+          due_date: string
+          id?: string
+          installment_number: number
+          ledger_entry_ids?: string[] | null
+          notes?: string | null
+          paid_date?: string | null
+          payment_reference?: string | null
+          plan_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_paid?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          installment_number?: number
+          ledger_entry_ids?: string[] | null
+          notes?: string | null
+          paid_date?: string | null
+          payment_reference?: string | null
+          plan_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_plan_installments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "payment_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_plans: {
+        Row: {
+          academic_year: number
+          approval_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          balance_at_creation: number
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          created_by: string | null
+          created_by_role: string | null
+          created_offline: boolean
+          currency: string
+          end_date: string | null
+          id: string
+          installment_count: number
+          last_payment_date: string | null
+          missed_installments: number
+          notes: string | null
+          offline_id: string | null
+          parent_agreement_date: string | null
+          parent_agreement_method: string | null
+          plan_name: string | null
+          remaining_amount: number
+          school_id: string
+          start_date: string
+          status: string
+          student_id: string
+          synced_at: string | null
+          term: number
+          total_amount: number
+          total_paid: number
+          updated_at: string
+        }
+        Insert: {
+          academic_year: number
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          balance_at_creation: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_role?: string | null
+          created_offline?: boolean
+          currency?: string
+          end_date?: string | null
+          id?: string
+          installment_count: number
+          last_payment_date?: string | null
+          missed_installments?: number
+          notes?: string | null
+          offline_id?: string | null
+          parent_agreement_date?: string | null
+          parent_agreement_method?: string | null
+          plan_name?: string | null
+          remaining_amount: number
+          school_id: string
+          start_date: string
+          status?: string
+          student_id: string
+          synced_at?: string | null
+          term: number
+          total_amount: number
+          total_paid?: number
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: number
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          balance_at_creation?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_role?: string | null
+          created_offline?: boolean
+          currency?: string
+          end_date?: string | null
+          id?: string
+          installment_count?: number
+          last_payment_date?: string | null
+          missed_installments?: number
+          notes?: string | null
+          offline_id?: string | null
+          parent_agreement_date?: string | null
+          parent_agreement_method?: string | null
+          plan_name?: string | null
+          remaining_amount?: number
+          school_id?: string
+          start_date?: string
+          status?: string
+          student_id?: string
+          synced_at?: string | null
+          term?: number
+          total_amount?: number
+          total_paid?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_plans_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_plans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pilot_exit_criteria: {
         Row: {
           all_criteria_met: boolean | null
@@ -5428,6 +5607,10 @@ export type Database = {
         Args: { p_end_date: string; p_school_id: string; p_start_date: string }
         Returns: Json
       }
+      get_active_payment_plan: {
+        Args: { p_academic_year: number; p_student_id: string; p_term: number }
+        Returns: string
+      }
       get_guardian_accessible_students: {
         Args: { _guardian_id: string }
         Returns: {
@@ -5468,6 +5651,10 @@ export type Database = {
       get_student_running_balance: {
         Args: { p_student_id: string }
         Returns: number
+      }
+      has_active_payment_plan: {
+        Args: { p_academic_year: number; p_student_id: string; p_term: number }
+        Returns: boolean
       }
       has_role: {
         Args: {
