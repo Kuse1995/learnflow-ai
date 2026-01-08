@@ -6882,6 +6882,10 @@ export type Database = {
         Returns: boolean
       }
       assign_dev_user_roles: { Args: { user_email: string }; Returns: boolean }
+      bootstrap_owner_roles: {
+        Args: { p_email: string; p_meta?: Json; p_user_id: string }
+        Returns: undefined
+      }
       calculate_installment_status: {
         Args: { p_amount: number; p_amount_paid: number; p_due_date: string }
         Returns: string
@@ -7060,6 +7064,7 @@ export type Database = {
         Args: { p_school_id?: string; p_user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
       }
+      grant_owner_access: { Args: { p_email: string }; Returns: boolean }
       has_active_payment_plan: {
         Args: { p_academic_year: number; p_student_id: string; p_term: number }
         Returns: boolean
