@@ -13,6 +13,7 @@ import {
   UserManagementPanel,
   ClassManagementPanel,
 } from '@/components/owner';
+import { PageHeader } from '@/components/layout';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Settings, Brain, FileText } from 'lucide-react';
@@ -46,20 +47,13 @@ export default function OwnerControl() {
       {/* Owner Mode Banner */}
       <OwnerModeBanner />
 
-      {/* Page Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <Settings className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-bold">Owner Control Center</h1>
-              <p className="text-muted-foreground">
-                Highest authority layer — full system control
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Page Header with Back & Logout */}
+      <PageHeader
+        title="Owner Control Center"
+        subtitle="Highest authority layer — full system control"
+        icon={<Settings className="h-8 w-8 text-primary" />}
+        backPath="/"
+      />
 
       {/* Main Content */}
       <main className="container mx-auto p-6 space-y-6">
