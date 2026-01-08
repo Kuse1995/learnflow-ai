@@ -46,6 +46,7 @@ import {
 import PlatformAdminOnboarding from '@/pages/platform-admin/PlatformAdminOnboarding';
 import PlatformAdminSystemStatus from '@/pages/platform-admin/PlatformAdminSystemStatus';
 import PlatformAdminPilot from '@/pages/platform-admin/PlatformAdminPilot';
+import PlatformAdminPlans from '@/pages/platform-admin/PlatformAdminPlans';
 import PlatformAdmin from '@/pages/platform-admin/PlatformAdmin';
 import PendingAdaptiveSupportPlans from '@/pages/platform-admin/PendingAdaptiveSupportPlans';
 import PendingParentInsights from '@/pages/platform-admin/PendingParentInsights';
@@ -262,6 +263,7 @@ export function AuthenticatedApp() {
         } />
         <Route path="/platform-admin/pending/adaptive-support" element={<PendingAdaptiveSupportPlans />} />
         <Route path="/platform-admin/pending/parent-insights" element={<PendingParentInsights />} />
+        <Route path="/platform-admin/plans" element={<PlatformAdminPlans />} />
         
         {/* Owner Control - Platform Owner Only */}
         <Route path="/owner-control" element={<OwnerControl />} />

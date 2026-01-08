@@ -18,7 +18,8 @@ import {
   ChevronRight,
   BookOpen,
   ArrowLeft,
-  LogOut
+  LogOut,
+  CreditCard,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -135,6 +136,30 @@ export default function PlatformAdmin() {
       </header>
 
       <main className="container mx-auto p-6 space-y-6">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Plans & Pricing */}
+          <Card 
+            className="cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => navigate('/platform-admin/plans')}
+          >
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Plans & Pricing</CardTitle>
+                    <CardDescription className="text-xs">Manage subscription tiers</CardDescription>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
+
         {/* Demo Controls */}
         <Card>
           <CardHeader>
