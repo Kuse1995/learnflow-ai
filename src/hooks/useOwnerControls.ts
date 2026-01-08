@@ -7,6 +7,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { addDays } from 'date-fns';
+import type { Database } from '@/integrations/supabase/types';
+
+type AppRole = Database['public']['Enums']['app_role'];
 
 // =============================================================================
 // SYSTEM MODE
@@ -270,6 +274,355 @@ export function useDeleteParentInsight() {
     },
     onError: (error) => {
       toast.error('Failed to delete insight: ' + (error as Error).message);
+    },
+  });
+}
+
+// =============================================================================
+// SCHOOL MANAGEMENT
+// =============================================================================
+
+interface SchoolWithPlan {
+  id: string;
+  name: string;
+  is_demo: boolean;
+  billing_status: string | null;
+  created_at: string;
+  subscription?: {
+    plan?: {
+      id: string;
+      name: string;
+    } | null;
+  } | null;
+}
+
+export function useAllSchoolsWithPlans() {
+  return useQuery({
+    queryKey: ['owner-all-schools'],
+    queryFn: async (): Promise<SchoolWithPlan[]> => {
+      const { data, error } = await supabase
+        .from('schools')
+        .select(`
+          id,
+          name,
+          is_demo,
+          billing_status,
+          created_at,
+          subscription:school_subscriptions(
+            plan:plans(id, name)
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      return (data || []).map((school: any) => ({
+        ...school,
+        subscription: school.subscription?.[0] || null,
+      }));
+    },
+  });
+}
+
+export function useAvailablePlans() {
+  return useQuery({
+    queryKey: ['available-plans'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('plans')
+        .select('id, name, display_name, is_active')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+interface CreateSchoolInput {
+  name: string;
+  planId?: string;
+  isDemo: boolean;
+  billingStatus: 'trial' | 'active';
+}
+
+export function useCreateSchool() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateSchoolInput) => {
+      const { data: school, error } = await supabase
+        .from('schools')
+        .insert({
+          name: input.name,
+          is_demo: input.isDemo,
+          billing_status: input.billingStatus,
+          billing_start_date: new Date().toISOString(),
+          billing_end_date: addDays(new Date(), 14).toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Create subscription if plan selected
+      if (input.planId && school) {
+        await supabase.from('school_subscriptions').insert({
+          school_id: school.id,
+          plan_id: input.planId,
+          status: 'active',
+        });
+      }
+
+      return school;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['owner-all-schools'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-all-schools'] });
+      toast.success('School created successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to create school: ' + (error as Error).message);
+    },
+  });
+}
+
+export function useSuspendSchool() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (schoolId: string) => {
+      const { error } = await supabase
+        .from('schools')
+        .update({ billing_status: 'suspended' })
+        .eq('id', schoolId);
+
+      if (error) throw error;
+      return schoolId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['owner-all-schools'] });
+      toast.success('School suspended');
+    },
+    onError: (error) => {
+      toast.error('Failed to suspend school: ' + (error as Error).message);
+    },
+  });
+}
+
+export function useReinstateSchool() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (schoolId: string) => {
+      const { error } = await supabase
+        .from('schools')
+        .update({ billing_status: 'active' })
+        .eq('id', schoolId);
+
+      if (error) throw error;
+      return schoolId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['owner-all-schools'] });
+      toast.success('School reinstated');
+    },
+    onError: (error) => {
+      toast.error('Failed to reinstate school: ' + (error as Error).message);
+    },
+  });
+}
+
+// =============================================================================
+// USER ROLE MANAGEMENT
+// =============================================================================
+
+interface UserRole {
+  id: string;
+  user_id: string;
+  school_id: string;
+  role: AppRole;
+  created_at: string;
+  school?: { name: string } | null;
+}
+
+export function useAllUsersWithRoles() {
+  return useQuery({
+    queryKey: ['owner-all-user-roles'],
+    queryFn: async (): Promise<UserRole[]> => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select(`
+          id,
+          user_id,
+          school_id,
+          role,
+          created_at,
+          school:schools(name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+interface AssignRoleInput {
+  userId: string;
+  schoolId: string;
+  role: AppRole;
+}
+
+export function useAssignRole() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: AssignRoleInput) => {
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: input.userId,
+          school_id: input.schoolId,
+          role: input.role,
+        });
+
+      if (error) throw error;
+      return input;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['owner-all-user-roles'] });
+      toast.success('Role assigned successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to assign role: ' + (error as Error).message);
+    },
+  });
+}
+
+export function useRevokeRole() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (roleId: string) => {
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('id', roleId);
+
+      if (error) throw error;
+      return roleId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['owner-all-user-roles'] });
+      toast.success('Role revoked');
+    },
+    onError: (error) => {
+      toast.error('Failed to revoke role: ' + (error as Error).message);
+    },
+  });
+}
+
+// =============================================================================
+// CLASS MANAGEMENT
+// =============================================================================
+
+interface ClassWithSchool {
+  id: string;
+  name: string;
+  grade: string | null;
+  section: string | null;
+  is_demo: boolean;
+  created_at: string;
+  school?: { name: string } | null;
+}
+
+export function useAllClasses() {
+  return useQuery({
+    queryKey: ['owner-all-classes'],
+    queryFn: async (): Promise<ClassWithSchool[]> => {
+      const { data, error } = await supabase
+        .from('classes')
+        .select(`
+          id,
+          name,
+          grade,
+          section,
+          is_demo,
+          created_at,
+          school:schools(name)
+        `)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+interface CreateClassInput {
+  name: string;
+  schoolId: string;
+  grade?: string;
+  section?: string;
+  subject?: string;
+  isDemo: boolean;
+}
+
+export function useCreateClass() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateClassInput) => {
+      const { data, error } = await supabase
+        .from('classes')
+        .insert({
+          name: input.name,
+          school_id: input.schoolId,
+          grade: input.grade || null,
+          section: input.section || null,
+          subject: input.subject || null,
+          is_demo: input.isDemo,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['owner-all-classes'] });
+      toast.success('Class created successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to create class: ' + (error as Error).message);
+    },
+  });
+}
+
+export function useDeleteClass() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (classId: string) => {
+      const { error } = await supabase
+        .from('classes')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', classId);
+
+      if (error) throw error;
+      return classId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['owner-all-classes'] });
+      toast.success('Class deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete class: ' + (error as Error).message);
     },
   });
 }
