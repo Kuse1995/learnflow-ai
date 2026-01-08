@@ -41,14 +41,21 @@ serve(async (req) => {
       global: { headers: { authorization: authHeader } },
     });
 
-    // Get the current user
-    const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
-    if (userError || !user) {
+    // Validate JWT using getClaims for better performance
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: authError } = await supabaseUser.auth.getClaims(token);
+    
+    if (authError || !claimsData?.claims) {
+      console.error("Auth error:", authError);
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const userId = claimsData.claims.sub as string;
+    console.log("=== Send Teacher Invite Request ===");
+    console.log(`Authenticated user: ${userId}`);
 
     // Parse request body
     const { schoolId, email, fullName }: InviteRequest = await req.json();
@@ -67,7 +74,7 @@ serve(async (req) => {
     const { data: userRole, error: roleError } = await supabaseAdmin
       .from("user_roles")
       .select("id")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("school_id", schoolId)
       .in("role", ["school_admin", "admin", "platform_admin"])
       .eq("is_active", true)
@@ -144,7 +151,7 @@ serve(async (req) => {
         school_id: schoolId,
         email: email.toLowerCase(),
         full_name: fullName || null,
-        invited_by: user.id,
+        invited_by: userId,
         invite_token: inviteToken,
         expires_at: expiresAt.toISOString(),
         status: "pending",
