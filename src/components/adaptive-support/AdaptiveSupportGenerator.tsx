@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Sparkles, AlertTriangle } from "lucide-react";
+import { Loader2, Sparkles, AlertTriangle, Info } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -22,6 +22,7 @@ import {
 import {
   useGenerateAdaptiveSupportPlan,
   useCanGenerateAdaptiveSupportPlan,
+  type GenerationError,
 } from "@/hooks/useAdaptiveSupportPlans";
 
 interface Student {
@@ -42,6 +43,7 @@ interface AdaptiveSupportGeneratorProps {
 
 export function AdaptiveSupportGenerator({ classId, students, trigger }: AdaptiveSupportGeneratorProps) {
   const [open, setOpen] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   // Auto-select if only one student is provided
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   
@@ -56,6 +58,7 @@ export function AdaptiveSupportGenerator({ classId, students, trigger }: Adaptiv
   // Auto-select student when dialog opens with single student
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
+    setGenerationError(null);
     if (isOpen && students.length === 1) {
       setSelectedStudentId(students[0].id);
     } else if (!isOpen) {
@@ -69,15 +72,32 @@ export function AdaptiveSupportGenerator({ classId, students, trigger }: Adaptiv
       return;
     }
 
+    setGenerationError(null);
+
     try {
-      await generateMutation.mutateAsync({
+      const result = await generateMutation.mutateAsync({
         studentId: selectedStudentId,
         classId,
       });
-      toast.success("Adaptive support plan generated");
+      
+      if (result.isDemoGenerated) {
+        toast.success("Demo support plan generated", {
+          description: "This is sample guidance for demonstration purposes.",
+        });
+      } else {
+        toast.success("Adaptive support plan generated");
+      }
       handleOpenChange(false);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to generate support plan");
+    } catch (error: unknown) {
+      const genError = error as GenerationError;
+      const errorMessage = genError.message || "Failed to generate support plan";
+      
+      // Show error inline instead of toast for demo/service errors
+      if (genError.isDemoError) {
+        setGenerationError(errorMessage);
+      } else {
+        setGenerationError(errorMessage);
+      }
     }
   };
 
@@ -133,6 +153,16 @@ export function AdaptiveSupportGenerator({ classId, students, trigger }: Adaptiv
               <AlertTriangle className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-amber-800 text-sm">
                 {canGenerateCheck.reason}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Generation Error Display */}
+          {generationError && (
+            <Alert variant="destructive">
+              <Info className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                {generationError}
               </AlertDescription>
             </Alert>
           )}

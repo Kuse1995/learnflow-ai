@@ -12,8 +12,14 @@ export interface AdaptiveSupportPlan {
   generated_at: string;
   source_window_days: number;
   teacher_acknowledged: boolean;
+  is_demo?: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface GenerationError {
+  message: string;
+  isDemoError?: boolean;
 }
 
 export interface RegenerationCheck {
@@ -151,20 +157,29 @@ export function useGenerateAdaptiveSupportPlan() {
         body: { studentId, classId, sourceWindowDays },
       });
 
+      // Handle specific error cases
       if (response.error) {
-        throw new Error(response.error.message || "Failed to generate support plan");
+        console.error("[useGenerateAdaptiveSupportPlan] Function error:", response.error);
+        throw { message: response.error.message || "Failed to generate support plan" } as GenerationError;
       }
 
       if (!response.data?.success) {
-        throw new Error(response.data?.error || "Failed to generate support plan");
+        const errorData = response.data || {};
+        throw { 
+          message: errorData.error || "Failed to generate support plan",
+          isDemoError: errorData.isDemoError || false,
+        } as GenerationError;
       }
 
-      return response.data.plan as AdaptiveSupportPlan;
+      return {
+        plan: response.data.plan as AdaptiveSupportPlan,
+        isDemoGenerated: response.data.isDemoGenerated || false,
+      };
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["adaptive-support-plans", "class", data.class_id] });
-      queryClient.invalidateQueries({ queryKey: ["adaptive-support-plan", data.student_id, data.class_id] });
-      queryClient.invalidateQueries({ queryKey: ["adaptive-support-plan-check", data.student_id, data.class_id] });
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["adaptive-support-plans", "class", result.plan.class_id] });
+      queryClient.invalidateQueries({ queryKey: ["adaptive-support-plan", result.plan.student_id, result.plan.class_id] });
+      queryClient.invalidateQueries({ queryKey: ["adaptive-support-plan-check", result.plan.student_id, result.plan.class_id] });
     },
   });
 }
