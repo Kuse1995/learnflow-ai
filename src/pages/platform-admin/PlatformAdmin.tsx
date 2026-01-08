@@ -1,6 +1,7 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { useSystemMode } from '@/hooks/useDemoSuperAdmin';
+import { usePendingParentInsightsByClass } from '@/hooks/usePendingParentInsights';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,15 +13,19 @@ import {
   Brain, 
   BellOff, 
   AlertTriangle,
-  Shield
+  Shield,
+  ChevronRight,
+  BookOpen
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export default function PlatformAdmin() {
+  const navigate = useNavigate();
   const { isDemoMode, isSuperAdmin, superAdminInfo, demoRole } = useDemoMode();
   const { data: systemMode, isLoading: loadingMode } = useSystemMode();
+  const { data: pendingByClass = [], isLoading: loadingPendingByClass } = usePendingParentInsightsByClass();
 
   // Fetch pending counts
   const { data: pendingCounts, isLoading: loadingCounts } = useQuery({
@@ -146,7 +151,8 @@ export default function PlatformAdmin() {
               Items awaiting teacher acknowledgment or approval
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* Summary Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
                 <div className="flex items-center gap-3">
@@ -182,6 +188,52 @@ export default function PlatformAdmin() {
                 )}
               </div>
             </div>
+
+            {/* Pending Parent Insights by Class */}
+            {(pendingCounts?.pendingInsights ?? 0) > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-muted-foreground mb-3">Parent Insights by Class</h4>
+                {loadingPendingByClass ? (
+                  <div className="space-y-2">
+                    {[1, 2].map((i) => (
+                      <Skeleton key={i} className="h-14 w-full rounded-lg" />
+                    ))}
+                  </div>
+                ) : pendingByClass.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pending insights found.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {pendingByClass.map((item) => (
+                      <div
+                        key={item.classId}
+                        className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => navigate(`/teacher/classes/${item.classId}/parent-insights`)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <BookOpen className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{item.className}</p>
+                            {item.grade && item.section && (
+                              <p className="text-xs text-muted-foreground">
+                                Grade {item.grade} • Section {item.section}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-200">
+                            {item.pendingCount} pending
+                          </Badge>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 

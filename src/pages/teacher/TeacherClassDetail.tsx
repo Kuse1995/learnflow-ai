@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight, Brain, Lightbulb, PenLine, Sparkles, Eye } from "lucide-react";
+import { ArrowLeft, BookOpen, Users, Calendar, FileText, ChevronRight, Brain, Lightbulb, PenLine, Sparkles, MessageSquareText } from "lucide-react";
 import { toast } from "sonner";
 import { TeacherLayout } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-states";
 import { AttendanceSheet } from "@/components/attendance/AttendanceSheet";
 import { UploadsList } from "@/components/uploads/UploadsList";
@@ -24,6 +25,7 @@ import { useClassAttendanceHistory, type AttendanceSummary } from "@/hooks/useCl
 import { useUploadsByClass } from "@/hooks/useUploadsByClass";
 import { useAttendanceByClassAndDate, useSaveAttendance } from "@/hooks/useAttendance";
 import { useClassActionLogs } from "@/hooks/useTeacherActionLogs";
+import { usePendingParentInsightsCount } from "@/hooks/usePendingParentInsights";
 
 export default function TeacherClassDetail() {
   const { classId } = useParams<{ classId: string }>();
@@ -38,6 +40,7 @@ export default function TeacherClassDetail() {
   const { data: dateAttendance = [] } = useAttendanceByClassAndDate(classId, selectedDate || undefined);
   const { mutateAsync: saveAttendance } = useSaveAttendance();
   const { data: actionLogs = [] } = useClassActionLogs(classId);
+  const { data: pendingInsightsCount = 0 } = usePendingParentInsightsCount(classId);
 
   const handleSaveAttendance = async (entries: { studentId: string; present: boolean }[]) => {
     if (!classId || !selectedDate) return;
@@ -136,6 +139,32 @@ export default function TeacherClassDetail() {
         </header>
 
         <div className="flex-1 p-4 space-y-6">
+          {/* Parent Insights Card */}
+          <Card 
+            className="cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => navigate(`/teacher/classes/${classData.id}/parent-insights`)}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <MessageSquareText className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold">Parent Insights</h3>
+                <p className="text-sm text-muted-foreground">
+                  Review and approve summaries for parents
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {pendingInsightsCount > 0 && (
+                  <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-200">
+                    {pendingInsightsCount} pending
+                  </Badge>
+                )}
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Learning Over Time Panel */}
           <LearningOverTimePanel classId={classData.id} />
 
