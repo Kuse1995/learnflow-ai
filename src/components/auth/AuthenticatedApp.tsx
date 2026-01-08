@@ -58,6 +58,7 @@ export function AuthenticatedApp() {
       userName={user?.user_metadata?.full_name ?? null}
       schoolId={null} // Will be determined by user's roles
     >
+      <div className="min-h-screen overflow-auto">
       <Routes>
         {/* Access denied route */}
         <Route path="/access-denied" element={<AccessDeniedPage />} />
@@ -199,6 +200,7 @@ export function AuthenticatedApp() {
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </div>
       
       {/* Global offline indicator */}
       <OfflineIndicator />
