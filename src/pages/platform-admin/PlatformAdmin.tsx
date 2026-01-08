@@ -51,8 +51,10 @@ export default function PlatformAdmin() {
     enabled: isSuperAdmin,
   });
 
-  // Check access - must be demo super admin
-  if (loadingMode) {
+  // Check access - must be demo super admin in demo mode
+  const isLoading = loadingMode;
+  
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-8">
         <Skeleton className="h-12 w-64 mb-8" />
@@ -65,8 +67,11 @@ export default function PlatformAdmin() {
     );
   }
 
+  // Allow access if: super admin in demo mode OR demo role is super_admin
+  const hasAccess = isSuperAdmin || demoRole === 'super_admin';
+  
   // Redirect non-super admins to teacher dashboard
-  if (!isSuperAdmin || demoRole !== 'super_admin') {
+  if (!hasAccess) {
     return <Navigate to="/teacher" replace />;
   }
 
