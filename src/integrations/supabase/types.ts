@@ -1428,6 +1428,133 @@ export type Database = {
           },
         ]
       }
+      fee_reminder_logs: {
+        Row: {
+          academic_year: number
+          class_id: string | null
+          created_at: string
+          custom_message: string | null
+          final_message: string
+          id: string
+          ledger_balance_snapshot: number
+          school_id: string
+          sent_at: string
+          sent_by: string | null
+          sent_via: Database["public"]["Enums"]["reminder_delivery_method"]
+          student_id: string
+          student_name_snapshot: string
+          template_id: string | null
+          term: number | null
+        }
+        Insert: {
+          academic_year: number
+          class_id?: string | null
+          created_at?: string
+          custom_message?: string | null
+          final_message: string
+          id?: string
+          ledger_balance_snapshot: number
+          school_id: string
+          sent_at?: string
+          sent_by?: string | null
+          sent_via: Database["public"]["Enums"]["reminder_delivery_method"]
+          student_id: string
+          student_name_snapshot: string
+          template_id?: string | null
+          term?: number | null
+        }
+        Update: {
+          academic_year?: number
+          class_id?: string | null
+          created_at?: string
+          custom_message?: string | null
+          final_message?: string
+          id?: string
+          ledger_balance_snapshot?: number
+          school_id?: string
+          sent_at?: string
+          sent_by?: string | null
+          sent_via?: Database["public"]["Enums"]["reminder_delivery_method"]
+          student_id?: string
+          student_name_snapshot?: string
+          template_id?: string | null
+          term?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_reminder_logs_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_reminder_logs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_reminder_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_reminder_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "fee_reminder_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_reminder_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          message_body: string
+          school_id: string
+          title: string
+          tone: Database["public"]["Enums"]["reminder_tone"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          message_body: string
+          school_id: string
+          title: string
+          tone?: Database["public"]["Enums"]["reminder_tone"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          message_body?: string
+          school_id?: string
+          title?: string
+          tone?: Database["public"]["Enums"]["reminder_tone"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_reminder_templates_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fee_structures: {
         Row: {
           academic_year: number
@@ -6327,6 +6454,12 @@ export type Database = {
         | "deployment_initiated"
         | "rollback_executed"
         | "environment_changed"
+      reminder_delivery_method:
+        | "in_person"
+        | "phone_call"
+        | "printed_notice"
+        | "whatsapp_manual"
+      reminder_tone: "gentle" | "neutral" | "informative"
       restore_status:
         | "pending"
         | "previewing"
@@ -6574,6 +6707,13 @@ export const Constants = {
         "rollback_executed",
         "environment_changed",
       ],
+      reminder_delivery_method: [
+        "in_person",
+        "phone_call",
+        "printed_notice",
+        "whatsapp_manual",
+      ],
+      reminder_tone: ["gentle", "neutral", "informative"],
       restore_status: [
         "pending",
         "previewing",

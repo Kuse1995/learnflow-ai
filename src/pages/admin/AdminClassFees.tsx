@@ -51,8 +51,10 @@ export default function AdminClassFees() {
 
       {/* Content */}
       <ClassFeesOverview 
-        classId={classId} 
+        classId={classId}
+        schoolId="demo-school-id"
         onStudentClick={handleStudentClick}
+        canSendReminder={true}
       />
     </div>
   );

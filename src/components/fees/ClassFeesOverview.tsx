@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Card,
@@ -10,6 +10,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -25,28 +26,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, TrendingUp, AlertCircle } from 'lucide-react';
+import { Users, TrendingUp, AlertCircle, Bell } from 'lucide-react';
 import {
   useClassFeesSummary,
   useClassStudentBalances,
   useFormatBalance,
 } from '@/hooks/useStudentFees';
+import { SendReminderDialog } from './SendReminderDialog';
 
 interface ClassFeesOverviewProps {
   classId: string;
+  schoolId: string;
   onStudentClick?: (studentId: string) => void;
+  canSendReminder?: boolean;
 }
 
-/**
- * Class Fees Overview Component
- * 
- * Shows aggregated fee status for a class and lists individual student balances.
- * Uses neutral, professional language - no shaming.
- */
-export function ClassFeesOverview({ classId, onStudentClick }: ClassFeesOverviewProps) {
+export function ClassFeesOverview({ classId, schoolId, onStudentClick, canSendReminder = false }: ClassFeesOverviewProps) {
   const currentYear = new Date().getFullYear();
   const [academicYear, setAcademicYear] = useState(currentYear);
   const [term, setTerm] = useState<number | undefined>(undefined);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
 
   const { data: summary, isLoading: isLoadingSummary } = useClassFeesSummary(
     classId,
@@ -61,6 +61,32 @@ export function ClassFeesOverview({ classId, onStudentClick }: ClassFeesOverview
   const { formatAmount, getStatusLabel, getStatusColor } = useFormatBalance();
 
   const years = [currentYear, currentYear - 1, currentYear - 2];
+
+  const studentsWithBalance = useMemo(() => 
+    (studentBalances || []).filter(s => s.currentBalance > 0),
+    [studentBalances]
+  );
+
+  const selectedStudentsForReminder = useMemo(() =>
+    studentsWithBalance
+      .filter(s => selectedStudents.includes(s.studentId))
+      .map(s => ({ id: s.studentId, name: s.studentName, balance: s.currentBalance, classId })),
+    [studentsWithBalance, selectedStudents, classId]
+  );
+
+  const toggleStudent = (studentId: string) => {
+    setSelectedStudents(prev => 
+      prev.includes(studentId) ? prev.filter(id => id !== studentId) : [...prev, studentId]
+    );
+  };
+
+  const toggleAll = () => {
+    if (selectedStudents.length === studentsWithBalance.length) {
+      setSelectedStudents([]);
+    } else {
+      setSelectedStudents(studentsWithBalance.map(s => s.studentId));
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -182,15 +208,24 @@ export function ClassFeesOverview({ classId, onStudentClick }: ClassFeesOverview
       {/* Student List */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Student Balances</CardTitle>
-          <CardDescription>
-            Individual fee status for each student
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">Student Balances</CardTitle>
+              <CardDescription>
+                Individual fee status for each student
+              </CardDescription>
+            </div>
+            {canSendReminder && selectedStudents.length > 0 && (
+              <Button onClick={() => setIsReminderDialogOpen(true)}>
+                <Bell className="h-4 w-4 mr-2" />
+                Send Reminder ({selectedStudents.length})
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {isLoadingStudents ? (
             <div className="space-y-2">
-              <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
@@ -198,6 +233,14 @@ export function ClassFeesOverview({ classId, onStudentClick }: ClassFeesOverview
             <Table>
               <TableHeader>
                 <TableRow>
+                  {canSendReminder && (
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={selectedStudents.length === studentsWithBalance.length && studentsWithBalance.length > 0}
+                        onCheckedChange={toggleAll}
+                      />
+                    </TableHead>
+                  )}
                   <TableHead>Student</TableHead>
                   <TableHead className="text-right">Total Fees</TableHead>
                   <TableHead className="text-right">Paid</TableHead>
@@ -209,30 +252,26 @@ export function ClassFeesOverview({ classId, onStudentClick }: ClassFeesOverview
               <TableBody>
                 {studentBalances.map((student) => (
                   <TableRow key={student.studentId}>
-                    <TableCell className="font-medium">
-                      {student.studentName}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatAmount(student.totalCharges)}
-                    </TableCell>
-                    <TableCell className="text-right text-emerald-600">
-                      {formatAmount(student.totalPayments)}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatAmount(student.currentBalance)}
-                    </TableCell>
+                    {canSendReminder && (
+                      <TableCell>
+                        {student.currentBalance > 0 && (
+                          <Checkbox
+                            checked={selectedStudents.includes(student.studentId)}
+                            onCheckedChange={() => toggleStudent(student.studentId)}
+                          />
+                        )}
+                      </TableCell>
+                    )}
+                    <TableCell className="font-medium">{student.studentName}</TableCell>
+                    <TableCell className="text-right">{formatAmount(student.totalCharges)}</TableCell>
+                    <TableCell className="text-right text-emerald-600">{formatAmount(student.totalPayments)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatAmount(student.currentBalance)}</TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(student.status)}>
-                        {getStatusLabel(student.status)}
-                      </Badge>
+                      <Badge className={getStatusColor(student.status)}>{getStatusLabel(student.status)}</Badge>
                     </TableCell>
                     <TableCell>
                       {onStudentClick && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onStudentClick(student.studentId)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => onStudentClick(student.studentId)}>
                           View
                         </Button>
                       )}
@@ -248,6 +287,21 @@ export function ClassFeesOverview({ classId, onStudentClick }: ClassFeesOverview
           )}
         </CardContent>
       </Card>
+
+      {/* Reminder Dialog */}
+      {canSendReminder && (
+        <SendReminderDialog
+          open={isReminderDialogOpen}
+          onOpenChange={(open) => {
+            setIsReminderDialogOpen(open);
+            if (!open) setSelectedStudents([]);
+          }}
+          students={selectedStudentsForReminder}
+          schoolId={schoolId}
+          academicYear={academicYear}
+          term={term}
+        />
+      )}
     </div>
   );
 }

@@ -26,21 +26,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Plus, ArrowUpCircle, ArrowDownCircle, Bell } from 'lucide-react';
 import {
   useStudentLedger,
   useStudentBalance,
   useFormatBalance,
 } from '@/hooks/useStudentFees';
 import { RecordPaymentForm } from './RecordPaymentForm';
-
+import { SendReminderDialog } from './SendReminderDialog';
+import { ReminderHistory } from './ReminderHistory';
 interface StudentFeesTabProps {
   studentId: string;
   studentName: string;
   schoolId: string;
+  classId?: string;
   academicYear?: number;
   term?: number;
   canRecordPayment?: boolean;
+  canSendReminder?: boolean;
 }
 
 /**
@@ -53,11 +56,14 @@ export function StudentFeesTab({
   studentId,
   studentName,
   schoolId,
+  classId,
   academicYear = new Date().getFullYear(),
   term,
   canRecordPayment = false,
+  canSendReminder = false,
 }: StudentFeesTabProps) {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   
   const { data: balance, isLoading: isLoadingBalance } = useStudentBalance(studentId);
   const { data: ledger, isLoading: isLoadingLedger } = useStudentLedger(
@@ -116,38 +122,70 @@ export function StudentFeesTab({
             </div>
           </div>
 
-          {canRecordPayment && (
-            <div className="mt-4 pt-4 border-t">
-              <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Record Payment
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>Record Payment</DialogTitle>
-                    <DialogDescription>
-                      Record a payment for {studentName}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <RecordPaymentForm
-                    studentId={studentId}
-                    studentName={studentName}
-                    schoolId={schoolId}
-                    academicYear={academicYear}
-                    term={term ?? null}
-                    currentBalance={balance?.currentBalance || 0}
-                    onSuccess={handlePaymentSuccess}
-                    onCancel={() => setIsPaymentDialogOpen(false)}
-                  />
-                </DialogContent>
-              </Dialog>
+          {(canRecordPayment || canSendReminder) && (
+            <div className="mt-4 pt-4 border-t flex gap-2">
+              {canRecordPayment && (
+                <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Record Payment
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>Record Payment</DialogTitle>
+                      <DialogDescription>
+                        Record a payment for {studentName}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <RecordPaymentForm
+                      studentId={studentId}
+                      studentName={studentName}
+                      schoolId={schoolId}
+                      academicYear={academicYear}
+                      term={term ?? null}
+                      currentBalance={balance?.currentBalance || 0}
+                      onSuccess={handlePaymentSuccess}
+                      onCancel={() => setIsPaymentDialogOpen(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
+              )}
+              
+              {canSendReminder && balance && balance.currentBalance > 0 && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsReminderDialogOpen(true)}
+                >
+                  <Bell className="h-4 w-4 mr-2" />
+                  Send Reminder
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Reminder Dialog */}
+      {canSendReminder && (
+        <SendReminderDialog
+          open={isReminderDialogOpen}
+          onOpenChange={setIsReminderDialogOpen}
+          students={[{
+            id: studentId,
+            name: studentName,
+            balance: balance?.currentBalance || 0,
+            classId,
+          }]}
+          schoolId={schoolId}
+          academicYear={academicYear}
+          term={term}
+        />
+      )}
+
+      {/* Reminder History */}
+      <ReminderHistory studentId={studentId} maxItems={5} />
 
       {/* Ledger / Transaction History */}
       <Card>
