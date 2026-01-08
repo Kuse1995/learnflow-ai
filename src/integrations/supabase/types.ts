@@ -784,6 +784,190 @@ export type Database = {
           },
         ]
       }
+      guardian_phone_registry: {
+        Row: {
+          created_at: string
+          guardian_id: string
+          id: string
+          is_shared: boolean | null
+          phone_number: string
+          phone_type: string
+          shared_with_guardian_ids: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          guardian_id: string
+          id?: string
+          is_shared?: boolean | null
+          phone_number: string
+          phone_type?: string
+          shared_with_guardian_ids?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          guardian_id?: string
+          id?: string
+          is_shared?: boolean | null
+          phone_number?: string
+          phone_type?: string
+          shared_with_guardian_ids?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phone_registry_guardian_fk"
+            columns: ["guardian_id"]
+            isOneToOne: false
+            referencedRelation: "guardians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guardian_student_links: {
+        Row: {
+          can_make_decisions: boolean | null
+          can_pickup: boolean | null
+          can_receive_emergency: boolean | null
+          can_receive_reports: boolean | null
+          contact_priority: number | null
+          created_at: string
+          created_by: string | null
+          guardian_id: string
+          id: string
+          link_reason: string | null
+          receives_all_communications: boolean | null
+          relationship_label: string | null
+          role: Database["public"]["Enums"]["guardian_role"]
+          student_id: string
+          updated_at: string
+          verification_method: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          can_make_decisions?: boolean | null
+          can_pickup?: boolean | null
+          can_receive_emergency?: boolean | null
+          can_receive_reports?: boolean | null
+          contact_priority?: number | null
+          created_at?: string
+          created_by?: string | null
+          guardian_id: string
+          id?: string
+          link_reason?: string | null
+          receives_all_communications?: boolean | null
+          relationship_label?: string | null
+          role?: Database["public"]["Enums"]["guardian_role"]
+          student_id: string
+          updated_at?: string
+          verification_method?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          can_make_decisions?: boolean | null
+          can_pickup?: boolean | null
+          can_receive_emergency?: boolean | null
+          can_receive_reports?: boolean | null
+          contact_priority?: number | null
+          created_at?: string
+          created_by?: string | null
+          guardian_id?: string
+          id?: string
+          link_reason?: string | null
+          receives_all_communications?: boolean | null
+          relationship_label?: string | null
+          role?: Database["public"]["Enums"]["guardian_role"]
+          student_id?: string
+          updated_at?: string
+          verification_method?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guardian_links_guardian_fk"
+            columns: ["guardian_id"]
+            isOneToOne: false
+            referencedRelation: "guardians"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guardian_links_student_fk"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guardians: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          display_name: string
+          email: string | null
+          has_account: boolean | null
+          id: string
+          internal_id: string | null
+          notes: string | null
+          preferred_language: string | null
+          primary_phone: string | null
+          school_id: string
+          secondary_phone: string | null
+          updated_at: string
+          user_id: string | null
+          whatsapp_number: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          display_name: string
+          email?: string | null
+          has_account?: boolean | null
+          id?: string
+          internal_id?: string | null
+          notes?: string | null
+          preferred_language?: string | null
+          primary_phone?: string | null
+          school_id: string
+          secondary_phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+          whatsapp_number?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          display_name?: string
+          email?: string | null
+          has_account?: boolean | null
+          id?: string
+          internal_id?: string | null
+          notes?: string | null
+          preferred_language?: string | null
+          primary_phone?: string | null
+          school_id?: string
+          secondary_phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+          whatsapp_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guardians_school_fk"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       help_dismissals: {
         Row: {
           dismissed_at: string
@@ -3838,6 +4022,10 @@ export type Database = {
         | "delivered"
         | "failed"
         | "no_channel"
+      guardian_role:
+        | "primary_guardian"
+        | "secondary_guardian"
+        | "informational_contact"
       message_category:
         | "learning_update"
         | "attendance_notice"
@@ -4037,6 +4225,11 @@ export const Constants = {
         "delivered",
         "failed",
         "no_channel",
+      ],
+      guardian_role: [
+        "primary_guardian",
+        "secondary_guardian",
+        "informational_contact",
       ],
       message_category: [
         "learning_update",
