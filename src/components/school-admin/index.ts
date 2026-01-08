@@ -10,3 +10,4 @@ export { SystemHistoryViewer } from "./SystemHistoryViewer";
 export { InviteTeacherDialog } from "./InviteTeacherDialog";
 export { CreateSchoolClassDialog } from "./CreateSchoolClassDialog";
 export { AssignTeacherToClassDialog } from "./AssignTeacherToClassDialog";
+export { AddStudentDialog } from "./AddStudentDialog";

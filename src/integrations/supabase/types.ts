@@ -5808,9 +5808,11 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           deleted_by: string | null
+          grade: string | null
           id: string
           is_demo: boolean
           name: string
+          school_id: string | null
           student_id: string
           updated_at: string
         }
@@ -5820,9 +5822,11 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
+          grade?: string | null
           id?: string
           is_demo?: boolean
           name: string
+          school_id?: string | null
           student_id: string
           updated_at?: string
         }
@@ -5832,9 +5836,11 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
+          grade?: string | null
           id?: string
           is_demo?: boolean
           name?: string
+          school_id?: string | null
           student_id?: string
           updated_at?: string
         }
@@ -5844,6 +5850,13 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
         ]
