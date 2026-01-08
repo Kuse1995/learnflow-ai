@@ -9,3 +9,5 @@ export { FinancialExports } from './FinancialExports';
 export { SendReminderDialog } from './SendReminderDialog';
 export { ReminderHistory } from './ReminderHistory';
 export { ReminderTemplateManager } from './ReminderTemplateManager';
+export { AddAdjustmentDialog } from './AddAdjustmentDialog';
+export { AdjustmentHistory } from './AdjustmentHistory';

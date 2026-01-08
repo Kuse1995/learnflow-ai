@@ -887,6 +887,89 @@ export type Database = {
           },
         ]
       }
+      fee_adjustments: {
+        Row: {
+          academic_year: number
+          adjustment_type: Database["public"]["Enums"]["fee_adjustment_type"]
+          amount: number | null
+          applies_to_term: number | null
+          approved_at: string
+          approved_by: string | null
+          approved_by_name: string | null
+          class_id: string | null
+          created_at: string
+          id: string
+          ledger_entry_id: string | null
+          parent_visible_reason: string | null
+          reason: string
+          school_id: string
+          student_id: string
+        }
+        Insert: {
+          academic_year: number
+          adjustment_type: Database["public"]["Enums"]["fee_adjustment_type"]
+          amount?: number | null
+          applies_to_term?: number | null
+          approved_at?: string
+          approved_by?: string | null
+          approved_by_name?: string | null
+          class_id?: string | null
+          created_at?: string
+          id?: string
+          ledger_entry_id?: string | null
+          parent_visible_reason?: string | null
+          reason: string
+          school_id: string
+          student_id: string
+        }
+        Update: {
+          academic_year?: number
+          adjustment_type?: Database["public"]["Enums"]["fee_adjustment_type"]
+          amount?: number | null
+          applies_to_term?: number | null
+          approved_at?: string
+          approved_by?: string | null
+          approved_by_name?: string | null
+          class_id?: string | null
+          created_at?: string
+          id?: string
+          ledger_entry_id?: string | null
+          parent_visible_reason?: string | null
+          reason?: string
+          school_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_adjustments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_adjustments_ledger_entry_id_fkey"
+            columns: ["ledger_entry_id"]
+            isOneToOne: false
+            referencedRelation: "student_fee_ledger"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_adjustments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_adjustments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fee_audit_logs: {
         Row: {
           academic_year: number
@@ -6272,6 +6355,21 @@ export type Database = {
         }
         Returns: string
       }
+      record_fee_adjustment: {
+        Args: {
+          p_academic_year: number
+          p_adjustment_type: Database["public"]["Enums"]["fee_adjustment_type"]
+          p_amount: number
+          p_applies_to_term: number
+          p_approved_by_name: string
+          p_class_id: string
+          p_parent_visible_reason?: string
+          p_reason: string
+          p_school_id: string
+          p_student_id: string
+        }
+        Returns: string
+      }
       record_installment_payment: {
         Args: {
           p_amount: number
@@ -6396,6 +6494,7 @@ export type Database = {
         | "delivered"
         | "failed"
         | "no_channel"
+      fee_adjustment_type: "waiver" | "discount" | "arrangement_note"
       fee_frequency: "term" | "annual" | "once_off"
       guardian_role:
         | "primary_guardian"
@@ -6638,6 +6737,7 @@ export const Constants = {
         "failed",
         "no_channel",
       ],
+      fee_adjustment_type: ["waiver", "discount", "arrangement_note"],
       fee_frequency: ["term", "annual", "once_off"],
       guardian_role: [
         "primary_guardian",
