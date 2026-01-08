@@ -4998,6 +4998,50 @@ export type Database = {
           },
         ]
       }
+      school_subjects: {
+        Row: {
+          category: string | null
+          code: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          school_id: string
+          sort_order: number | null
+        }
+        Insert: {
+          category?: string | null
+          code?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          school_id: string
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string | null
+          code?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          school_id?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_subjects_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_subscriptions: {
         Row: {
           activated_at: string | null
@@ -5183,6 +5227,7 @@ export type Database = {
           billing_notes: string | null
           billing_start_date: string
           billing_status: Database["public"]["Enums"]["billing_status"]
+          country: string | null
           created_at: string
           id: string
           is_archived: boolean
@@ -5194,6 +5239,8 @@ export type Database = {
           pilot_notes: string | null
           pilot_started_at: string | null
           plan: Database["public"]["Enums"]["saas_plan"]
+          school_code: string | null
+          timezone: string | null
           updated_at: string
         }
         Insert: {
@@ -5203,6 +5250,7 @@ export type Database = {
           billing_notes?: string | null
           billing_start_date?: string
           billing_status?: Database["public"]["Enums"]["billing_status"]
+          country?: string | null
           created_at?: string
           id?: string
           is_archived?: boolean
@@ -5214,6 +5262,8 @@ export type Database = {
           pilot_notes?: string | null
           pilot_started_at?: string | null
           plan?: Database["public"]["Enums"]["saas_plan"]
+          school_code?: string | null
+          timezone?: string | null
           updated_at?: string
         }
         Update: {
@@ -5223,6 +5273,7 @@ export type Database = {
           billing_notes?: string | null
           billing_start_date?: string
           billing_status?: Database["public"]["Enums"]["billing_status"]
+          country?: string | null
           created_at?: string
           id?: string
           is_archived?: boolean
@@ -5234,6 +5285,8 @@ export type Database = {
           pilot_notes?: string | null
           pilot_started_at?: string | null
           plan?: Database["public"]["Enums"]["saas_plan"]
+          school_code?: string | null
+          timezone?: string | null
           updated_at?: string
         }
         Relationships: []

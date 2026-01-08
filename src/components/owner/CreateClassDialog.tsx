@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { useCreateClass, useAllSchoolsWithPlans } from '@/hooks/useOwnerControls';
+import { SubjectCombobox } from './SubjectCombobox';
 
 export function CreateClassDialog() {
   const [open, setOpen] = useState(false);
@@ -89,11 +90,15 @@ export function CreateClassDialog() {
 
           <div className="space-y-2">
             <Label htmlFor="school">School *</Label>
-            <Select value={schoolId} onValueChange={setSchoolId}>
+            <Select value={schoolId || 'none'} onValueChange={(v) => {
+              setSchoolId(v === 'none' ? '' : v);
+              setSubject(''); // Reset subject when school changes
+            }}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a school" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">Select a school</SelectItem>
                 {schools?.map((school) => (
                   <SelectItem key={school.id} value={school.id}>
                     {school.name}
@@ -125,12 +130,11 @@ export function CreateClassDialog() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
-            <Input
-              id="subject"
+            <Label>Subject</Label>
+            <SubjectCombobox
+              schoolId={schoolId}
               value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="e.g., Mathematics"
+              onValueChange={setSubject}
             />
           </div>
 

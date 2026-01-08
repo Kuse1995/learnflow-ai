@@ -12,3 +12,4 @@ export { UserManagementPanel } from './UserManagementPanel';
 export { AssignRoleDialog } from './AssignRoleDialog';
 export { ClassManagementPanel } from './ClassManagementPanel';
 export { CreateClassDialog } from './CreateClassDialog';
+export { SubjectCombobox } from './SubjectCombobox';

@@ -19,18 +19,65 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus } from 'lucide-react';
-import { useCreateSchool, useAvailablePlans } from '@/hooks/useOwnerControls';
+import { Plus, X } from 'lucide-react';
+import { useCreateSchool, useAvailablePlans, useAllUsersWithRoles } from '@/hooks/useOwnerControls';
+import { Badge } from '@/components/ui/badge';
+
+const COUNTRIES = [
+  { code: 'ZM', name: 'Zambia', timezone: 'Africa/Lusaka' },
+  { code: 'ZW', name: 'Zimbabwe', timezone: 'Africa/Harare' },
+  { code: 'MW', name: 'Malawi', timezone: 'Africa/Blantyre' },
+  { code: 'BW', name: 'Botswana', timezone: 'Africa/Gaborone' },
+  { code: 'TZ', name: 'Tanzania', timezone: 'Africa/Dar_es_Salaam' },
+  { code: 'KE', name: 'Kenya', timezone: 'Africa/Nairobi' },
+  { code: 'UG', name: 'Uganda', timezone: 'Africa/Kampala' },
+  { code: 'ZA', name: 'South Africa', timezone: 'Africa/Johannesburg' },
+  { code: 'NG', name: 'Nigeria', timezone: 'Africa/Lagos' },
+  { code: 'GH', name: 'Ghana', timezone: 'Africa/Accra' },
+];
+
+const BILLING_STATUSES = [
+  { value: 'active', label: 'Active' },
+  { value: 'trial', label: 'Trial' },
+  { value: 'suspended', label: 'Suspended' },
+  { value: 'pending', label: 'Pending' },
+];
 
 export function CreateSchoolDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
-  const [planId, setPlanId] = useState<string>('');
+  const [country, setCountry] = useState('Zambia');
+  const [planId, setPlanId] = useState('');
   const [isDemo, setIsDemo] = useState(false);
-  const [billingStatus, setBillingStatus] = useState<'trial' | 'active'>('trial');
+  const [billingStatus, setBillingStatus] = useState('active');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [selectedAdmins, setSelectedAdmins] = useState<{ id: string; email: string }[]>([]);
 
   const createSchool = useCreateSchool();
   const { data: plans } = useAvailablePlans();
+  const { data: users } = useAllUsersWithRoles();
+
+  // Get unique users for admin selection
+  const availableUsers = users?.reduce((acc, role) => {
+    if (!acc.find(u => u.id === role.user_id)) {
+      acc.push({ id: role.user_id, email: role.user_email || 'Unknown email' });
+    }
+    return acc;
+  }, [] as { id: string; email: string }[]) || [];
+
+  const handleAddAdmin = () => {
+    const user = availableUsers.find(u => u.email.toLowerCase() === adminEmail.toLowerCase());
+    if (user && !selectedAdmins.find(a => a.id === user.id)) {
+      setSelectedAdmins([...selectedAdmins, user]);
+      setAdminEmail('');
+    }
+  };
+
+  const handleRemoveAdmin = (userId: string) => {
+    setSelectedAdmins(selectedAdmins.filter(a => a.id !== userId));
+  };
+
+  const selectedCountry = COUNTRIES.find(c => c.name === country);
 
   const handleSubmit = () => {
     if (!name.trim()) return;
@@ -41,14 +88,20 @@ export function CreateSchoolDialog() {
         planId: planId || undefined,
         isDemo,
         billingStatus,
+        country,
+        timezone: selectedCountry?.timezone || 'Africa/Lusaka',
+        adminUserIds: selectedAdmins.map(a => a.id),
       },
       {
         onSuccess: () => {
           setOpen(false);
           setName('');
+          setCountry('Zambia');
           setPlanId('');
           setIsDemo(false);
-          setBillingStatus('trial');
+          setBillingStatus('active');
+          setAdminEmail('');
+          setSelectedAdmins([]);
         },
       }
     );
@@ -62,11 +115,11 @@ export function CreateSchoolDialog() {
           Add School
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New School</DialogTitle>
           <DialogDescription>
-            Add a new school to the platform. You can assign a plan later.
+            Add a new school to the platform. You can assign admins who will manage the school.
           </DialogDescription>
         </DialogHeader>
 
@@ -82,8 +135,24 @@ export function CreateSchoolDialog() {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="country">Country *</Label>
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a country" />
+              </SelectTrigger>
+              <SelectContent>
+                {COUNTRIES.map((c) => (
+                  <SelectItem key={c.code} value={c.name}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="plan">Subscription Plan</Label>
-            <Select value={planId} onValueChange={(v) => setPlanId(v === 'none' ? '' : v)}>
+            <Select value={planId || 'none'} onValueChange={(v) => setPlanId(v === 'none' ? '' : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a plan (optional)" />
               </SelectTrigger>
@@ -100,15 +169,58 @@ export function CreateSchoolDialog() {
 
           <div className="space-y-2">
             <Label htmlFor="billing-status">Billing Status</Label>
-            <Select value={billingStatus} onValueChange={(v) => setBillingStatus(v as 'trial' | 'active')}>
+            <Select value={billingStatus} onValueChange={setBillingStatus}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select billing status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="trial">Trial</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
+                {BILLING_STATUSES.map((status) => (
+                  <SelectItem key={status.value} value={status.value}>
+                    {status.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Assign School Admins</Label>
+            <div className="flex gap-2">
+              <Input
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                placeholder="Enter user email"
+                className="flex-1"
+                list="user-emails"
+              />
+              <Button type="button" variant="outline" size="sm" onClick={handleAddAdmin}>
+                Add
+              </Button>
+            </div>
+            <datalist id="user-emails">
+              {availableUsers.map((user) => (
+                <option key={user.id} value={user.email} />
+              ))}
+            </datalist>
+            {selectedAdmins.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedAdmins.map((admin) => (
+                  <Badge key={admin.id} variant="secondary" className="flex items-center gap-1">
+                    {admin.email}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAdmin(admin.id)}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              These users will be assigned as school admins and can manage classes, teachers, and students.
+            </p>
           </div>
 
           <div className="flex items-center justify-between">
@@ -121,7 +233,10 @@ export function CreateSchoolDialog() {
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={!name.trim() || createSchool.isPending}>
+          <Button
+            onClick={handleSubmit}
+            disabled={!name.trim() || createSchool.isPending}
+          >
             {createSchool.isPending ? 'Creating...' : 'Create School'}
           </Button>
         </DialogFooter>
