@@ -31,7 +31,7 @@ export type ActionCategory =
   | 'system';
 
 export type PermissionAction =
-  // Fee Management (Teachers CANNOT access)
+  // Fee Management
   | 'view_fees'
   | 'record_payment'
   | 'add_adjustment'
@@ -39,11 +39,12 @@ export type PermissionAction =
   | 'close_term'
   | 'view_financial_reports'
   | 'export_financial_data'
+  | 'view_billing_status'
   // Attendance
   | 'view_attendance'
   | 'mark_attendance'
   | 'edit_attendance'
-  // Academics (Teachers CAN access for their classes)
+  // Academics (Admins have LIMITED access - no individual student data)
   | 'view_student_profiles'
   | 'edit_student_profiles'
   | 'view_grades'
@@ -52,7 +53,8 @@ export type PermissionAction =
   | 'view_uploads'
   | 'view_learning_profiles'
   | 'view_teaching_actions'
-  // AI Tools (Teachers CAN access for their classes)
+  | 'view_individual_student_data'
+  // AI Tools (Admins CANNOT view AI content)
   | 'generate_lesson_plans'
   | 'generate_adaptive_support'
   | 'generate_learning_paths'
@@ -68,30 +70,36 @@ export type PermissionAction =
   | 'view_home_support_tips'
   | 'view_ai_suggestions'
   | 'view_ai_analyses'
+  | 'view_ai_generated_content'
+  | 'edit_teacher_content'
+  | 'edit_parent_content'
   // Communication
   | 'send_parent_messages'
   | 'view_messages'
   | 'approve_messages'
-  // Reports (Teachers CAN access for their classes)
+  // Reports (Admins CAN view aggregated metrics only)
   | 'view_class_reports'
   | 'view_student_reports'
   | 'generate_term_reports'
   | 'export_reports'
-  // Admin (Teachers CANNOT access)
+  | 'view_usage_metrics'
+  // Admin
   | 'manage_classes'
   | 'manage_students'
   | 'manage_teachers'
   | 'manage_fee_structures'
   | 'activate_plans'
+  | 'deactivate_plans'
+  | 'assign_teacher_accounts'
   | 'view_audit_logs'
   | 'modify_billing'
   | 'modify_subscription'
   | 'modify_system_config'
-  // Role Management (Teachers CANNOT access)
+  // Role Management
   | 'assign_roles'
   | 'revoke_roles'
   | 'view_roles'
-  // System (Teachers CANNOT access)
+  // System
   | 'access_platform_admin'
   | 'access_school_admin'
   | 'view_system_status'
@@ -117,9 +125,15 @@ export type PermissionAction =
  *         view home support tips attached to approved insights, view attendance, view fees
  * ❌ CANNOT: View learning profiles, view adaptive support plans, view AI analyses,
  *            view teaching actions, edit/approve content, see drafts or unapproved summaries
+ * 
+ * Admin Permissions Summary:
+ * ✅ CAN: Activate/deactivate school plans, assign teacher accounts, view usage metrics,
+ *         view billing status flags, manage classes/students/teachers
+ * ❌ CANNOT: View individual student learning data, view AI-generated instructional content,
+ *            edit teacher or parent content
  */
 const PERMISSION_MATRIX: Record<PermissionAction, AppRole[]> = {
-  // Fee Management - Parents CAN view fees (read-only)
+  // Fee Management - Admins CAN view billing status
   view_fees: ['platform_admin', 'school_admin', 'admin', 'bursar', 'parent'],
   record_payment: ['school_admin', 'admin', 'bursar'],
   add_adjustment: ['school_admin', 'admin', 'bursar'],
@@ -127,67 +141,75 @@ const PERMISSION_MATRIX: Record<PermissionAction, AppRole[]> = {
   close_term: ['school_admin', 'admin', 'bursar'],
   view_financial_reports: ['platform_admin', 'school_admin', 'admin', 'bursar'],
   export_financial_data: ['school_admin', 'admin', 'bursar'],
+  view_billing_status: ['platform_admin', 'school_admin', 'admin', 'bursar'],
 
-  // Attendance - Parents CAN view attendance (read-only)
+  // Attendance - Admins have oversight access
   view_attendance: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
   mark_attendance: ['teacher', 'school_admin', 'admin'],
   edit_attendance: ['teacher', 'school_admin', 'admin'],
 
-  // Academics - Parents have LIMITED view access (no learning profiles)
-  view_student_profiles: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
-  edit_student_profiles: ['school_admin', 'admin', 'teacher'],
-  view_grades: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent', 'student'],
-  record_grades: ['teacher', 'school_admin', 'admin'],
+  // Academics - Admins CANNOT view individual student learning data
+  view_student_profiles: ['platform_admin', 'school_admin', 'teacher', 'parent'], // Admins removed
+  edit_student_profiles: ['school_admin', 'teacher'], // Admins removed
+  view_grades: ['platform_admin', 'school_admin', 'teacher', 'parent', 'student'], // Admins removed
+  record_grades: ['teacher', 'school_admin'],
   upload_work: ['teacher'],
-  view_uploads: ['platform_admin', 'school_admin', 'admin', 'teacher'],
-  view_learning_profiles: ['platform_admin', 'school_admin', 'admin', 'teacher'], // Parents CANNOT
-  view_teaching_actions: ['platform_admin', 'school_admin', 'admin', 'teacher'], // Parents CANNOT
+  view_uploads: ['platform_admin', 'school_admin', 'teacher'], // Admins removed
+  view_learning_profiles: ['platform_admin', 'school_admin', 'teacher'], // Admins CANNOT
+  view_teaching_actions: ['platform_admin', 'school_admin', 'teacher'], // Admins CANNOT
+  view_individual_student_data: ['platform_admin', 'school_admin', 'teacher'], // Admins CANNOT
 
-  // AI Tools - Parents CANNOT access AI tools, only approved outputs
+  // AI Tools - Admins CANNOT view AI-generated content
   generate_lesson_plans: ['teacher'],
   generate_adaptive_support: ['teacher'],
   generate_learning_paths: ['teacher'],
   create_adaptive_support_plan: ['teacher'],
   edit_adaptive_support_plan: ['teacher'],
   acknowledge_adaptive_support_plan: ['teacher'],
-  view_adaptive_support_plans: ['platform_admin', 'school_admin', 'admin', 'teacher'], // Parents CANNOT
+  view_adaptive_support_plans: ['platform_admin', 'school_admin', 'teacher'], // Admins CANNOT
   create_parent_insight: ['teacher'],
   edit_parent_insight: ['teacher'],
   approve_parent_insights: ['teacher'],
-  view_approved_parent_insights: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'], // Parents CAN
-  view_draft_parent_insights: ['platform_admin', 'school_admin', 'admin', 'teacher'], // Parents CANNOT
-  view_home_support_tips: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'], // Parents CAN (attached to approved)
+  view_approved_parent_insights: ['platform_admin', 'school_admin', 'teacher', 'parent'], // Admins CANNOT
+  view_draft_parent_insights: ['platform_admin', 'school_admin', 'teacher'], // Admins CANNOT
+  view_home_support_tips: ['platform_admin', 'school_admin', 'teacher', 'parent'], // Admins CANNOT
   view_ai_suggestions: ['teacher'],
-  view_ai_analyses: ['platform_admin', 'school_admin', 'admin', 'teacher'], // Parents CANNOT
+  view_ai_analyses: ['platform_admin', 'school_admin', 'teacher'], // Admins CANNOT
+  view_ai_generated_content: ['platform_admin', 'school_admin', 'teacher'], // Admins CANNOT
+  edit_teacher_content: ['teacher'], // Admins CANNOT
+  edit_parent_content: [], // Nobody can edit parent content directly
 
-  // Communication - Parents CAN view messages (read-only)
+  // Communication
   send_parent_messages: ['school_admin', 'admin', 'teacher'],
   view_messages: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
   approve_messages: ['school_admin', 'admin'],
 
-  // Reports - Parents CAN view student reports (read-only)
-  view_class_reports: ['platform_admin', 'school_admin', 'admin', 'teacher'],
-  view_student_reports: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
-  generate_term_reports: ['school_admin', 'admin', 'teacher'],
-  export_reports: ['school_admin', 'admin', 'teacher'],
+  // Reports - Admins CAN view aggregated usage metrics (counts only)
+  view_class_reports: ['platform_admin', 'school_admin', 'teacher'], // Admins removed (has student data)
+  view_student_reports: ['platform_admin', 'school_admin', 'teacher', 'parent'], // Admins removed
+  generate_term_reports: ['school_admin', 'teacher'],
+  export_reports: ['school_admin', 'teacher'],
+  view_usage_metrics: ['platform_admin', 'school_admin', 'admin'], // Admins CAN (counts only)
 
-  // Admin - Parents CANNOT access
+  // Admin - Admins CAN manage plans and teacher accounts
   manage_classes: ['school_admin', 'admin'],
   manage_students: ['school_admin', 'admin'],
   manage_teachers: ['school_admin', 'admin'],
   manage_fee_structures: ['school_admin', 'admin', 'bursar'],
   activate_plans: ['platform_admin', 'school_admin', 'admin'],
+  deactivate_plans: ['platform_admin', 'school_admin', 'admin'],
+  assign_teacher_accounts: ['platform_admin', 'school_admin', 'admin'],
   view_audit_logs: ['platform_admin', 'school_admin', 'admin'],
   modify_billing: ['platform_admin', 'school_admin'],
   modify_subscription: ['platform_admin', 'school_admin'],
   modify_system_config: ['platform_admin'],
 
-  // Role Management - Parents CANNOT access
+  // Role Management
   assign_roles: ['platform_admin', 'school_admin', 'admin'],
   revoke_roles: ['platform_admin', 'school_admin', 'admin'],
   view_roles: ['platform_admin', 'school_admin', 'admin'],
 
-  // System - Parents CANNOT access
+  // System
   access_platform_admin: ['platform_admin'],
   access_school_admin: ['school_admin', 'admin'],
   view_system_status: ['platform_admin', 'school_admin', 'admin'],
@@ -425,4 +447,56 @@ export function isParentForbidden(action: string): boolean {
  */
 export function getParentPermissions(): PermissionAction[] {
   return getRolePermissions('parent');
+}
+
+// =============================================================================
+// ADMIN SCOPE CONSTRAINTS
+// =============================================================================
+
+/**
+ * Admin permissions focus on governance and oversight, NOT student-level data.
+ * Admins manage plans, accounts, and view aggregate metrics only.
+ */
+export const ADMIN_SCOPE_RULES = {
+  // What admins CAN do
+  allowed: [
+    'activate_plans',
+    'deactivate_plans',
+    'assign_teacher_accounts',
+    'view_usage_metrics',
+    'view_billing_status',
+    'manage_classes',
+    'manage_students',
+    'manage_teachers',
+    'view_audit_logs',
+    'assign_roles',
+  ] as const,
+  
+  // What admins CANNOT do
+  forbidden: [
+    'view_individual_student_data',
+    'view_learning_profiles',
+    'view_ai_generated_content',
+    'view_ai_analyses',
+    'view_adaptive_support_plans',
+    'view_teaching_actions',
+    'edit_teacher_content',
+    'edit_parent_content',
+    'view_student_reports',
+    'view_class_reports',
+  ] as const,
+} as const;
+
+/**
+ * Check if an action is explicitly forbidden for admins
+ */
+export function isAdminForbidden(action: string): boolean {
+  return (ADMIN_SCOPE_RULES.forbidden as readonly string[]).includes(action);
+}
+
+/**
+ * Get all permissions available to admins
+ */
+export function getAdminPermissions(): PermissionAction[] {
+  return getRolePermissions('admin');
 }
