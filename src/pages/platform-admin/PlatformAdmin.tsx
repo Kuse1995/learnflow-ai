@@ -157,40 +157,52 @@ export default function PlatformAdmin() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Summary Row */}
+            {/* Summary Row - Clickable Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+              <div 
+                className="flex items-center justify-between p-4 border rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+                onClick={() => navigate('/platform-admin/pending/parent-insights')}
+              >
                 <div className="flex items-center gap-3">
                   <FileText className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="font-medium">Pending Parent Insights</p>
-                    <p className="text-sm text-muted-foreground">Awaiting teacher approval</p>
+                    <p className="text-sm text-muted-foreground">Click to review and approve</p>
                   </div>
                 </div>
-                {loadingCounts ? (
-                  <Skeleton className="h-8 w-12" />
-                ) : (
-                  <Badge variant="secondary" className="text-lg px-3 py-1">
-                    {pendingCounts?.pendingInsights ?? 0}
-                  </Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  {loadingCounts ? (
+                    <Skeleton className="h-8 w-12" />
+                  ) : (
+                    <Badge variant="secondary" className="text-lg px-3 py-1">
+                      {pendingCounts?.pendingInsights ?? 0}
+                    </Badge>
+                  )}
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+              <div 
+                className="flex items-center justify-between p-4 border rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
+                onClick={() => navigate('/platform-admin/pending/adaptive-support')}
+              >
                 <div className="flex items-center gap-3">
                   <Brain className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="font-medium">Pending Adaptive Support Plans</p>
-                    <p className="text-sm text-muted-foreground">Awaiting teacher acknowledgment</p>
+                    <p className="text-sm text-muted-foreground">Click to review and acknowledge</p>
                   </div>
                 </div>
-                {loadingCounts ? (
-                  <Skeleton className="h-8 w-12" />
-                ) : (
-                  <Badge variant="secondary" className="text-lg px-3 py-1">
-                    {pendingCounts?.pendingPlans ?? 0}
-                  </Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  {loadingCounts ? (
+                    <Skeleton className="h-8 w-12" />
+                  ) : (
+                    <Badge variant="secondary" className="text-lg px-3 py-1">
+                      {pendingCounts?.pendingPlans ?? 0}
+                    </Badge>
+                  )}
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </div>
               </div>
             </div>
 
