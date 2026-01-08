@@ -6,6 +6,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useDemoMode, DEMO_USERS } from "@/contexts/DemoModeContext";
 
 // Types
 export interface SchoolAdminOnboarding {
@@ -61,9 +62,16 @@ export interface SchoolAdminMetrics {
 
 // Check if current user is a school admin
 export function useIsSchoolAdmin(schoolId?: string) {
+  const { isDemoMode, demoRole } = useDemoMode();
+  
   return useQuery({
-    queryKey: ["is-school-admin", schoolId],
+    queryKey: ["is-school-admin", schoolId, isDemoMode, demoRole],
     queryFn: async (): Promise<boolean> => {
+      // In demo mode, check if the demo role is school_admin
+      if (isDemoMode && demoRole) {
+        return demoRole === 'school_admin';
+      }
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
@@ -71,7 +79,7 @@ export function useIsSchoolAdmin(schoolId?: string) {
         .from("user_roles")
         .select("id")
         .eq("user_id", user.id)
-        .eq("role", "school_admin");
+        .in("role", ["school_admin", "admin"]);
 
       if (schoolId) {
         query.eq("school_id", schoolId);
@@ -92,9 +100,21 @@ export function useIsSchoolAdmin(schoolId?: string) {
 
 // Get school admin's school ID
 export function useSchoolAdminSchool() {
+  const { isDemoMode, demoRole, demoSchoolId } = useDemoMode();
+  
   return useQuery({
-    queryKey: ["school-admin-school"],
+    queryKey: ["school-admin-school", isDemoMode, demoSchoolId],
     queryFn: async () => {
+      // In demo mode, return the demo school
+      if (isDemoMode && demoRole === 'school_admin' && demoSchoolId) {
+        const { data: school } = await supabase
+          .from("schools")
+          .select("*")
+          .eq("id", demoSchoolId)
+          .single();
+        return school;
+      }
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
@@ -102,7 +122,7 @@ export function useSchoolAdminSchool() {
         .from("user_roles")
         .select("school_id")
         .eq("user_id", user.id)
-        .eq("role", "school_admin")
+        .in("role", ["school_admin", "admin"])
         .maybeSingle();
 
       if (error || !data?.school_id) return null;

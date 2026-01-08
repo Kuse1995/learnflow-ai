@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { AppRole } from '@/lib/rbac-permissions';
 
-// Demo school and user IDs from the database
-export const DEMO_SCHOOL_ID = '00000000-0000-0000-0000-000000000001';
+// Demo school and user IDs from the database (actual North Park School Demo)
+export const DEMO_SCHOOL_ID = '5e508bfd-bd20-4461-8687-450a450111b8';
 export const DEMO_CLASS_ID = '11111111-1111-1111-1111-111111111111';
 
 // Demo user configurations
