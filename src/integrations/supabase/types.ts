@@ -2911,6 +2911,86 @@ export type Database = {
           },
         ]
       }
+      payment_installment_allocations: {
+        Row: {
+          allocated_amount: number
+          allocated_at: string
+          allocated_by: string
+          allocated_by_role: string
+          allocation_order: number
+          created_at: string
+          id: string
+          installment_id: string
+          is_active: boolean
+          notes: string | null
+          payment_id: string
+          plan_id: string
+          supersedes_allocation_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          allocated_amount: number
+          allocated_at?: string
+          allocated_by: string
+          allocated_by_role: string
+          allocation_order?: number
+          created_at?: string
+          id?: string
+          installment_id: string
+          is_active?: boolean
+          notes?: string | null
+          payment_id: string
+          plan_id: string
+          supersedes_allocation_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allocated_amount?: number
+          allocated_at?: string
+          allocated_by?: string
+          allocated_by_role?: string
+          allocation_order?: number
+          created_at?: string
+          id?: string
+          installment_id?: string
+          is_active?: boolean
+          notes?: string | null
+          payment_id?: string
+          plan_id?: string
+          supersedes_allocation_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_installment_allocations_installment_id_fkey"
+            columns: ["installment_id"]
+            isOneToOne: false
+            referencedRelation: "payment_plan_installments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_installment_allocations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "fee_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_installment_allocations_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "payment_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_installment_allocations_supersedes_allocation_id_fkey"
+            columns: ["supersedes_allocation_id"]
+            isOneToOne: false
+            referencedRelation: "payment_installment_allocations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_plan_installments: {
         Row: {
           amount: number
@@ -5699,6 +5779,10 @@ export type Database = {
           student_id: string
         }[]
       }
+      get_installment_allocated_total: {
+        Args: { p_installment_id: string }
+        Returns: number
+      }
       get_next_fee_audit_sequence: {
         Args: { p_student_id: string }
         Returns: number
@@ -5728,6 +5812,10 @@ export type Database = {
       get_parent_permission_tier: {
         Args: { _guardian_id: string; _student_id: string }
         Returns: Database["public"]["Enums"]["parent_permission_tier"]
+      }
+      get_payment_unallocated_amount: {
+        Args: { p_payment_id: string }
+        Returns: number
       }
       get_student_running_balance: {
         Args: { p_student_id: string }
