@@ -55,6 +55,7 @@ export interface NavItem {
 export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: "LayoutGrid" },
   { label: "Students", href: "/admin/students", icon: "Users" },
+  { label: "Parents", href: "/admin/parents", icon: "Users2" },
   { label: "Teachers", href: "/admin/teachers", icon: "GraduationCap" },
   { label: "Classes", href: "/admin/classes", icon: "School" },
   { label: "Fees", href: "/admin/fees", icon: "CreditCard" },

@@ -9,6 +9,7 @@ export { default as AdminReportsDashboard } from "./AdminReportsDashboard";
 export { default as AdminTeachers } from "./AdminTeachers";
 export { default as AdminClasses } from "./AdminClasses";
 export { default as AdminStudents } from "./AdminStudents";
+export { default as AdminParents } from "./AdminParents";
 export { default as AdminSettings } from "./AdminSettings";
 export { default as AdminAlerts } from "./AdminAlerts";
 export { default as AdminFeesSetup } from "./AdminFeesSetup";

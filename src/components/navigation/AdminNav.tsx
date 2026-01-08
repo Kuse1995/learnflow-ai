@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutGrid,
   Users,
+  Users2,
   GraduationCap,
   School,
   CreditCard,
@@ -34,6 +35,7 @@ import {
 const iconMap: Record<string, LucideIcon> = {
   LayoutGrid,
   Users,
+  Users2,
   GraduationCap,
   School,
   CreditCard,
