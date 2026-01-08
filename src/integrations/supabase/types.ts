@@ -887,6 +887,234 @@ export type Database = {
           },
         ]
       }
+      fee_categories: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          is_mandatory: boolean
+          name: string
+          school_id: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          name: string
+          school_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          name?: string
+          school_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_categories_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_payments: {
+        Row: {
+          amount: number
+          assignment_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          currency: string
+          id: string
+          notes: string | null
+          offline_id: string | null
+          payer_name: string | null
+          payer_phone: string | null
+          payment_date: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_number: string | null
+          recorded_by: string | null
+          recorded_offline: boolean
+          reference_number: string | null
+          school_id: string
+          status: Database["public"]["Enums"]["payment_status"]
+          student_id: string
+          synced_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          assignment_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          offline_id?: string | null
+          payer_name?: string | null
+          payer_phone?: string | null
+          payment_date: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_number?: string | null
+          recorded_by?: string | null
+          recorded_offline?: boolean
+          reference_number?: string | null
+          school_id: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          student_id: string
+          synced_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          assignment_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          offline_id?: string | null
+          payer_name?: string | null
+          payer_phone?: string | null
+          payment_date?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          receipt_number?: string | null
+          recorded_by?: string | null
+          recorded_offline?: boolean
+          reference_number?: string | null
+          school_id?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          student_id?: string
+          synced_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_payments_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "student_fee_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_payments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_structures: {
+        Row: {
+          academic_year: number
+          amount: number
+          category_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          due_date: string | null
+          frequency: Database["public"]["Enums"]["fee_frequency"]
+          grade: string | null
+          id: string
+          is_active: boolean
+          late_fee_after_days: number | null
+          late_fee_amount: number | null
+          notes: string | null
+          school_id: string
+          term: number | null
+          updated_at: string
+        }
+        Insert: {
+          academic_year: number
+          amount: number
+          category_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          frequency?: Database["public"]["Enums"]["fee_frequency"]
+          grade?: string | null
+          id?: string
+          is_active?: boolean
+          late_fee_after_days?: number | null
+          late_fee_amount?: number | null
+          notes?: string | null
+          school_id: string
+          term?: number | null
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: number
+          amount?: number
+          category_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          frequency?: Database["public"]["Enums"]["fee_frequency"]
+          grade?: string | null
+          id?: string
+          is_active?: boolean
+          late_fee_after_days?: number | null
+          late_fee_amount?: number | null
+          notes?: string | null
+          school_id?: string
+          term?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_structures_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "fee_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_structures_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guardian_link_audit_log: {
         Row: {
           action: string
@@ -3499,6 +3727,113 @@ export type Database = {
           },
         ]
       }
+      student_fee_assignments: {
+        Row: {
+          assigned_amount: number
+          created_at: string
+          discount_amount: number | null
+          discount_reason: string | null
+          fee_structure_id: string
+          id: string
+          notes: string | null
+          student_id: string
+          updated_at: string
+          waived: boolean
+          waiver_approved_by: string | null
+          waiver_reason: string | null
+        }
+        Insert: {
+          assigned_amount: number
+          created_at?: string
+          discount_amount?: number | null
+          discount_reason?: string | null
+          fee_structure_id: string
+          id?: string
+          notes?: string | null
+          student_id: string
+          updated_at?: string
+          waived?: boolean
+          waiver_approved_by?: string | null
+          waiver_reason?: string | null
+        }
+        Update: {
+          assigned_amount?: number
+          created_at?: string
+          discount_amount?: number | null
+          discount_reason?: string | null
+          fee_structure_id?: string
+          id?: string
+          notes?: string | null
+          student_id?: string
+          updated_at?: string
+          waived?: boolean
+          waiver_approved_by?: string | null
+          waiver_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_fee_assignments_fee_structure_id_fkey"
+            columns: ["fee_structure_id"]
+            isOneToOne: false
+            referencedRelation: "fee_structures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_fee_assignments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_fee_balances: {
+        Row: {
+          academic_year: number
+          balance: number
+          id: string
+          last_calculated_at: string
+          last_payment_date: string | null
+          student_id: string
+          term: number | null
+          total_fees: number
+          total_paid: number
+          total_waived: number
+        }
+        Insert: {
+          academic_year: number
+          balance?: number
+          id?: string
+          last_calculated_at?: string
+          last_payment_date?: string | null
+          student_id: string
+          term?: number | null
+          total_fees?: number
+          total_paid?: number
+          total_waived?: number
+        }
+        Update: {
+          academic_year?: number
+          balance?: number
+          id?: string
+          last_calculated_at?: string
+          last_payment_date?: string | null
+          student_id?: string
+          term?: number | null
+          total_fees?: number
+          total_paid?: number
+          total_waived?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_fee_balances_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_intervention_plans: {
         Row: {
           class_id: string
@@ -4919,6 +5254,7 @@ export type Database = {
         | "delivered"
         | "failed"
         | "no_channel"
+      fee_frequency: "term" | "annual" | "once_off"
       guardian_role:
         | "primary_guardian"
         | "secondary_guardian"
@@ -4943,6 +5279,13 @@ export type Database = {
         | "school_announcement"
         | "emergency_notice"
       parent_permission_tier: "view_only" | "view_notifications" | "full_access"
+      payment_method:
+        | "cash"
+        | "bank_deposit"
+        | "mobile_money"
+        | "cheque"
+        | "other"
+      payment_status: "pending" | "confirmed" | "cancelled" | "refunded"
       platform_audit_action:
         | "plan_activated"
         | "plan_changed"
@@ -5137,6 +5480,7 @@ export const Constants = {
         "failed",
         "no_channel",
       ],
+      fee_frequency: ["term", "annual", "once_off"],
       guardian_role: [
         "primary_guardian",
         "secondary_guardian",
@@ -5169,6 +5513,14 @@ export const Constants = {
         "view_notifications",
         "full_access",
       ],
+      payment_method: [
+        "cash",
+        "bank_deposit",
+        "mobile_money",
+        "cheque",
+        "other",
+      ],
+      payment_status: ["pending", "confirmed", "cancelled", "refunded"],
       platform_audit_action: [
         "plan_activated",
         "plan_changed",
