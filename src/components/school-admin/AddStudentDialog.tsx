@@ -83,34 +83,80 @@ export function AddStudentDialog({
 
       if (studentError) throw studentError;
 
-      // 2. Create guardian if info provided
+      // 2. Create or find guardian if info provided
       if (guardianName.trim()) {
-        const { data: guardian, error: guardianError } = await supabase
-          .from("guardians")
-          .insert({
-            display_name: guardianName.trim(),
-            primary_phone: guardianPhone.trim() || null,
-            email: guardianEmail.trim() || null,
-            school_id: schoolId,
-          })
-          .select()
-          .single();
+        let guardianId: string;
+        
+        // Check for existing guardian by email or phone
+        const emailToCheck = guardianEmail.trim() || null;
+        const phoneToCheck = guardianPhone.trim() || null;
+        
+        let existingGuardian = null;
+        
+        if (emailToCheck) {
+          const { data } = await supabase
+            .from("guardians")
+            .select("id")
+            .eq("school_id", schoolId)
+            .eq("email", emailToCheck)
+            .is("deleted_at", null)
+            .maybeSingle();
+          existingGuardian = data;
+        }
+        
+        if (!existingGuardian && phoneToCheck) {
+          const { data } = await supabase
+            .from("guardians")
+            .select("id")
+            .eq("school_id", schoolId)
+            .eq("primary_phone", phoneToCheck)
+            .is("deleted_at", null)
+            .maybeSingle();
+          existingGuardian = data;
+        }
+        
+        if (existingGuardian) {
+          // Use existing guardian
+          guardianId = existingGuardian.id;
+        } else {
+          // Create new guardian
+          const { data: guardian, error: guardianError } = await supabase
+            .from("guardians")
+            .insert({
+              display_name: guardianName.trim(),
+              primary_phone: phoneToCheck,
+              email: emailToCheck,
+              school_id: schoolId,
+            })
+            .select()
+            .single();
 
-        if (guardianError) throw guardianError;
+          if (guardianError) throw guardianError;
+          guardianId = guardian.id;
+        }
 
-        // 3. Link guardian to student
-        const { error: linkError } = await supabase
+        // 3. Link guardian to student (check if link already exists)
+        const { data: existingLink } = await supabase
           .from("guardian_student_links")
-          .insert({
-            guardian_id: guardian.id,
-            student_id: student.id,
-            role: "primary_guardian",
-            relationship_label: guardianRelationship,
-            can_pickup: true,
-            can_make_decisions: true,
-          });
+          .select("id")
+          .eq("guardian_id", guardianId)
+          .eq("student_id", student.id)
+          .maybeSingle();
+          
+        if (!existingLink) {
+          const { error: linkError } = await supabase
+            .from("guardian_student_links")
+            .insert({
+              guardian_id: guardianId,
+              student_id: student.id,
+              role: "primary_guardian",
+              relationship_label: guardianRelationship,
+              can_pickup: true,
+              can_make_decisions: true,
+            });
 
-        if (linkError) throw linkError;
+          if (linkError) throw linkError;
+        }
       }
 
       return student;
@@ -119,6 +165,7 @@ export function AddStudentDialog({
       toast.success("Student added successfully");
       queryClient.invalidateQueries({ queryKey: ["school-students"] });
       queryClient.invalidateQueries({ queryKey: ["school-classes-details"] });
+      queryClient.invalidateQueries({ queryKey: ["school-guardians"] });
       resetForm();
       onOpenChange(false);
     },
