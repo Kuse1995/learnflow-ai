@@ -21,6 +21,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useState } from "react";
+import { DemoModeBanner } from "@/components/demo";
+
+// Demo school ID for development
+const DEMO_SCHOOL_ID = "5e508bfd-bd20-4461-8687-450a450111b8";
 
 export default function ParentDashboard() {
   const { studentId } = useParams<{ studentId: string }>();
@@ -104,13 +108,17 @@ export default function ParentDashboard() {
         {/* Header - minimal, text-first */}
         <header className="mb-6">
           <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-xl font-semibold">
-                {student?.name || "Your Child"}
-              </h1>
-              <p className="text-muted-foreground text-sm mt-0.5">
-                Updates from school
-              </p>
+            <div className="flex items-center gap-2">
+              <div>
+                <h1 className="text-xl font-semibold">
+                  {student?.name || "Your Child"}
+                </h1>
+                <p className="text-muted-foreground text-sm mt-0.5">
+                  Updates from school
+                </p>
+              </div>
+              {/* Subtle demo indicator for parent view */}
+              <DemoModeBanner schoolId={DEMO_SCHOOL_ID} context="parent" />
             </div>
             <Button
               variant="ghost"
