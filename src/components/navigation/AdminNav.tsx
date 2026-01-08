@@ -5,6 +5,9 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { OwnerSchoolSelector } from "@/components/owner/OwnerSchoolSelector";
+import { useOwnerSchool } from "@/contexts/OwnerSchoolContext";
+import { usePlatformOwner } from "@/hooks/usePlatformOwner";
 import {
   LayoutGrid,
   Users,
@@ -87,18 +90,25 @@ export function AdminLayout({ children, schoolName = "School SMS" }: AdminLayout
 function AdminSidebar({ schoolName }: { schoolName: string }) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const { isPlatformOwner } = usePlatformOwner();
+  const { selectedSchool } = useOwnerSchool();
+  
+  // Use selected school name for platform owner, otherwise use prop
+  const displaySchoolName = isPlatformOwner && selectedSchool 
+    ? selectedSchool.name 
+    : schoolName;
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg shrink-0">
-            S
+            {displaySchoolName.charAt(0).toUpperCase()}
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
               <span className="font-bold text-sidebar-foreground truncate">
-                {schoolName}
+                {displaySchoolName}
               </span>
               <span className="text-xs text-sidebar-foreground/70">
                 Admin Portal
@@ -107,6 +117,9 @@ function AdminSidebar({ schoolName }: { schoolName: string }) {
           )}
         </div>
       </SidebarHeader>
+      
+      {/* School selector for Platform Owner */}
+      {isPlatformOwner && !isCollapsed && <OwnerSchoolSelector />}
 
       <SidebarContent>
         <SidebarGroup>

@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { RBACProvider } from '@/contexts/RBACContext';
+import { OwnerSchoolProvider } from '@/contexts/OwnerSchoolContext';
 import { ProtectedRoute, ROUTE_PERMISSIONS, AccessDeniedPage } from '@/components/rbac';
 import { OfflineIndicator } from '@/components/common';
 import { LegalDocument } from '@/pages/legal';
@@ -75,6 +76,7 @@ export function AuthenticatedApp() {
       userName={user?.user_metadata?.full_name ?? null}
       schoolId={null} // Will be determined by user's roles
     >
+      <OwnerSchoolProvider>
       <div className="min-h-screen overflow-auto">
       <Routes>
         {/* Role-based default redirect */}
@@ -274,6 +276,7 @@ export function AuthenticatedApp() {
       
       {/* Global offline indicator */}
       <OfflineIndicator />
+      </OwnerSchoolProvider>
     </RBACProvider>
   );
 }
