@@ -9,23 +9,66 @@ const corsHeaders = {
 
 const SERVICE_UNAVAILABLE_MESSAGE = "This feature is temporarily unavailable. You can continue working without it.";
 
+// Demo fallback plan when AI is unavailable
+function getDemoFallbackPlan(studentName?: string) {
+  return {
+    focus_areas: [
+      "Continued practice with current curriculum topics",
+      "Building confidence through guided activities",
+    ],
+    recommended_practice_types: [
+      "Worked examples with step-by-step guidance",
+      "Partner activities for collaborative learning",
+      "Visual representations of concepts",
+    ],
+    support_strategies: [
+      "Provide clear, structured instructions",
+      "Offer multiple ways to demonstrate understanding",
+      "Allow time for reflection and questions",
+    ],
+    confidence_support_notes: "Focus on celebrating effort and progress. Create a supportive environment where questions are encouraged.",
+    is_demo_generated: true,
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { studentId, classId, sourceWindowDays = 30 } = await req.json();
+    const requestBody = await req.json();
+    console.log("[generate-intervention-plan] Request body:", JSON.stringify(requestBody));
+    
+    const { studentId, classId, sourceWindowDays = 30 } = requestBody;
 
     if (!studentId || !classId) {
+      console.error("[generate-intervention-plan] Missing required fields: studentId or classId");
       return new Response(
         JSON.stringify({ success: false, error: "studentId and classId are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    // Check environment variables
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    
+    console.log("[generate-intervention-plan] Environment check:", {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      hasLovableApiKey: !!LOVABLE_API_KEY,
+    });
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("[generate-intervention-plan] Missing Supabase environment variables");
+      return new Response(
+        JSON.stringify({ success: false, error: "Database configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch student info
@@ -142,10 +185,49 @@ RECENT CLASS CONTEXT:
 
 Based on this evidence, provide practical instructional suggestions. Remember: focus on opportunities and support strategies, not deficits.`;
 
-    // Call AI
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    // Check for AI API key - use demo fallback if not available
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.log("[generate-intervention-plan] LOVABLE_API_KEY not configured, using demo fallback");
+      
+      const demoPlan = getDemoFallbackPlan(student.name);
+      
+      // Save demo plan to database
+      const { data: savedPlan, error: saveError } = await supabase
+        .from("student_intervention_plans")
+        .insert({
+          student_id: studentId,
+          class_id: classId,
+          focus_areas: demoPlan.focus_areas,
+          recommended_practice_types: demoPlan.recommended_practice_types,
+          support_strategies: demoPlan.support_strategies,
+          confidence_support_notes: demoPlan.confidence_support_notes + " (Demo-generated guidance)",
+          source_window_days: sourceWindowDays,
+          teacher_acknowledged: false,
+          is_demo: true,
+        })
+        .select()
+        .single();
+
+      if (saveError) {
+        console.error("[generate-intervention-plan] Demo plan save error:", saveError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: "AI service not configured in demo environment",
+            isDemoError: true,
+          }),
+          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          plan: savedPlan,
+          isDemoGenerated: true,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
