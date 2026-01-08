@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, FileBarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,8 @@ import { EmptyState } from "@/components/empty-states";
 import { ClassReportView, ClassReportSkeleton } from "@/components/reports/teacher-reports-index";
 import { useClass } from "@/hooks/useClasses";
 import { useClassReport } from "@/hooks/useTeacherReports";
+import { ExportButton } from "@/components/exports";
+import type { ExportSection, ExportConfig } from "@/lib/export-utils";
 
 /**
  * Teacher Class Report Page
@@ -24,6 +27,54 @@ export default function TeacherClassReport() {
 
   const { data: classData, isLoading: isLoadingClass } = useClass(classId);
   const { data: report, isLoading: isLoadingReport } = useClassReport(classId);
+
+  // Build export sections from report data
+  const exportConfig: ExportConfig = useMemo(() => ({
+    title: `Class Report: ${classData?.name || "Class"}`,
+    schoolName: "Stitch Academy",
+    term: classData?.grade ? `Grade ${classData.grade}` : undefined,
+    includeHeader: true,
+    includeFooter: true,
+  }), [classData]);
+
+  const exportSections: ExportSection[] = useMemo(() => {
+    if (!report) return [];
+    return [
+      {
+        title: "Overview",
+        type: "metrics",
+        content: [
+          { label: "Students", value: report.overview.studentCount },
+          { label: "Subjects", value: report.overview.subjects.join(", ") || "—" },
+          { label: "Assessments Analyzed", value: report.overview.recentAnalysesCount },
+        ],
+      },
+      {
+        title: "Learning Themes",
+        type: "list",
+        content: report.learningThemes.length > 0 
+          ? report.learningThemes.map(t => t.topic) 
+          : ["No learning themes recorded yet."],
+      },
+      {
+        title: "Teaching Actions",
+        type: "metrics",
+        content: [
+          { label: "Total Actions", value: report.teachingActions.totalCount },
+          { label: "Recent (30 days)", value: report.teachingActions.recentCount },
+        ],
+      },
+      {
+        title: "Adaptive Support Coverage",
+        type: "metrics",
+        content: [
+          { label: "Students with Plans", value: report.supportCoverage.studentsWithPlans },
+          { label: "Acknowledged", value: report.supportCoverage.acknowledgedCount },
+          { label: "Pending Review", value: report.supportCoverage.pendingCount },
+        ],
+      },
+    ];
+  }, [report]);
 
   const handleBack = () => {
     navigate(`/teacher/classes/${classId}`);
@@ -77,7 +128,7 @@ export default function TeacherClassReport() {
             <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
               <FileBarChart className="h-7 w-7 text-primary" />
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-xl font-bold">Class Report</h1>
               <p className="text-sm text-muted-foreground">
                 {classData.name}
@@ -89,6 +140,16 @@ export default function TeacherClassReport() {
                 Aggregate insights • Read-only
               </p>
             </div>
+            {/* Export Button */}
+            {report && (
+              <ExportButton
+                config={exportConfig}
+                sections={exportSections}
+                filename={`class-report-${classData.name.replace(/\s+/g, "-").toLowerCase()}`}
+                variant="outline"
+                size="sm"
+              />
+            )}
           </div>
         </header>
 
