@@ -4401,6 +4401,134 @@ export type Database = {
           },
         ]
       }
+      school_export_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          expires_at: string | null
+          export_level: string
+          file_size_bytes: number | null
+          file_url: string | null
+          id: string
+          manifest: Json | null
+          record_counts: Json | null
+          requested_at: string
+          requested_by: string
+          school_id: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          expires_at?: string | null
+          export_level: string
+          file_size_bytes?: number | null
+          file_url?: string | null
+          id?: string
+          manifest?: Json | null
+          record_counts?: Json | null
+          requested_at?: string
+          requested_by: string
+          school_id: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          expires_at?: string | null
+          export_level?: string
+          file_size_bytes?: number | null
+          file_url?: string | null
+          id?: string
+          manifest?: Json | null
+          record_counts?: Json | null
+          requested_at?: string
+          requested_by?: string
+          school_id?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_export_jobs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_offboarding_requests: {
+        Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          cooling_period_ends_at: string | null
+          created_at: string
+          deactivated_at: string | null
+          export_job_id: string | null
+          id: string
+          reason: string | null
+          requested_at: string
+          requested_by: string
+          retention_expires_at: string | null
+          school_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cooling_period_ends_at?: string | null
+          created_at?: string
+          deactivated_at?: string | null
+          export_job_id?: string | null
+          id?: string
+          reason?: string | null
+          requested_at?: string
+          requested_by: string
+          retention_expires_at?: string | null
+          school_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cooling_period_ends_at?: string | null
+          created_at?: string
+          deactivated_at?: string | null
+          export_job_id?: string | null
+          id?: string
+          reason?: string | null
+          requested_at?: string
+          requested_by?: string
+          retention_expires_at?: string | null
+          school_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_offboarding_requests_export_job_id_fkey"
+            columns: ["export_job_id"]
+            isOneToOne: false
+            referencedRelation: "school_export_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_offboarding_requests_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_rollout_status: {
         Row: {
           advanced_by: string | null
@@ -4632,6 +4760,7 @@ export type Database = {
           is_archived: boolean
           is_pilot: boolean | null
           name: string
+          offboarding_status: string | null
           pilot_completed_at: string | null
           pilot_notes: string | null
           pilot_started_at: string | null
@@ -4650,6 +4779,7 @@ export type Database = {
           is_archived?: boolean
           is_pilot?: boolean | null
           name: string
+          offboarding_status?: string | null
           pilot_completed_at?: string | null
           pilot_notes?: string | null
           pilot_started_at?: string | null
@@ -4668,6 +4798,7 @@ export type Database = {
           is_archived?: boolean
           is_pilot?: boolean | null
           name?: string
+          offboarding_status?: string | null
           pilot_completed_at?: string | null
           pilot_notes?: string | null
           pilot_started_at?: string | null
@@ -6194,6 +6325,10 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_offboarding_export: {
+        Args: { p_export_job_id: string; p_request_id: string }
+        Returns: boolean
+      }
       compute_fee_audit_hash: {
         Args: {
           p_action_type: string
@@ -6387,6 +6522,10 @@ export type Database = {
         }
         Returns: string
       }
+      initiate_offboarding: {
+        Args: { p_reason?: string; p_requested_by: string; p_school_id: string }
+        Returns: string
+      }
       insert_fee_audit_log: {
         Args: {
           p_academic_year: number
@@ -6470,6 +6609,14 @@ export type Database = {
       is_term_closed: {
         Args: { p_academic_year: number; p_school_id: string; p_term: number }
         Returns: boolean
+      }
+      log_export_request: {
+        Args: {
+          p_export_level: string
+          p_requested_by: string
+          p_school_id: string
+        }
+        Returns: string
       }
       log_guardian_link_change: {
         Args: {
