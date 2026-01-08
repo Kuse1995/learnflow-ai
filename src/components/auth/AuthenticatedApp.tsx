@@ -32,7 +32,8 @@ import {
   AdminParents,
   AdminSettings,
   AdminAlerts,
-  AdminFeesSetup,
+  AdminFees,
+  AdminStudentFees,
   AdminClassFees,
 } from '@/pages/admin';
 import { 
@@ -206,7 +207,12 @@ export function AuthenticatedApp() {
         } />
         <Route path="/admin/fees" element={
           <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
-            <AdminFeesSetup />
+            <AdminFees />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/students/:studentId/fees" element={
+          <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+            <AdminStudentFees />
           </ProtectedRoute>
         } />
         <Route path="/admin/classes/:classId/fees" element={

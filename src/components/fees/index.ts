@@ -13,3 +13,8 @@ export { AddAdjustmentDialog } from './AddAdjustmentDialog';
 export { AdjustmentHistory } from './AdjustmentHistory';
 export { TermClosureControl } from './TermClosureControl';
 export { TermClosedBanner, TermClosedIndicator, TermClosedWarning, ParentTermFinalizedMessage } from './TermClosedBanner';
+export { FeesOverviewCards } from './FeesOverviewCards';
+export { StudentBalancesList } from './StudentBalancesList';
+export { PaymentPlanManager } from './PaymentPlanManager';
+export { CreatePaymentPlanDialog } from './CreatePaymentPlanDialog';
+export { PaymentPlanDetails } from './PaymentPlanDetails';
