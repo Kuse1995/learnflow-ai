@@ -950,6 +950,192 @@ export type Database = {
         }
         Relationships: []
       }
+      pilot_exit_criteria: {
+        Row: {
+          all_criteria_met: boolean | null
+          created_at: string
+          current_active_teachers: number | null
+          current_error_rate_percent: number | null
+          current_uptime_percent: number | null
+          error_rate_met: boolean | null
+          id: string
+          last_evaluated_at: string | null
+          marked_complete_at: string | null
+          marked_complete_by: string | null
+          max_error_rate_percent: number | null
+          min_active_teachers: number | null
+          notes: string | null
+          parent_features_tested: boolean | null
+          parent_readiness_met: boolean | null
+          parent_satisfaction_score: number | null
+          school_id: string
+          teacher_usage_met: boolean | null
+          updated_at: string
+          uptime_met: boolean | null
+          uptime_target_percent: number | null
+        }
+        Insert: {
+          all_criteria_met?: boolean | null
+          created_at?: string
+          current_active_teachers?: number | null
+          current_error_rate_percent?: number | null
+          current_uptime_percent?: number | null
+          error_rate_met?: boolean | null
+          id?: string
+          last_evaluated_at?: string | null
+          marked_complete_at?: string | null
+          marked_complete_by?: string | null
+          max_error_rate_percent?: number | null
+          min_active_teachers?: number | null
+          notes?: string | null
+          parent_features_tested?: boolean | null
+          parent_readiness_met?: boolean | null
+          parent_satisfaction_score?: number | null
+          school_id: string
+          teacher_usage_met?: boolean | null
+          updated_at?: string
+          uptime_met?: boolean | null
+          uptime_target_percent?: number | null
+        }
+        Update: {
+          all_criteria_met?: boolean | null
+          created_at?: string
+          current_active_teachers?: number | null
+          current_error_rate_percent?: number | null
+          current_uptime_percent?: number | null
+          error_rate_met?: boolean | null
+          id?: string
+          last_evaluated_at?: string | null
+          marked_complete_at?: string | null
+          marked_complete_by?: string | null
+          max_error_rate_percent?: number | null
+          min_active_teachers?: number | null
+          notes?: string | null
+          parent_features_tested?: boolean | null
+          parent_readiness_met?: boolean | null
+          parent_satisfaction_score?: number | null
+          school_id?: string
+          teacher_usage_met?: boolean | null
+          updated_at?: string
+          uptime_met?: boolean | null
+          uptime_target_percent?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pilot_exit_criteria_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pilot_incident_controls: {
+        Row: {
+          active_banner_message: string | null
+          ai_pause_reason: string | null
+          ai_paused: boolean | null
+          ai_paused_at: string | null
+          ai_paused_by: string | null
+          banner_expires_at: string | null
+          banner_severity: string | null
+          id: string
+          read_only_mode: boolean | null
+          read_only_reason: string | null
+          read_only_started_at: string | null
+          school_id: string
+          updated_at: string
+        }
+        Insert: {
+          active_banner_message?: string | null
+          ai_pause_reason?: string | null
+          ai_paused?: boolean | null
+          ai_paused_at?: string | null
+          ai_paused_by?: string | null
+          banner_expires_at?: string | null
+          banner_severity?: string | null
+          id?: string
+          read_only_mode?: boolean | null
+          read_only_reason?: string | null
+          read_only_started_at?: string | null
+          school_id: string
+          updated_at?: string
+        }
+        Update: {
+          active_banner_message?: string | null
+          ai_pause_reason?: string | null
+          ai_paused?: boolean | null
+          ai_paused_at?: string | null
+          ai_paused_by?: string | null
+          banner_expires_at?: string | null
+          banner_severity?: string | null
+          id?: string
+          read_only_mode?: boolean | null
+          read_only_reason?: string | null
+          read_only_started_at?: string | null
+          school_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pilot_incident_controls_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pilot_metrics_daily: {
+        Row: {
+          active_teacher_count: number | null
+          ai_generation_count: number | null
+          analysis_failure_count: number | null
+          analysis_success_count: number | null
+          created_at: string
+          error_count: number | null
+          id: string
+          metric_date: string
+          school_id: string
+          teacher_action_count: number | null
+          upload_count: number | null
+        }
+        Insert: {
+          active_teacher_count?: number | null
+          ai_generation_count?: number | null
+          analysis_failure_count?: number | null
+          analysis_success_count?: number | null
+          created_at?: string
+          error_count?: number | null
+          id?: string
+          metric_date: string
+          school_id: string
+          teacher_action_count?: number | null
+          upload_count?: number | null
+        }
+        Update: {
+          active_teacher_count?: number | null
+          ai_generation_count?: number | null
+          analysis_failure_count?: number | null
+          analysis_success_count?: number | null
+          created_at?: string
+          error_count?: number | null
+          id?: string
+          metric_date?: string
+          school_id?: string
+          teacher_action_count?: number | null
+          upload_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pilot_metrics_daily_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plans: {
         Row: {
           ai_limits: Json
@@ -1297,6 +1483,44 @@ export type Database = {
           },
         ]
       }
+      rollout_phase_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_phase: Database["public"]["Enums"]["rollout_phase"] | null
+          id: string
+          reason: string | null
+          school_id: string
+          to_phase: Database["public"]["Enums"]["rollout_phase"]
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_phase?: Database["public"]["Enums"]["rollout_phase"] | null
+          id?: string
+          reason?: string | null
+          school_id: string
+          to_phase: Database["public"]["Enums"]["rollout_phase"]
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_phase?: Database["public"]["Enums"]["rollout_phase"] | null
+          id?: string
+          reason?: string | null
+          school_id?: string
+          to_phase?: Database["public"]["Enums"]["rollout_phase"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rollout_phase_history_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_ai_controls: {
         Row: {
           ai_enabled: boolean | null
@@ -1337,6 +1561,91 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "school_ai_controls_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_change_logs: {
+        Row: {
+          change_description: string
+          change_type: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_value: Json | null
+          previous_value: Json | null
+          rollout_phase: Database["public"]["Enums"]["rollout_phase"] | null
+          school_id: string
+        }
+        Insert: {
+          change_description: string
+          change_type: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          previous_value?: Json | null
+          rollout_phase?: Database["public"]["Enums"]["rollout_phase"] | null
+          school_id: string
+        }
+        Update: {
+          change_description?: string
+          change_type?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          previous_value?: Json | null
+          rollout_phase?: Database["public"]["Enums"]["rollout_phase"] | null
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_change_logs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_rollout_status: {
+        Row: {
+          advanced_by: string | null
+          created_at: string
+          current_phase: Database["public"]["Enums"]["rollout_phase"]
+          id: string
+          notes: string | null
+          phase_started_at: string
+          school_id: string
+          updated_at: string
+        }
+        Insert: {
+          advanced_by?: string | null
+          created_at?: string
+          current_phase?: Database["public"]["Enums"]["rollout_phase"]
+          id?: string
+          notes?: string | null
+          phase_started_at?: string
+          school_id: string
+          updated_at?: string
+        }
+        Update: {
+          advanced_by?: string | null
+          created_at?: string
+          current_phase?: Database["public"]["Enums"]["rollout_phase"]
+          id?: string
+          notes?: string | null
+          phase_started_at?: string
+          school_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_rollout_status_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: true
             referencedRelation: "schools"
@@ -1488,7 +1797,11 @@ export type Database = {
           created_at: string
           id: string
           is_archived: boolean
+          is_pilot: boolean | null
           name: string
+          pilot_completed_at: string | null
+          pilot_notes: string | null
+          pilot_started_at: string | null
           plan: Database["public"]["Enums"]["saas_plan"]
           updated_at: string
         }
@@ -1502,7 +1815,11 @@ export type Database = {
           created_at?: string
           id?: string
           is_archived?: boolean
+          is_pilot?: boolean | null
           name: string
+          pilot_completed_at?: string | null
+          pilot_notes?: string | null
+          pilot_started_at?: string | null
           plan?: Database["public"]["Enums"]["saas_plan"]
           updated_at?: string
         }
@@ -1516,7 +1833,11 @@ export type Database = {
           created_at?: string
           id?: string
           is_archived?: boolean
+          is_pilot?: boolean | null
           name?: string
+          pilot_completed_at?: string | null
+          pilot_notes?: string | null
+          pilot_started_at?: string | null
           plan?: Database["public"]["Enums"]["saas_plan"]
           updated_at?: string
         }
@@ -1977,6 +2298,69 @@ export type Database = {
           },
         ]
       }
+      teacher_feedback: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          feature_area: string | null
+          feedback_type: string
+          id: string
+          message: string
+          resolved_at: string | null
+          resolved_by: string | null
+          school_id: string
+          status: string | null
+          teacher_account_id: string | null
+          updated_at: string
+          urgency: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          feature_area?: string | null
+          feedback_type: string
+          id?: string
+          message: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          school_id: string
+          status?: string | null
+          teacher_account_id?: string | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          feature_area?: string | null
+          feedback_type?: string
+          id?: string
+          message?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          school_id?: string
+          status?: string | null
+          teacher_account_id?: string | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_feedback_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_feedback_teacher_account_id_fkey"
+            columns: ["teacher_account_id"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upload_analyses: {
         Row: {
           analyzed_at: string | null
@@ -2280,6 +2664,10 @@ export type Database = {
       }
     }
     Functions: {
+      advance_rollout_phase: {
+        Args: { p_reason?: string; p_school_id: string }
+        Returns: Database["public"]["Enums"]["rollout_phase"]
+      }
       can_access_class: {
         Args: { _class_id: string; _user_id: string }
         Returns: boolean
@@ -2345,7 +2733,22 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      pause_pilot_school_ai: {
+        Args: { p_reason: string; p_school_id: string }
+        Returns: boolean
+      }
       restore_student: { Args: { p_student_id: string }; Returns: boolean }
+      resume_pilot_school_ai: {
+        Args: { p_school_id: string }
+        Returns: boolean
+      }
+      school_at_phase_or_later: {
+        Args: {
+          p_min_phase: Database["public"]["Enums"]["rollout_phase"]
+          p_school_id: string
+        }
+        Returns: boolean
+      }
       soft_delete_student: {
         Args: { p_deleted_by: string; p_student_id: string }
         Returns: boolean
@@ -2408,6 +2811,13 @@ export type Database = {
         | "completed"
         | "failed"
         | "cancelled"
+      rollout_phase:
+        | "phase_0_setup"
+        | "phase_1_teachers"
+        | "phase_2_students"
+        | "phase_3_ai_suggestions"
+        | "phase_4_parent_insights"
+        | "completed"
       saas_plan: "basic" | "standard" | "premium" | "enterprise"
       subscription_status: "active" | "suspended" | "expired" | "pending"
     }
@@ -2587,6 +2997,14 @@ export const Constants = {
         "completed",
         "failed",
         "cancelled",
+      ],
+      rollout_phase: [
+        "phase_0_setup",
+        "phase_1_teachers",
+        "phase_2_students",
+        "phase_3_ai_suggestions",
+        "phase_4_parent_insights",
+        "completed",
       ],
       saas_plan: ["basic", "standard", "premium", "enterprise"],
       subscription_status: ["active", "suspended", "expired", "pending"],
