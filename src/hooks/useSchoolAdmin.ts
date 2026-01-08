@@ -105,11 +105,11 @@ export function useIsSchoolAdmin(schoolId?: string) {
 }
 
 // Get school admin's school ID
-export function useSchoolAdminSchool() {
+export function useSchoolAdminSchool(ownerSelectedSchoolId?: string | null) {
   const { isDemoMode, demoRole, demoSchoolId } = useDemoMode();
   
   return useQuery({
-    queryKey: ["school-admin-school", isDemoMode, demoSchoolId],
+    queryKey: ["school-admin-school", isDemoMode, demoSchoolId, ownerSelectedSchoolId],
     queryFn: async () => {
       // In demo mode, return the demo school
       if (isDemoMode && demoRole === 'school_admin' && demoSchoolId) {
@@ -124,12 +124,28 @@ export function useSchoolAdminSchool() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      // Platform owner: return first non-demo school, or demo school if none
+      // Platform owner: use selected school from context, or fallback to first non-demo
       if (isPlatformOwnerEmail(user.email)) {
+        // If owner has selected a specific school, use that
+        if (ownerSelectedSchoolId) {
+          const { data: selectedSchool } = await supabase
+            .from("schools")
+            .select("*")
+            .eq("id", ownerSelectedSchoolId)
+            .eq("is_archived", false)
+            .single();
+          
+          if (selectedSchool) {
+            return selectedSchool;
+          }
+        }
+        
+        // Fallback: get first non-demo, non-archived school
         const { data: schools } = await supabase
           .from("schools")
           .select("*")
           .eq("is_demo", false)
+          .eq("is_archived", false)
           .order("created_at", { ascending: false })
           .limit(1);
         

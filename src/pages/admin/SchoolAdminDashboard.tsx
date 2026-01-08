@@ -21,14 +21,20 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DemoModeBanner } from "@/components/demo";
 import { useIsDemoSchool } from "@/hooks/useDemoSafety";
 import { usePlatformOwner } from "@/hooks/usePlatformOwner";
+import { useOwnerSchool } from "@/contexts/OwnerSchoolContext";
 
 export default function SchoolAdminDashboard() {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  const { data: isAdmin, isLoading: isAdminLoading } = useIsSchoolAdmin();
-  const { data: school, isLoading: isSchoolLoading } = useSchoolAdminSchool();
-  const { data: onboarding, isLoading: isOnboardingLoading } = useSchoolAdminOnboarding();
   const { isPlatformOwner } = usePlatformOwner();
+  const { selectedSchoolId } = useOwnerSchool();
+  
+  const { data: isAdmin, isLoading: isAdminLoading } = useIsSchoolAdmin();
+  // Pass owner's selected school ID to hook
+  const { data: school, isLoading: isSchoolLoading } = useSchoolAdminSchool(
+    isPlatformOwner ? selectedSchoolId : undefined
+  );
+  const { data: onboarding, isLoading: isOnboardingLoading } = useSchoolAdminOnboarding();
   const createOnboarding = useCreateSchoolAdminOnboarding();
   const { data: isDemo } = useIsDemoSchool(school?.id);
 
