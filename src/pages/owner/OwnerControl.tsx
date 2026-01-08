@@ -11,7 +11,7 @@ import {
   QuickNavigationPanel,
   SchoolManagementPanel,
   UserManagementPanel,
-  ClassManagementPanel,
+  
 } from '@/components/owner';
 import { PageHeader } from '@/components/layout';
 import { Badge } from '@/components/ui/badge';
@@ -66,11 +66,8 @@ export default function OwnerControl() {
           <UserManagementPanel />
         </div>
 
-        {/* Access Overrides & Class Management Row */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <AccessOverridesPanel />
-          <ClassManagementPanel />
-        </div>
+        {/* Access Overrides - Full Width */}
+        <AccessOverridesPanel />
 
         {/* System Actions - Full Width */}
         <SystemActionsPanel />
