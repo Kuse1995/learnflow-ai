@@ -18,12 +18,14 @@ import {
   useCreateSchoolAdminOnboarding,
 } from "@/hooks/useSchoolAdmin";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, LayoutGrid, CreditCard, History, Users } from "lucide-react";
+import { AlertCircle, LayoutGrid, CreditCard, History, Users, FileText } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useNavigate } from "react-router-dom";
 
 export default function SchoolAdminDashboard() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const navigate = useNavigate();
 
   const { data: isAdmin, isLoading: isAdminLoading } = useIsSchoolAdmin();
   const { data: school, isLoading: isSchoolLoading } = useSchoolAdminSchool();
@@ -100,10 +102,14 @@ export default function SchoolAdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
             <TabsTrigger value="overview" className="gap-2">
               <LayoutGrid className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="gap-2" onClick={() => navigate("/admin/reports")}>
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Reports</span>
             </TabsTrigger>
             <TabsTrigger value="plans" className="gap-2">
               <CreditCard className="h-4 w-4" />
