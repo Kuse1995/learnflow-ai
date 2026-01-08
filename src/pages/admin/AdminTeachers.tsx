@@ -4,7 +4,6 @@
  */
 
 import { useState } from "react";
-import { PageHeader } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +37,7 @@ import {
 import { GraduationCap, UserPlus, MoreHorizontal, Mail, Trash2, AlertCircle, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { useSchoolAdminSchool, useSchoolTeachersWithClasses, useTeacherInvitations, useRemoveTeacher, useCancelInvitation } from "@/hooks/useSchoolAdmin";
 import { InviteTeacherDialog } from "@/components/school-admin/InviteTeacherDialog";
+import { AdminLayout } from "@/components/navigation/AdminNav";
 import { format } from "date-fns";
 
 export default function AdminTeachers() {
@@ -89,20 +89,19 @@ export default function AdminTeachers() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader
-        title="Teacher Management"
-        subtitle={`${school.name} • ${teachers?.length || 0} teachers`}
-        icon={<GraduationCap className="h-8 w-8 text-primary" />}
-        backPath="/admin"
-      />
-
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
-        {/* Actions */}
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            Manage your school's teaching staff
-          </p>
+    <AdminLayout schoolName={school.name}>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <GraduationCap className="h-6 w-6" />
+              Teacher Management
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {teachers?.length || 0} teachers • Manage your school's teaching staff
+            </p>
+          </div>
           <Button onClick={() => setShowInviteDialog(true)} className="gap-2">
             <UserPlus className="h-4 w-4" />
             Invite Teacher
@@ -289,6 +288,6 @@ export default function AdminTeachers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AdminLayout>
   );
 }

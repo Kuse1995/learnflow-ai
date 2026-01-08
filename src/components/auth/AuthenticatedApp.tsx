@@ -22,7 +22,18 @@ import {
 } from '@/pages/teacher';
 import { ParentDashboard } from '@/pages/parent';
 import { StudentPractice } from '@/pages/student';
-import { SchoolAdminDashboard, SchoolReports, AdminReportsDashboard, AdminTeachers, AdminClasses } from '@/pages/admin';
+import { 
+  SchoolAdminDashboard, 
+  SchoolReports, 
+  AdminReportsDashboard, 
+  AdminTeachers, 
+  AdminClasses,
+  AdminStudents,
+  AdminSettings,
+  AdminAlerts,
+  AdminFeesSetup,
+  AdminClassFees,
+} from '@/pages/admin';
 import { 
   PlatformAdminCompliance, 
   PlatformAdminBackups,
@@ -170,6 +181,31 @@ export function AuthenticatedApp() {
         <Route path="/admin/classes" element={
           <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
             <AdminClasses />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/students" element={
+          <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+            <AdminStudents />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/settings" element={
+          <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+            <AdminSettings />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/alerts" element={
+          <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+            <AdminAlerts />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/fees" element={
+          <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+            <AdminFeesSetup />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/classes/:classId/fees" element={
+          <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+            <AdminClassFees />
           </ProtectedRoute>
         } />
         

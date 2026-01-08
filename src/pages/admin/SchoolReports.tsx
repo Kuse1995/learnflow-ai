@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, ArrowLeft, FileText } from "lucide-react";
+import { AdminLayout } from "@/components/navigation/AdminNav";
 
 export default function SchoolReports() {
   const [selectedReport, setSelectedReport] = useState<TermReport | null>(null);
@@ -120,68 +121,70 @@ export default function SchoolReports() {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="space-y-2">
-        {selectedReport ? (
-          <Button 
-            variant="ghost" 
-            className="mb-2 -ml-2" 
-            onClick={() => setSelectedReport(null)}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Reports
-          </Button>
-        ) : (
-          <>
-            <div className="flex items-center gap-2">
-              <FileText className="h-6 w-6 text-muted-foreground" />
-              <h1 className="text-2xl font-semibold">Term Reports</h1>
-            </div>
-            <p className="text-muted-foreground">
-              System activity overviews for planning and coordination. 
-              All data is aggregated — no individual performance metrics.
-            </p>
-          </>
-        )}
-      </div>
-
-      {/* Trust Banner */}
-      {!selectedReport && (
-        <div className="bg-muted/50 rounded-lg px-4 py-3 text-sm text-muted-foreground">
-          <p>
-            📊 These reports show <strong>system usage patterns</strong>, not teacher performance. 
-            Teachers are trusted professionals who manage their own classrooms.
-          </p>
+    <AdminLayout schoolName={school.name}>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          {selectedReport ? (
+            <Button 
+              variant="ghost" 
+              className="mb-2 -ml-2" 
+              onClick={() => setSelectedReport(null)}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Reports
+            </Button>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <FileText className="h-6 w-6" />
+                Term Reports
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                System activity overviews for planning and coordination. 
+                All data is aggregated — no individual performance metrics.
+              </p>
+            </>
+          )}
         </div>
-      )}
 
-      {/* Content */}
-      {selectedReport ? (
-        <TermReportViewer
-          report={selectedReport}
-          onUpdateNotes={handleUpdateNotes}
-          onFinalize={handleFinalize}
-          onExportPDF={handleExportPDF}
-          onExportCSV={handleExportCSV}
-          isUpdating={updateReport.isPending || finalizeReport.isPending}
-        />
-      ) : (
-        <TermReportList
-          reports={reports || []}
-          onSelectReport={setSelectedReport}
-          onCreateReport={() => setShowCreateDialog(true)}
-          isLoading={isReportsLoading}
-        />
-      )}
+        {/* Trust Banner */}
+        {!selectedReport && (
+          <div className="bg-muted/50 rounded-lg px-4 py-3 text-sm text-muted-foreground">
+            <p>
+              📊 These reports show <strong>system usage patterns</strong>, not teacher performance. 
+              Teachers are trusted professionals who manage their own classrooms.
+            </p>
+          </div>
+        )}
 
-      {/* Create Dialog */}
-      <CreateTermReportDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onSubmit={handleCreateReport}
-        isSubmitting={createReport.isPending}
-      />
-    </div>
+        {/* Content */}
+        {selectedReport ? (
+          <TermReportViewer
+            report={selectedReport}
+            onUpdateNotes={handleUpdateNotes}
+            onFinalize={handleFinalize}
+            onExportPDF={handleExportPDF}
+            onExportCSV={handleExportCSV}
+            isUpdating={updateReport.isPending || finalizeReport.isPending}
+          />
+        ) : (
+          <TermReportList
+            reports={reports || []}
+            onSelectReport={setSelectedReport}
+            onCreateReport={() => setShowCreateDialog(true)}
+            isLoading={isReportsLoading}
+          />
+        )}
+
+        {/* Create Dialog */}
+        <CreateTermReportDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          onSubmit={handleCreateReport}
+          isSubmitting={createReport.isPending}
+        />
+      </div>
+    </AdminLayout>
   );
 }

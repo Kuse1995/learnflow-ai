@@ -4,7 +4,6 @@
  */
 
 import { useState } from "react";
-import { PageHeader } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +38,7 @@ import { School, Plus, MoreHorizontal, UserPlus, Archive, AlertCircle, Users, Gr
 import { useSchoolAdminSchool, useSchoolClassesWithDetails, useArchiveClass } from "@/hooks/useSchoolAdmin";
 import { CreateSchoolClassDialog } from "@/components/school-admin/CreateSchoolClassDialog";
 import { AssignTeacherToClassDialog } from "@/components/school-admin/AssignTeacherToClassDialog";
+import { AdminLayout } from "@/components/navigation/AdminNav";
 
 export default function AdminClasses() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -81,20 +81,19 @@ export default function AdminClasses() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader
-        title="Class Management"
-        subtitle={`${school.name} • ${activeClasses.length} classes`}
-        icon={<School className="h-8 w-8 text-primary" />}
-        backPath="/admin"
-      />
-
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
-        {/* Actions */}
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            Create and manage your school's classes
-          </p>
+    <AdminLayout schoolName={school.name}>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <School className="h-6 w-6" />
+              Class Management
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {activeClasses.length} classes • Create and manage your school's classes
+            </p>
+          </div>
           <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
             <Plus className="h-4 w-4" />
             Create Class
@@ -246,6 +245,6 @@ export default function AdminClasses() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AdminLayout>
   );
 }
