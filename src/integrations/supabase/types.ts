@@ -633,6 +633,109 @@ export type Database = {
           },
         ]
       }
+      delivery_attempts: {
+        Row: {
+          attempt_number: number
+          channel: Database["public"]["Enums"]["delivery_channel"]
+          completed_at: string | null
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          id: string
+          latency_ms: number | null
+          message_id: string
+          network_available: boolean | null
+          provider_response: Json | null
+          started_at: string
+          succeeded: boolean | null
+        }
+        Insert: {
+          attempt_number?: number
+          channel: Database["public"]["Enums"]["delivery_channel"]
+          completed_at?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          message_id: string
+          network_available?: boolean | null
+          provider_response?: Json | null
+          started_at?: string
+          succeeded?: boolean | null
+        }
+        Update: {
+          attempt_number?: number
+          channel?: Database["public"]["Enums"]["delivery_channel"]
+          completed_at?: string | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          message_id?: string
+          network_available?: boolean | null
+          provider_response?: Json | null
+          started_at?: string
+          succeeded?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_attempts_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "parent_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_processor_state: {
+        Row: {
+          created_at: string
+          id: string
+          is_healthy: boolean | null
+          last_error: string | null
+          last_heartbeat_at: string | null
+          messages_failed: number | null
+          messages_processed: number | null
+          processor_type: string
+          school_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_healthy?: boolean | null
+          last_error?: string | null
+          last_heartbeat_at?: string | null
+          messages_failed?: number | null
+          messages_processed?: number | null
+          processor_type?: string
+          school_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_healthy?: boolean | null
+          last_error?: string | null
+          last_heartbeat_at?: string | null
+          messages_failed?: number | null
+          messages_processed?: number | null
+          processor_type?: string
+          school_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_processor_state_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deployment_checks: {
         Row: {
           check_name: string
@@ -1835,6 +1938,70 @@ export type Database = {
           },
         ]
       }
+      offline_message_queue: {
+        Row: {
+          created_offline_at: string
+          device_id: string | null
+          id: string
+          is_synced: boolean | null
+          last_sync_error: string | null
+          message_id: string | null
+          payload: Json
+          priority: number | null
+          school_id: string
+          sync_attempts: number | null
+          synced_at: string | null
+          target_channel: Database["public"]["Enums"]["delivery_channel"] | null
+        }
+        Insert: {
+          created_offline_at?: string
+          device_id?: string | null
+          id?: string
+          is_synced?: boolean | null
+          last_sync_error?: string | null
+          message_id?: string | null
+          payload: Json
+          priority?: number | null
+          school_id: string
+          sync_attempts?: number | null
+          synced_at?: string | null
+          target_channel?:
+            | Database["public"]["Enums"]["delivery_channel"]
+            | null
+        }
+        Update: {
+          created_offline_at?: string
+          device_id?: string | null
+          id?: string
+          is_synced?: boolean | null
+          last_sync_error?: string | null
+          message_id?: string | null
+          payload?: Json
+          priority?: number | null
+          school_id?: string
+          sync_attempts?: number | null
+          synced_at?: string | null
+          target_channel?:
+            | Database["public"]["Enums"]["delivery_channel"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offline_message_queue_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "parent_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offline_message_queue_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_contacts: {
         Row: {
           created_at: string
@@ -1979,6 +2146,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           delivered_at: string | null
+          delivery_completed_at: string | null
+          delivery_started_at: string | null
           delivery_status: Database["public"]["Enums"]["delivery_status"]
           edit_count: number | null
           email_attempted: boolean | null
@@ -1994,11 +2163,15 @@ export type Database = {
           locked_at: string | null
           locked_by: string | null
           message_body: string
+          next_retry_at: string | null
+          offline_queue_position: number | null
           original_ai_body: string | null
           parent_contact_id: string
           priority_level: number
+          queued_offline: boolean | null
           rejection_reason: string | null
           requires_approval: boolean | null
+          retry_backoff_seconds: number | null
           retry_count: number | null
           school_id: string
           sms_attempted: boolean | null
@@ -2024,6 +2197,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           delivered_at?: string | null
+          delivery_completed_at?: string | null
+          delivery_started_at?: string | null
           delivery_status?: Database["public"]["Enums"]["delivery_status"]
           edit_count?: number | null
           email_attempted?: boolean | null
@@ -2039,11 +2214,15 @@ export type Database = {
           locked_at?: string | null
           locked_by?: string | null
           message_body: string
+          next_retry_at?: string | null
+          offline_queue_position?: number | null
           original_ai_body?: string | null
           parent_contact_id: string
           priority_level?: number
+          queued_offline?: boolean | null
           rejection_reason?: string | null
           requires_approval?: boolean | null
+          retry_backoff_seconds?: number | null
           retry_count?: number | null
           school_id: string
           sms_attempted?: boolean | null
@@ -2069,6 +2248,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           delivered_at?: string | null
+          delivery_completed_at?: string | null
+          delivery_started_at?: string | null
           delivery_status?: Database["public"]["Enums"]["delivery_status"]
           edit_count?: number | null
           email_attempted?: boolean | null
@@ -2084,11 +2265,15 @@ export type Database = {
           locked_at?: string | null
           locked_by?: string | null
           message_body?: string
+          next_retry_at?: string | null
+          offline_queue_position?: number | null
           original_ai_body?: string | null
           parent_contact_id?: string
           priority_level?: number
+          queued_offline?: boolean | null
           rejection_reason?: string | null
           requires_approval?: boolean | null
+          retry_backoff_seconds?: number | null
           retry_count?: number | null
           school_id?: string
           sms_attempted?: boolean | null
@@ -4517,6 +4702,16 @@ export type Database = {
           student_id: string
         }[]
       }
+      get_next_queued_message: {
+        Args: { p_school_id?: string }
+        Returns: {
+          channel: Database["public"]["Enums"]["delivery_channel"]
+          message_id: string
+          priority: number
+          recipient_contact: Json
+          retry_count: number
+        }[]
+      }
       get_or_create_usage_metrics: {
         Args: { p_school_id: string }
         Returns: string
@@ -4620,6 +4815,18 @@ export type Database = {
         Args: { p_reason: string; p_school_id: string }
         Returns: boolean
       }
+      record_delivery_attempt: {
+        Args: {
+          p_channel: Database["public"]["Enums"]["delivery_channel"]
+          p_error_code?: string
+          p_error_message?: string
+          p_latency_ms?: number
+          p_message_id: string
+          p_provider_response?: Json
+          p_succeeded: boolean
+        }
+        Returns: string
+      }
       recover_guardian_link: {
         Args: { p_reason: string; p_retention_id: string }
         Returns: Json
@@ -4641,6 +4848,10 @@ export type Database = {
         Args: { p_reason: string; p_request_id: string }
         Returns: boolean
       }
+      schedule_message_retry: {
+        Args: { p_base_delay_seconds?: number; p_message_id: string }
+        Returns: string
+      }
       school_at_phase_or_later: {
         Args: {
           p_min_phase: Database["public"]["Enums"]["rollout_phase"]
@@ -4656,6 +4867,7 @@ export type Database = {
         Args: { p_message_id: string }
         Returns: Json
       }
+      sync_offline_queue: { Args: { p_school_id: string }; Returns: number }
       unlink_guardian_student: {
         Args: {
           p_guardian_id: string
