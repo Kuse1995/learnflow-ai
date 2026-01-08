@@ -9,53 +9,79 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Shield, CheckCircle2, User, GraduationCap, Users, Building } from 'lucide-react';
+import { Shield, CheckCircle2, User, GraduationCap, Users, Building, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { AppRole } from '@/lib/rbac-permissions';
 
-const ROLE_CONFIG: Partial<Record<AppRole, { label: string; icon: React.ReactNode; color: string }>> = {
+const ROLE_CONFIG: Record<string, { 
+  label: string; 
+  icon: React.ReactNode; 
+  color: string;
+  dashboard: string;
+  description: string;
+}> = {
   platform_admin: { 
     label: 'Platform Admin', 
     icon: <Shield className="h-4 w-4" />,
-    color: 'bg-red-100 text-red-700 border-red-200'
+    color: 'bg-red-100 text-red-700 border-red-200',
+    dashboard: '/platform-admin',
+    description: 'Full platform control, manage all schools'
   },
   school_admin: { 
     label: 'School Admin', 
     icon: <Building className="h-4 w-4" />,
-    color: 'bg-purple-100 text-purple-700 border-purple-200'
+    color: 'bg-purple-100 text-purple-700 border-purple-200',
+    dashboard: '/admin/dashboard',
+    description: 'Manage school settings, users, and classes'
   },
   teacher: { 
     label: 'Teacher', 
     icon: <GraduationCap className="h-4 w-4" />,
-    color: 'bg-blue-100 text-blue-700 border-blue-200'
+    color: 'bg-blue-100 text-blue-700 border-blue-200',
+    dashboard: '/teacher/dashboard',
+    description: 'Manage classes, students, and assessments'
   },
   parent: { 
     label: 'Parent', 
     icon: <Users className="h-4 w-4" />,
-    color: 'bg-green-100 text-green-700 border-green-200'
+    color: 'bg-green-100 text-green-700 border-green-200',
+    dashboard: '/parent/dashboard',
+    description: 'View child progress and communicate with teachers'
   },
   student: { 
     label: 'Student', 
     icon: <User className="h-4 w-4" />,
-    color: 'bg-amber-100 text-amber-700 border-amber-200'
+    color: 'bg-amber-100 text-amber-700 border-amber-200',
+    dashboard: '/student/practice',
+    description: 'Access learning materials and practice sessions'
   },
 };
 
 export function AccessOverridesPanel() {
   const { activeRole, setActiveRole, isPlatformOwner } = useRBACContext();
+  const navigate = useNavigate();
 
   const handleRoleChange = (role: string) => {
     setActiveRole(role as AppRole);
   };
+
+  const handleGoToDashboard = () => {
+    if (activeRole && ROLE_CONFIG[activeRole]) {
+      navigate(ROLE_CONFIG[activeRole].dashboard);
+    }
+  };
+
+  const currentConfig = activeRole ? ROLE_CONFIG[activeRole] : null;
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
-          <CardTitle>Access & Role Overrides</CardTitle>
+          <CardTitle>Access & Role Simulation</CardTitle>
         </div>
         <CardDescription>
-          Simulate different user roles for testing. Platform Owner bypass remains active.
+          Simulate different user roles to test features. Your Platform Owner access remains active.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -76,7 +102,7 @@ export function AccessOverridesPanel() {
         </div>
 
         {/* Role Switcher */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <label className="text-sm font-medium">Simulate Active Role</label>
           <Select
             value={activeRole || 'platform_admin'} 
@@ -96,21 +122,36 @@ export function AccessOverridesPanel() {
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground">
-            This affects UI display only. Platform Owner permissions remain unrestricted.
-          </p>
         </div>
 
-        {/* Current Role Display */}
-        {activeRole && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Current simulated role:</span>
-            <Badge className={ROLE_CONFIG[activeRole]?.color || ''}>
-              {ROLE_CONFIG[activeRole]?.icon}
-              <span className="ml-1">{ROLE_CONFIG[activeRole]?.label}</span>
-            </Badge>
+        {/* Current Role Display with Go To Dashboard */}
+        {activeRole && currentConfig && (
+          <div className="p-4 rounded-lg border bg-muted/30 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Badge className={currentConfig.color}>
+                  {currentConfig.icon}
+                  <span className="ml-1">{currentConfig.label}</span>
+                </Badge>
+              </div>
+              <Button 
+                size="sm" 
+                onClick={handleGoToDashboard}
+                className="gap-1"
+              >
+                <ExternalLink className="h-3 w-3" />
+                Go to Dashboard
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {currentConfig.description}
+            </p>
           </div>
         )}
+
+        <p className="text-xs text-muted-foreground">
+          Role simulation affects navigation and UI display. All data operations remain unrestricted for Platform Owner.
+        </p>
       </CardContent>
     </Card>
   );
