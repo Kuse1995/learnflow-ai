@@ -52,8 +52,14 @@ export function StudentBalancesList({
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
 
   const { data: balances, isLoading } = useSchoolStudentBalances(schoolId, academicYear, term);
-  const { data: classes } = useClasses(schoolId);
+  const { data: allClasses } = useClasses();
   const { formatAmount, getStatusLabel, getStatusColor } = useFormatBalance();
+
+  // Filter classes by school
+  const classes = useMemo(() => {
+    if (!allClasses || !schoolId) return [];
+    return allClasses.filter(cls => cls.school_id === schoolId);
+  }, [allClasses, schoolId]);
 
   // Filter and search
   const filteredBalances = useMemo(() => {
