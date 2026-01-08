@@ -6,6 +6,7 @@ import {
   canPerformAction,
   sortRolesByPriority,
 } from '@/lib/rbac-permissions';
+import { useDemoMode, DEMO_USERS } from '@/contexts/DemoModeContext';
 
 // =============================================================================
 // CONTEXT TYPE
@@ -55,12 +56,24 @@ export function RBACProvider({
   userName = null,
   schoolId = null,
 }: RBACProviderProps) {
-  const { data: userRoles, isLoading } = useUserRoles(userId ?? undefined, schoolId ?? undefined);
+  // Check if demo mode is active
+  const { isDemoMode, demoRole, demoUserId, demoUserName, demoSchoolId } = useDemoMode();
   
+  // Use demo credentials if in demo mode and no real user
+  const effectiveUserId = userId ?? (isDemoMode ? demoUserId : null);
+  const effectiveUserName = userName ?? (isDemoMode ? demoUserName : null);
+  const effectiveSchoolId = schoolId ?? (isDemoMode ? demoSchoolId : null);
+  
+  const { data: userRoles, isLoading } = useUserRoles(effectiveUserId ?? undefined, effectiveSchoolId ?? undefined);
+  
+  // In demo mode, inject the demo role directly
   const roles = useMemo(() => {
+    if (isDemoMode && demoRole) {
+      return [DEMO_USERS[demoRole].role];
+    }
     if (!userRoles) return [];
     return userRoles.map(r => r.role);
-  }, [userRoles]);
+  }, [userRoles, isDemoMode, demoRole]);
 
   const sortedRoles = useMemo(() => sortRolesByPriority(roles), [roles]);
   
@@ -88,9 +101,9 @@ export function RBACProvider({
   }, [roles]);
 
   const value = useMemo(() => ({
-    userId,
-    userName,
-    schoolId,
+    userId: effectiveUserId,
+    userName: effectiveUserName,
+    schoolId: effectiveSchoolId,
     roles,
     activeRole: effectiveActiveRole,
     setActiveRole,
@@ -100,11 +113,11 @@ export function RBACProvider({
     // Scope data - these will be populated by useDataScope
     assignedClassIds: [] as string[],
     linkedStudentIds: [] as string[],
-    isLoading,
+    isLoading: isDemoMode ? false : isLoading,
   }), [
-    userId,
-    userName,
-    schoolId,
+    effectiveUserId,
+    effectiveUserName,
+    effectiveSchoolId,
     roles,
     effectiveActiveRole,
     setActiveRole,
@@ -112,6 +125,7 @@ export function RBACProvider({
     hasAnyRole,
     canPerform,
     isLoading,
+    isDemoMode,
   ]);
 
   return (
