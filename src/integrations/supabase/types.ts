@@ -5886,29 +5886,53 @@ export type Database = {
         }
         Returns: string
       }
-      insert_ledger_entry: {
-        Args: {
-          p_academic_year: number
-          p_credit_amount: number
-          p_debit_amount: number
-          p_description: string
-          p_effective_date: string
-          p_entry_date: string
-          p_entry_type: Database["public"]["Enums"]["ledger_entry_type"]
-          p_fee_category_id: string
-          p_fee_structure_id: string
-          p_notes: string
-          p_payment_id: string
-          p_recorded_by: string
-          p_recorded_by_role: string
-          p_reference_number: string
-          p_related_entry_id: string
-          p_school_id: string
-          p_student_id: string
-          p_term: number
-        }
-        Returns: string
-      }
+      insert_ledger_entry:
+        | {
+            Args: {
+              p_academic_year: number
+              p_credit_amount: number
+              p_debit_amount: number
+              p_description: string
+              p_effective_date: string
+              p_entry_date: string
+              p_entry_type: Database["public"]["Enums"]["ledger_entry_type"]
+              p_fee_category_id: string
+              p_fee_structure_id: string
+              p_notes: string
+              p_payment_id: string
+              p_recorded_by: string
+              p_recorded_by_role: string
+              p_reference_number: string
+              p_related_entry_id: string
+              p_school_id: string
+              p_student_id: string
+              p_term: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_academic_year: number
+              p_credit_amount: number
+              p_debit_amount: number
+              p_description?: string
+              p_effective_date: string
+              p_entry_date: string
+              p_entry_type: string
+              p_fee_category_id?: string
+              p_fee_structure_id?: string
+              p_notes?: string
+              p_payment_id?: string
+              p_recorded_by?: string
+              p_recorded_by_role?: string
+              p_reference_number?: string
+              p_related_entry_id?: string
+              p_school_id: string
+              p_student_id: string
+              p_term: number
+            }
+            Returns: string
+          }
       is_ai_enabled_for_school: {
         Args: { p_school_id: string }
         Returns: boolean
