@@ -1,7 +1,9 @@
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useIsSuperAdmin } from '@/hooks/useSuperAdmin';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { usePlatformOwner } from '@/hooks/usePlatformOwner';
 import { usePendingParentInsightsByClass } from '@/hooks/usePendingParentInsights';
+import { PlatformOwnerBanner } from '@/components/platform-owner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +14,6 @@ import {
   FileText, 
   Brain, 
   BellOff, 
-  AlertTriangle,
   Shield,
   ChevronRight,
   BookOpen
@@ -24,6 +25,7 @@ import { toast } from 'sonner';
 export default function PlatformAdmin() {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading: authLoading } = useAuthContext();
+  const { isPlatformOwner, isLoading: loadingOwner } = usePlatformOwner();
   const { data: isSuperAdmin, isLoading: loadingSuperAdmin } = useIsSuperAdmin();
   const { data: pendingByClass = [], isLoading: loadingPendingByClass } = usePendingParentInsightsByClass();
 
@@ -48,11 +50,12 @@ export default function PlatformAdmin() {
         pendingPlans: plansRes.count ?? 0,
       };
     },
-    enabled: !!isSuperAdmin,
+    enabled: isPlatformOwner || !!isSuperAdmin,
   });
 
-  // Check access - must be authenticated super admin
-  const isLoading = authLoading || loadingSuperAdmin;
+  // Check access - must be authenticated platform owner or super admin
+  const isLoading = authLoading || loadingOwner || loadingSuperAdmin;
+  const hasAccess = isPlatformOwner || isSuperAdmin;
   
   if (isLoading) {
     return (
@@ -72,8 +75,8 @@ export default function PlatformAdmin() {
     return <Navigate to="/auth" replace />;
   }
 
-  // Only super admins can access this page
-  if (!isSuperAdmin) {
+  // Only platform owners and super admins can access this page
+  if (!hasAccess) {
     return <Navigate to="/teacher" replace />;
   }
 
@@ -87,18 +90,23 @@ export default function PlatformAdmin() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Super Admin Banner */}
-      <div className="bg-primary/10 border-b border-primary/20 px-4 py-3">
-        <div className="container mx-auto flex items-center gap-3">
-          <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30">
-            <Shield className="h-3 w-3 mr-1" />
-            SUPER ADMIN
-          </Badge>
-          <span className="text-sm text-primary">
-            Full platform access as <strong>{user?.email}</strong>
-          </span>
+      {/* Platform Owner Banner */}
+      <PlatformOwnerBanner />
+      
+      {/* Super Admin Banner (only if not platform owner) */}
+      {!isPlatformOwner && (
+        <div className="bg-primary/10 border-b border-primary/20 px-4 py-3">
+          <div className="container mx-auto flex items-center gap-3">
+            <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30">
+              <Shield className="h-3 w-3 mr-1" />
+              SUPER ADMIN
+            </Badge>
+            <span className="text-sm text-primary">
+              Full platform access as <strong>{user?.email}</strong>
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Header */}
       <header className="border-b bg-card">

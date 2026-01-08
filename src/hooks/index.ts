@@ -151,3 +151,10 @@ export {
   isDemoStudent,
   DELETE_DEMO_CONFIRMATION_PHRASE,
 } from "./useDemoSafety";
+
+// Platform Owner (unrestricted access)
+export {
+  usePlatformOwner,
+  isPlatformOwnerEmail,
+  PLATFORM_OWNER_EMAIL,
+} from "./usePlatformOwner";

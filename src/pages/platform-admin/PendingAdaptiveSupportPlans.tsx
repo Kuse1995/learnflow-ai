@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useIsSuperAdmin } from '@/hooks/useSuperAdmin';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { usePlatformOwner } from '@/hooks/usePlatformOwner';
+import { PlatformOwnerBanner } from '@/components/platform-owner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,6 +45,7 @@ export default function PendingAdaptiveSupportPlans() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, isAuthenticated, isLoading: authLoading } = useAuthContext();
+  const { isPlatformOwner, isLoading: loadingOwner } = usePlatformOwner();
   const { data: isSuperAdmin, isLoading: loadingSuperAdmin } = useIsSuperAdmin();
 
   // Fetch all pending adaptive support plans
@@ -90,7 +93,7 @@ export default function PendingAdaptiveSupportPlans() {
         };
       });
     },
-    enabled: !!isSuperAdmin,
+    enabled: isPlatformOwner || !!isSuperAdmin,
   });
 
   // Acknowledge mutation
@@ -118,7 +121,8 @@ export default function PendingAdaptiveSupportPlans() {
   });
 
   // Check access
-  const isLoading = authLoading || loadingSuperAdmin;
+  const isLoading = authLoading || loadingOwner || loadingSuperAdmin;
+  const hasAccess = isPlatformOwner || isSuperAdmin;
   
   if (isLoading) {
     return (
@@ -137,24 +141,29 @@ export default function PendingAdaptiveSupportPlans() {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!isSuperAdmin) {
+  if (!hasAccess) {
     return <Navigate to="/teacher" replace />;
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Super Admin Banner */}
-      <div className="bg-primary/10 border-b border-primary/20 px-4 py-3">
-        <div className="container mx-auto flex items-center gap-3">
-          <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30">
-            <Shield className="h-3 w-3 mr-1" />
-            SUPER ADMIN
-          </Badge>
-          <span className="text-sm text-primary">
-            Full platform access as <strong>{user?.email}</strong>
-          </span>
+      {/* Platform Owner Banner */}
+      <PlatformOwnerBanner />
+      
+      {/* Super Admin Banner (only if not platform owner) */}
+      {!isPlatformOwner && (
+        <div className="bg-primary/10 border-b border-primary/20 px-4 py-3">
+          <div className="container mx-auto flex items-center gap-3">
+            <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30">
+              <Shield className="h-3 w-3 mr-1" />
+              SUPER ADMIN
+            </Badge>
+            <span className="text-sm text-primary">
+              Full platform access as <strong>{user?.email}</strong>
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Header */}
       <header className="border-b bg-card">
