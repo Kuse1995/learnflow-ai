@@ -5,3 +5,4 @@ export { DeliveryStatusTracker } from "./DeliveryStatusTracker";
 export { ParentContactManager } from "./ParentContactManager";
 export { DeliveryFallbackDiagram } from "./DeliveryFallbackDiagram";
 export { MessageQueueStatus } from "./MessageQueueStatus";
+export { ParentPreferencesEditor } from "./ParentPreferencesEditor";

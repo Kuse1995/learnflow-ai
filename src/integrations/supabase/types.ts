@@ -1189,10 +1189,19 @@ export type Database = {
         Row: {
           created_at: string
           email: string | null
+          global_opt_out: boolean | null
           id: string
           last_successful_contact_at: string | null
+          max_messages_per_week: number | null
+          opt_out_at: string | null
+          opt_out_reason: string | null
           parent_name: string
+          preferences_updated_at: string | null
+          preferences_updated_by: string | null
+          preferred_channel: string | null
           preferred_language: string | null
+          quiet_hours_end: number | null
+          quiet_hours_start: number | null
           receives_announcements: boolean | null
           receives_attendance_notices: boolean | null
           receives_emergency: boolean | null
@@ -1207,10 +1216,19 @@ export type Database = {
         Insert: {
           created_at?: string
           email?: string | null
+          global_opt_out?: boolean | null
           id?: string
           last_successful_contact_at?: string | null
+          max_messages_per_week?: number | null
+          opt_out_at?: string | null
+          opt_out_reason?: string | null
           parent_name: string
+          preferences_updated_at?: string | null
+          preferences_updated_by?: string | null
+          preferred_channel?: string | null
           preferred_language?: string | null
+          quiet_hours_end?: number | null
+          quiet_hours_start?: number | null
           receives_announcements?: boolean | null
           receives_attendance_notices?: boolean | null
           receives_emergency?: boolean | null
@@ -1225,10 +1243,19 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string | null
+          global_opt_out?: boolean | null
           id?: string
           last_successful_contact_at?: string | null
+          max_messages_per_week?: number | null
+          opt_out_at?: string | null
+          opt_out_reason?: string | null
           parent_name?: string
+          preferences_updated_at?: string | null
+          preferences_updated_by?: string | null
+          preferred_channel?: string | null
           preferred_language?: string | null
+          quiet_hours_end?: number | null
+          quiet_hours_start?: number | null
           receives_announcements?: boolean | null
           receives_attendance_notices?: boolean | null
           receives_emergency?: boolean | null
@@ -1406,6 +1433,50 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_preference_history: {
+        Row: {
+          change_type: string
+          changed_by: string | null
+          changed_by_role: string
+          created_at: string
+          id: string
+          new_value: Json | null
+          parent_contact_id: string
+          previous_value: Json | null
+          reason: string | null
+        }
+        Insert: {
+          change_type: string
+          changed_by?: string | null
+          changed_by_role: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          parent_contact_id: string
+          previous_value?: Json | null
+          reason?: string | null
+        }
+        Update: {
+          change_type?: string
+          changed_by?: string | null
+          changed_by_role?: string
+          created_at?: string
+          id?: string
+          new_value?: Json | null
+          parent_contact_id?: string
+          previous_value?: Json | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_preference_history_parent_contact_id_fkey"
+            columns: ["parent_contact_id"]
+            isOneToOne: false
+            referencedRelation: "parent_contacts"
             referencedColumns: ["id"]
           },
         ]
@@ -3602,6 +3673,14 @@ export type Database = {
         Args: { _student_id: string; _user_id: string }
         Returns: boolean
       }
+      can_send_to_parent: {
+        Args: {
+          p_category: Database["public"]["Enums"]["message_category"]
+          p_is_emergency?: boolean
+          p_parent_contact_id: string
+        }
+        Returns: Json
+      }
       create_audit_log: {
         Args: {
           p_action: string
@@ -3675,6 +3754,18 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      log_preference_change: {
+        Args: {
+          p_change_type: string
+          p_changed_by: string
+          p_changed_by_role: string
+          p_new_value: Json
+          p_parent_contact_id: string
+          p_previous_value: Json
+          p_reason?: string
+        }
+        Returns: string
+      }
       log_school_history: {
         Args: {
           p_action_description: string
