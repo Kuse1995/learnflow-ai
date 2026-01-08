@@ -28,17 +28,17 @@ export default function Auth() {
   const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string }>({});
   const [magicLinkSent, setMagicLinkSent] = useState(false);
 
-  // Check for existing session
+  // Check for existing session - redirect to role-based dashboard
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        navigate('/teacher');
+        navigate('/home');
       }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        navigate('/teacher');
+        navigate('/home');
       }
     });
 
@@ -72,7 +72,7 @@ export default function Auth() {
     const { error } = await supabase.auth.signInWithOtp({
       email: SUPER_ADMIN_EMAIL,
       options: {
-        emailRedirectTo: `${window.location.origin}/teacher`,
+        emailRedirectTo: `${window.location.origin}/home`,
       },
     });
 
