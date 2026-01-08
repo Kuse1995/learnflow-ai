@@ -784,6 +784,192 @@ export type Database = {
           },
         ]
       }
+      guardian_link_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          guardian_id: string
+          id: string
+          ip_address: string | null
+          link_request_id: string | null
+          metadata: Json | null
+          new_status: Database["public"]["Enums"]["link_request_status"] | null
+          performed_by: string | null
+          performed_by_role: string | null
+          previous_status:
+            | Database["public"]["Enums"]["link_request_status"]
+            | null
+          reason: string | null
+          student_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          guardian_id: string
+          id?: string
+          ip_address?: string | null
+          link_request_id?: string | null
+          metadata?: Json | null
+          new_status?: Database["public"]["Enums"]["link_request_status"] | null
+          performed_by?: string | null
+          performed_by_role?: string | null
+          previous_status?:
+            | Database["public"]["Enums"]["link_request_status"]
+            | null
+          reason?: string | null
+          student_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          guardian_id?: string
+          id?: string
+          ip_address?: string | null
+          link_request_id?: string | null
+          metadata?: Json | null
+          new_status?: Database["public"]["Enums"]["link_request_status"] | null
+          performed_by?: string | null
+          performed_by_role?: string | null
+          previous_status?:
+            | Database["public"]["Enums"]["link_request_status"]
+            | null
+          reason?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guardian_link_audit_log_link_request_id_fkey"
+            columns: ["link_request_id"]
+            isOneToOne: false
+            referencedRelation: "guardian_link_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guardian_link_requests: {
+        Row: {
+          activated_at: string | null
+          activated_by: string | null
+          confirmation_code: string | null
+          confirmation_expires_at: string | null
+          confirmation_method: string | null
+          confirmation_sent_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          duration_type: Database["public"]["Enums"]["link_duration"]
+          expires_at: string | null
+          guardian_id: string
+          id: string
+          identity_verified_at: string | null
+          identity_verified_by: string | null
+          initiated_by: string
+          initiated_by_role: string
+          permission_tier: Database["public"]["Enums"]["parent_permission_tier"]
+          rejection_reason: string | null
+          relationship_type: Database["public"]["Enums"]["guardian_role"]
+          requires_parent_confirmation: boolean | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          school_id: string
+          status: Database["public"]["Enums"]["link_request_status"]
+          student_id: string
+          updated_at: string
+          verification_notes: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
+          confirmation_code?: string | null
+          confirmation_expires_at?: string | null
+          confirmation_method?: string | null
+          confirmation_sent_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          duration_type?: Database["public"]["Enums"]["link_duration"]
+          expires_at?: string | null
+          guardian_id: string
+          id?: string
+          identity_verified_at?: string | null
+          identity_verified_by?: string | null
+          initiated_by: string
+          initiated_by_role: string
+          permission_tier?: Database["public"]["Enums"]["parent_permission_tier"]
+          rejection_reason?: string | null
+          relationship_type?: Database["public"]["Enums"]["guardian_role"]
+          requires_parent_confirmation?: boolean | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          school_id: string
+          status?: Database["public"]["Enums"]["link_request_status"]
+          student_id: string
+          updated_at?: string
+          verification_notes?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          activated_by?: string | null
+          confirmation_code?: string | null
+          confirmation_expires_at?: string | null
+          confirmation_method?: string | null
+          confirmation_sent_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          duration_type?: Database["public"]["Enums"]["link_duration"]
+          expires_at?: string | null
+          guardian_id?: string
+          id?: string
+          identity_verified_at?: string | null
+          identity_verified_by?: string | null
+          initiated_by?: string
+          initiated_by_role?: string
+          permission_tier?: Database["public"]["Enums"]["parent_permission_tier"]
+          rejection_reason?: string | null
+          relationship_type?: Database["public"]["Enums"]["guardian_role"]
+          requires_parent_confirmation?: boolean | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          school_id?: string
+          status?: Database["public"]["Enums"]["link_request_status"]
+          student_id?: string
+          updated_at?: string
+          verification_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guardian_link_requests_guardian_id_fkey"
+            columns: ["guardian_id"]
+            isOneToOne: false
+            referencedRelation: "guardians"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guardian_link_requests_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guardian_link_requests_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guardian_phone_registry: {
         Row: {
           created_at: string
@@ -3921,6 +4107,14 @@ export type Database = {
         Args: { p_reason?: string; p_school_id: string }
         Returns: Database["public"]["Enums"]["rollout_phase"]
       }
+      approve_guardian_link: {
+        Args: {
+          p_request_id: string
+          p_review_notes?: string
+          p_send_confirmation?: boolean
+        }
+        Returns: boolean
+      }
       can_access_class: {
         Args: { _class_id: string; _user_id: string }
         Returns: boolean
@@ -3936,6 +4130,10 @@ export type Database = {
           p_parent_contact_id: string
         }
         Returns: Json
+      }
+      confirm_guardian_link: {
+        Args: { p_confirmation_code: string; p_request_id: string }
+        Returns: boolean
       }
       create_audit_log: {
         Args: {
@@ -4012,6 +4210,20 @@ export type Database = {
         Args: { p_school_id: string }
         Returns: undefined
       }
+      initiate_guardian_link: {
+        Args: {
+          p_confirmation_method?: string
+          p_duration_type: Database["public"]["Enums"]["link_duration"]
+          p_expires_at?: string
+          p_guardian_id: string
+          p_permission_tier: Database["public"]["Enums"]["parent_permission_tier"]
+          p_relationship_type: Database["public"]["Enums"]["guardian_role"]
+          p_requires_confirmation?: boolean
+          p_student_id: string
+          p_verification_notes?: string
+        }
+        Returns: string
+      }
       is_ai_enabled_for_school: {
         Args: { p_school_id: string }
         Returns: boolean
@@ -4021,6 +4233,21 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      log_guardian_link_change: {
+        Args: {
+          p_action: string
+          p_guardian_id: string
+          p_link_request_id: string
+          p_metadata?: Json
+          p_new_status: Database["public"]["Enums"]["link_request_status"]
+          p_performed_by: string
+          p_performed_by_role: string
+          p_previous_status: Database["public"]["Enums"]["link_request_status"]
+          p_reason?: string
+          p_student_id: string
+        }
+        Returns: string
+      }
       log_preference_change: {
         Args: {
           p_change_type: string
@@ -4051,9 +4278,17 @@ export type Database = {
         Args: { p_reason: string; p_school_id: string }
         Returns: boolean
       }
+      reject_guardian_link: {
+        Args: { p_reason: string; p_request_id: string }
+        Returns: boolean
+      }
       restore_student: { Args: { p_student_id: string }; Returns: boolean }
       resume_pilot_school_ai: {
         Args: { p_school_id: string }
+        Returns: boolean
+      }
+      revoke_guardian_link: {
+        Args: { p_reason: string; p_request_id: string }
         Returns: boolean
       }
       school_at_phase_or_later: {
@@ -4113,6 +4348,19 @@ export type Database = {
         | "primary_guardian"
         | "secondary_guardian"
         | "informational_contact"
+      link_duration:
+        | "permanent"
+        | "temporary_term"
+        | "temporary_year"
+        | "temporary_custom"
+      link_request_status:
+        | "pending_review"
+        | "pending_confirmation"
+        | "confirmed"
+        | "activated"
+        | "rejected"
+        | "expired"
+        | "revoked"
       message_category:
         | "learning_update"
         | "attendance_notice"
@@ -4318,6 +4566,21 @@ export const Constants = {
         "primary_guardian",
         "secondary_guardian",
         "informational_contact",
+      ],
+      link_duration: [
+        "permanent",
+        "temporary_term",
+        "temporary_year",
+        "temporary_custom",
+      ],
+      link_request_status: [
+        "pending_review",
+        "pending_confirmation",
+        "confirmed",
+        "activated",
+        "rejected",
+        "expired",
+        "revoked",
       ],
       message_category: [
         "learning_update",
