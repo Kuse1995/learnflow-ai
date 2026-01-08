@@ -2970,9 +2970,64 @@ export type Database = {
           },
         ]
       }
+      payment_plan_workflow_history: {
+        Row: {
+          action: string
+          created_at: string
+          from_status: string
+          id: string
+          ip_address: string | null
+          notes: string | null
+          performed_at: string
+          performed_by: string
+          performed_by_role: string
+          plan_id: string
+          reason: string | null
+          to_status: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          from_status: string
+          id?: string
+          ip_address?: string | null
+          notes?: string | null
+          performed_at?: string
+          performed_by: string
+          performed_by_role: string
+          plan_id: string
+          reason?: string | null
+          to_status: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          from_status?: string
+          id?: string
+          ip_address?: string | null
+          notes?: string | null
+          performed_at?: string
+          performed_by?: string
+          performed_by_role?: string
+          plan_id?: string
+          reason?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_plan_workflow_history_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "payment_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_plans: {
         Row: {
           academic_year: number
+          activated_at: string | null
+          activated_by: string | null
           approval_notes: string | null
           approved_at: string | null
           approved_by: string | null
@@ -2980,6 +3035,8 @@ export type Database = {
           cancellation_reason: string | null
           cancelled_at: string | null
           cancelled_by: string | null
+          completed_at: string | null
+          completed_by: string | null
           created_at: string
           created_by: string | null
           created_by_role: string | null
@@ -2995,6 +3052,9 @@ export type Database = {
           parent_agreement_date: string | null
           parent_agreement_method: string | null
           plan_name: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
           remaining_amount: number
           school_id: string
           start_date: string
@@ -3008,6 +3068,8 @@ export type Database = {
         }
         Insert: {
           academic_year: number
+          activated_at?: string | null
+          activated_by?: string | null
           approval_notes?: string | null
           approved_at?: string | null
           approved_by?: string | null
@@ -3015,6 +3077,8 @@ export type Database = {
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           created_by?: string | null
           created_by_role?: string | null
@@ -3030,6 +3094,9 @@ export type Database = {
           parent_agreement_date?: string | null
           parent_agreement_method?: string | null
           plan_name?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           remaining_amount: number
           school_id: string
           start_date: string
@@ -3043,6 +3110,8 @@ export type Database = {
         }
         Update: {
           academic_year?: number
+          activated_at?: string | null
+          activated_by?: string | null
           approval_notes?: string | null
           approved_at?: string | null
           approved_by?: string | null
@@ -3050,6 +3119,8 @@ export type Database = {
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           created_by?: string | null
           created_by_role?: string | null
@@ -3065,6 +3136,9 @@ export type Database = {
           parent_agreement_date?: string | null
           parent_agreement_method?: string | null
           plan_name?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           remaining_amount?: number
           school_id?: string
           start_date?: string
@@ -5877,6 +5951,15 @@ export type Database = {
           p_student_id: string
         }
         Returns: Json
+      }
+      validate_plan_transition: {
+        Args: {
+          p_from_status: string
+          p_plan_id: string
+          p_role: string
+          p_to_status: string
+        }
+        Returns: boolean
       }
       verify_audit_chain: {
         Args: { p_environment: string }
