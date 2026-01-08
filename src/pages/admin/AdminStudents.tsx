@@ -1,28 +1,51 @@
 /**
  * Admin Students Page
- * School-wide student roster grouped by class
- * No individual learning profiles (per RBAC rules)
+ * School-wide student management with add/view capabilities
  */
 
-import { Users, School, ArrowRightLeft } from "lucide-react";
+import { useState } from "react";
+import { Users, School, Plus, Search, Phone, Mail } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { AlertCircle } from "lucide-react";
 import { useSchoolAdminSchool, useSchoolClassesWithDetails, useIsSchoolAdmin } from "@/hooks/useSchoolAdmin";
+import { useSchoolStudents } from "@/hooks/useSchoolStudents";
 import { AdminLayout } from "@/components/navigation/AdminNav";
 import { usePlatformOwner } from "@/hooks/usePlatformOwner";
+import { AddStudentDialog } from "@/components/school-admin/AddStudentDialog";
 
 export default function AdminStudents() {
   const { data: school, isLoading: schoolLoading } = useSchoolAdminSchool();
   const { data: classes, isLoading: classesLoading } = useSchoolClassesWithDetails(school?.id);
+  const { data: students, isLoading: studentsLoading } = useSchoolStudents(school?.id);
   const { data: isAdmin, isLoading: isAdminLoading } = useIsSchoolAdmin();
   const { isPlatformOwner } = usePlatformOwner();
 
-  const isLoading = schoolLoading || classesLoading || isAdminLoading;
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const isLoading = schoolLoading || classesLoading || isAdminLoading || studentsLoading;
   const activeClasses = classes?.filter(c => !c.deleted_at) || [];
-  const totalStudents = activeClasses.reduce((sum, c) => sum + (c.student_count || 0), 0);
+
+  // Filter students by search query
+  const filteredStudents = students?.filter(s => 
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.student_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.guardian_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.class_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
   if (isLoading) {
     return (
@@ -61,88 +84,138 @@ export default function AdminStudents() {
     <AdminLayout schoolName={school.name}>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Users className="h-6 w-6" />
-            Student Roster
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {totalStudents} students across {activeClasses.length} classes
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Users className="h-6 w-6" />
+              Student Roster
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {students?.length || 0} students enrolled
+            </p>
+          </div>
+          <Button onClick={() => setShowAddDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Student
+          </Button>
         </div>
 
-        {/* Info Banner */}
-        <div className="bg-muted/50 rounded-lg px-4 py-3 text-sm text-muted-foreground">
-          <p>
-            📋 This view shows student counts by class. Individual student profiles and learning data 
-            are managed by teachers within their classrooms.
-          </p>
+        {/* Search */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, ID, class, or guardian..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
         </div>
 
-        {/* Students by Class */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {activeClasses.length > 0 ? (
-            activeClasses.map((classItem) => (
-              <Card key={classItem.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{classItem.name}</CardTitle>
-                    {classItem.grade && (
-                      <Badge variant="outline">{classItem.grade}</Badge>
-                    )}
-                  </div>
-                  <CardDescription>
-                    {classItem.teacher_name || "No teacher assigned"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-2xl font-bold">{classItem.student_count}</span>
-                      <span className="text-muted-foreground">students</span>
-                    </div>
-                  </div>
-                  {classItem.subject && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Subject: {classItem.subject}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            <Card className="col-span-full">
-              <CardContent className="py-12 text-center">
-                <School className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                <p className="text-muted-foreground">No classes created yet</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Create classes to start enrolling students
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Transfer Info */}
+        {/* Students Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <ArrowRightLeft className="h-5 w-5" />
-              Student Transfers
-            </CardTitle>
+            <CardTitle>All Students</CardTitle>
             <CardDescription>
-              Need to move a student between classes?
+              Manage student enrollment and guardian information
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Student transfers are managed by teachers within their class views. 
-              If a teacher needs to transfer a student to another class, they can 
-              initiate the transfer from the student's profile page.
-            </p>
+            {filteredStudents.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Student ID</TableHead>
+                    <TableHead>Grade</TableHead>
+                    <TableHead>Class</TableHead>
+                    <TableHead>Guardian</TableHead>
+                    <TableHead>Contact</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredStudents.map((student) => (
+                    <TableRow key={student.id}>
+                      <TableCell className="font-medium">{student.name}</TableCell>
+                      <TableCell>
+                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                          {student.student_id}
+                        </code>
+                      </TableCell>
+                      <TableCell>
+                        {student.grade ? (
+                          <Badge variant="outline">{student.grade}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.class_name ? (
+                          <Badge variant="secondary">{student.class_name}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">Not assigned</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.guardian_name || (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.guardian_phone ? (
+                          <span className="flex items-center gap-1 text-sm">
+                            <Phone className="h-3 w-3 text-muted-foreground" />
+                            {student.guardian_phone}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="py-12 text-center">
+                <School className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                {searchQuery ? (
+                  <>
+                    <p className="text-muted-foreground">No students match your search</p>
+                    <Button 
+                      variant="link" 
+                      onClick={() => setSearchQuery("")}
+                      className="mt-2"
+                    >
+                      Clear search
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-muted-foreground">No students enrolled yet</p>
+                    <Button 
+                      onClick={() => setShowAddDialog(true)}
+                      className="mt-4"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Your First Student
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Add Student Dialog */}
+        <AddStudentDialog
+          open={showAddDialog}
+          onOpenChange={setShowAddDialog}
+          schoolId={school.id}
+          classes={activeClasses.map(c => ({
+            id: c.id,
+            name: c.name,
+            grade: c.grade,
+          }))}
+        />
       </div>
     </AdminLayout>
   );
