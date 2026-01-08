@@ -59,9 +59,13 @@ export type PermissionAction =
   | 'create_adaptive_support_plan'
   | 'edit_adaptive_support_plan'
   | 'acknowledge_adaptive_support_plan'
+  | 'view_adaptive_support_plans'
   | 'create_parent_insight'
   | 'edit_parent_insight'
   | 'approve_parent_insights'
+  | 'view_approved_parent_insights'
+  | 'view_draft_parent_insights'
+  | 'view_home_support_tips'
   | 'view_ai_suggestions'
   | 'view_ai_analyses'
   // Communication
@@ -107,9 +111,15 @@ export type PermissionAction =
  *         create/edit/approve Parent Insights, view Teaching Actions & Learning Profiles
  * ❌ CANNOT: View other teachers' classes/students, modify billing/subscription,
  *            modify system config, see raw AI prompts/diagnostics
+ * 
+ * Parent Permissions Summary:
+ * ✅ CAN: View ONLY their linked children, view approved Parent Insight summaries,
+ *         view home support tips attached to approved insights, view attendance, view fees
+ * ❌ CANNOT: View learning profiles, view adaptive support plans, view AI analyses,
+ *            view teaching actions, edit/approve content, see drafts or unapproved summaries
  */
 const PERMISSION_MATRIX: Record<PermissionAction, AppRole[]> = {
-  // Fee Management - Teachers CANNOT access billing/fees
+  // Fee Management - Parents CAN view fees (read-only)
   view_fees: ['platform_admin', 'school_admin', 'admin', 'bursar', 'parent'],
   record_payment: ['school_admin', 'admin', 'bursar'],
   add_adjustment: ['school_admin', 'admin', 'bursar'],
@@ -118,46 +128,50 @@ const PERMISSION_MATRIX: Record<PermissionAction, AppRole[]> = {
   view_financial_reports: ['platform_admin', 'school_admin', 'admin', 'bursar'],
   export_financial_data: ['school_admin', 'admin', 'bursar'],
 
-  // Attendance - Teachers CAN mark/view attendance for their classes
+  // Attendance - Parents CAN view attendance (read-only)
   view_attendance: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
   mark_attendance: ['teacher', 'school_admin', 'admin'],
   edit_attendance: ['teacher', 'school_admin', 'admin'],
 
-  // Academics - Teachers CAN access for their assigned classes only
+  // Academics - Parents have LIMITED view access (no learning profiles)
   view_student_profiles: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
   edit_student_profiles: ['school_admin', 'admin', 'teacher'],
   view_grades: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent', 'student'],
   record_grades: ['teacher', 'school_admin', 'admin'],
   upload_work: ['teacher'],
   view_uploads: ['platform_admin', 'school_admin', 'admin', 'teacher'],
-  view_learning_profiles: ['platform_admin', 'school_admin', 'admin', 'teacher'],
-  view_teaching_actions: ['platform_admin', 'school_admin', 'admin', 'teacher'],
+  view_learning_profiles: ['platform_admin', 'school_admin', 'admin', 'teacher'], // Parents CANNOT
+  view_teaching_actions: ['platform_admin', 'school_admin', 'admin', 'teacher'], // Parents CANNOT
 
-  // AI Tools - Teachers CAN use AI for their classes
+  // AI Tools - Parents CANNOT access AI tools, only approved outputs
   generate_lesson_plans: ['teacher'],
   generate_adaptive_support: ['teacher'],
   generate_learning_paths: ['teacher'],
   create_adaptive_support_plan: ['teacher'],
   edit_adaptive_support_plan: ['teacher'],
   acknowledge_adaptive_support_plan: ['teacher'],
+  view_adaptive_support_plans: ['platform_admin', 'school_admin', 'admin', 'teacher'], // Parents CANNOT
   create_parent_insight: ['teacher'],
   edit_parent_insight: ['teacher'],
   approve_parent_insights: ['teacher'],
+  view_approved_parent_insights: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'], // Parents CAN
+  view_draft_parent_insights: ['platform_admin', 'school_admin', 'admin', 'teacher'], // Parents CANNOT
+  view_home_support_tips: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'], // Parents CAN (attached to approved)
   view_ai_suggestions: ['teacher'],
-  view_ai_analyses: ['platform_admin', 'school_admin', 'admin', 'teacher'],
+  view_ai_analyses: ['platform_admin', 'school_admin', 'admin', 'teacher'], // Parents CANNOT
 
-  // Communication - Teachers CAN send messages to parents
+  // Communication - Parents CAN view messages (read-only)
   send_parent_messages: ['school_admin', 'admin', 'teacher'],
   view_messages: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
   approve_messages: ['school_admin', 'admin'],
 
-  // Reports - Teachers CAN access for their classes
+  // Reports - Parents CAN view student reports (read-only)
   view_class_reports: ['platform_admin', 'school_admin', 'admin', 'teacher'],
   view_student_reports: ['platform_admin', 'school_admin', 'admin', 'teacher', 'parent'],
   generate_term_reports: ['school_admin', 'admin', 'teacher'],
   export_reports: ['school_admin', 'admin', 'teacher'],
 
-  // Admin - Teachers CANNOT access
+  // Admin - Parents CANNOT access
   manage_classes: ['school_admin', 'admin'],
   manage_students: ['school_admin', 'admin'],
   manage_teachers: ['school_admin', 'admin'],
@@ -168,12 +182,12 @@ const PERMISSION_MATRIX: Record<PermissionAction, AppRole[]> = {
   modify_subscription: ['platform_admin', 'school_admin'],
   modify_system_config: ['platform_admin'],
 
-  // Role Management - Teachers CANNOT access
+  // Role Management - Parents CANNOT access
   assign_roles: ['platform_admin', 'school_admin', 'admin'],
   revoke_roles: ['platform_admin', 'school_admin', 'admin'],
   view_roles: ['platform_admin', 'school_admin', 'admin'],
 
-  // System - Teachers CANNOT access
+  // System - Parents CANNOT access
   access_platform_admin: ['platform_admin'],
   access_school_admin: ['school_admin', 'admin'],
   view_system_status: ['platform_admin', 'school_admin', 'admin'],
@@ -360,4 +374,55 @@ export function isTeacherForbidden(action: string): boolean {
  */
 export function getTeacherPermissions(): PermissionAction[] {
   return getRolePermissions('teacher');
+}
+
+// =============================================================================
+// PARENT SCOPE CONSTRAINTS
+// =============================================================================
+
+/**
+ * Parent permissions are scoped to their linked children ONLY.
+ * Database function can_access_student() enforces via guardian_student_links.
+ * Parents can ONLY see teacher-approved content.
+ */
+export const PARENT_SCOPE_RULES = {
+  // What parents CAN do (for their linked children only)
+  allowed: [
+    'view_linked_children',
+    'view_approved_parent_insights',
+    'view_home_support_tips',
+    'view_attendance',
+    'view_fees',
+    'view_messages',
+    'view_student_reports',
+  ] as const,
+  
+  // What parents CANNOT do
+  forbidden: [
+    'view_other_students',
+    'view_learning_profiles',
+    'view_adaptive_support_plans',
+    'view_ai_analyses',
+    'view_teaching_actions',
+    'view_draft_insights',
+    'view_unapproved_content',
+    'edit_any_content',
+    'approve_any_content',
+    'view_uploads',
+    'view_class_reports',
+  ] as const,
+} as const;
+
+/**
+ * Check if an action is explicitly forbidden for parents
+ */
+export function isParentForbidden(action: string): boolean {
+  return (PARENT_SCOPE_RULES.forbidden as readonly string[]).includes(action);
+}
+
+/**
+ * Get all permissions available to parents
+ */
+export function getParentPermissions(): PermissionAction[] {
+  return getRolePermissions('parent');
 }
