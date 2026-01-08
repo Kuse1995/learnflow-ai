@@ -16,6 +16,8 @@ import {
   TeacherActions,
   TeacherParentInsights,
   TeacherTraining,
+  TeacherClassReport,
+  TeacherStudentReport,
 } from "./pages/teacher";
 import { ParentDashboard } from "./pages/parent";
 import { StudentPractice } from "./pages/student";
@@ -57,9 +59,11 @@ const App = () => (
           <Route path="/teacher/attendance" element={<TeacherAttendance />} />
           <Route path="/teacher/classes" element={<TeacherClasses />} />
           <Route path="/teacher/classes/:classId" element={<TeacherClassDetail />} />
+          <Route path="/teacher/classes/:classId/reports" element={<TeacherClassReport />} />
           <Route path="/teacher/classes/:classId/students/:studentId" element={<TeacherStudentProfile />} />
           <Route path="/teacher/classes/:classId/actions" element={<TeacherActions />} />
           <Route path="/teacher/classes/:classId/parent-insights" element={<TeacherParentInsights />} />
+          <Route path="/teacher/students/:studentId/report" element={<TeacherStudentReport />} />
           <Route path="/teacher/uploads" element={<TeacherUploads />} />
           <Route path="/teacher/insights" element={<TeacherInsights />} />
           <Route path="/teacher/training" element={<TeacherTraining />} />
