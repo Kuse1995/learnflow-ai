@@ -7140,6 +7140,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_super_admin_access: { Args: never; Returns: boolean }
       increment_usage_metric: {
         Args: { p_limit: number; p_metric: string; p_school_id: string }
         Returns: Json
@@ -7250,7 +7251,7 @@ export type Database = {
         Returns: boolean
       }
       is_service_role: { Args: never; Returns: boolean }
-      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_super_admin: { Args: { _user_id?: string }; Returns: boolean }
       is_system_read_only: { Args: { p_school_id?: string }; Returns: boolean }
       is_term_closed: {
         Args: { p_academic_year: number; p_school_id: string; p_term: number }

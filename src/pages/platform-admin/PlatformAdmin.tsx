@@ -1,6 +1,6 @@
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useDemoMode } from '@/contexts/DemoModeContext';
-import { useSystemMode } from '@/hooks/useDemoSuperAdmin';
+import { useIsSuperAdmin } from '@/hooks/useSuperAdmin';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { usePendingParentInsightsByClass } from '@/hooks/usePendingParentInsights';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,8 +23,8 @@ import { toast } from 'sonner';
 
 export default function PlatformAdmin() {
   const navigate = useNavigate();
-  const { isDemoMode, isSuperAdmin, superAdminInfo, demoRole } = useDemoMode();
-  const { data: systemMode, isLoading: loadingMode } = useSystemMode();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthContext();
+  const { data: isSuperAdmin, isLoading: loadingSuperAdmin } = useIsSuperAdmin();
   const { data: pendingByClass = [], isLoading: loadingPendingByClass } = usePendingParentInsightsByClass();
 
   // Fetch pending counts
@@ -48,11 +48,11 @@ export default function PlatformAdmin() {
         pendingPlans: plansRes.count ?? 0,
       };
     },
-    enabled: isSuperAdmin,
+    enabled: !!isSuperAdmin,
   });
 
-  // Check access - must be demo super admin in demo mode
-  const isLoading = loadingMode;
+  // Check access - must be authenticated super admin
+  const isLoading = authLoading || loadingSuperAdmin;
   
   if (isLoading) {
     return (
@@ -67,11 +67,13 @@ export default function PlatformAdmin() {
     );
   }
 
-  // Allow access if: super admin in demo mode OR demo role is super_admin
-  const hasAccess = isSuperAdmin || demoRole === 'super_admin';
-  
-  // Redirect non-super admins to teacher dashboard
-  if (!hasAccess) {
+  // Require authentication
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Only super admins can access this page
+  if (!isSuperAdmin) {
     return <Navigate to="/teacher" replace />;
   }
 
@@ -83,19 +85,17 @@ export default function PlatformAdmin() {
     toast.info('Clear demo analytics functionality coming soon');
   };
 
-  const isDemoSystemMode = systemMode === 'demo';
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Demo Mode Banner */}
-      <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-3">
+      {/* Super Admin Banner */}
+      <div className="bg-primary/10 border-b border-primary/20 px-4 py-3">
         <div className="container mx-auto flex items-center gap-3">
-          <Badge variant="outline" className="bg-amber-500/20 text-amber-700 border-amber-500/30">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            DEMO MODE
+          <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30">
+            <Shield className="h-3 w-3 mr-1" />
+            SUPER ADMIN
           </Badge>
-          <span className="text-sm text-amber-700">
-            You are viewing the platform in demo mode as <strong>{superAdminInfo?.email}</strong>
+          <span className="text-sm text-primary">
+            Full platform access as <strong>{user?.email}</strong>
           </span>
         </div>
       </div>
@@ -255,20 +255,17 @@ export default function PlatformAdmin() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Demo Mode Indicator */}
+              {/* Super Admin Indicator */}
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-3">
-                  <AlertTriangle className="h-5 w-5 text-amber-500" />
+                  <Shield className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="font-medium">Demo Mode</p>
-                    <p className="text-sm text-muted-foreground">System operating environment</p>
+                    <p className="font-medium">Access Level</p>
+                    <p className="text-sm text-muted-foreground">Platform-wide permissions</p>
                   </div>
                 </div>
-                <Badge 
-                  variant={isDemoSystemMode ? 'default' : 'secondary'}
-                  className={isDemoSystemMode ? 'bg-amber-500 hover:bg-amber-500/80' : ''}
-                >
-                  {isDemoSystemMode ? 'ACTIVE' : 'INACTIVE'}
+                <Badge variant="default" className="bg-primary">
+                  SUPER ADMIN
                 </Badge>
               </div>
 

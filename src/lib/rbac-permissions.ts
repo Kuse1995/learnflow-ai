@@ -225,6 +225,9 @@ const PERMISSION_MATRIX: Record<PermissionAction, AppRole[]> = {
  * Check if a role can perform a specific action
  */
 export function canRolePerform(role: AppRole, action: PermissionAction): boolean {
+  // Platform admin (super admin) has ALL permissions
+  if (role === 'platform_admin') return true;
+  
   const allowedRoles = PERMISSION_MATRIX[action];
   return allowedRoles?.includes(role) ?? false;
 }
@@ -236,6 +239,9 @@ export function canPerformAction(
   userRoles: AppRole[],
   action: PermissionAction
 ): boolean {
+  // Platform admin (super admin) has ALL permissions
+  if (userRoles.includes('platform_admin')) return true;
+  
   return userRoles.some(role => canRolePerform(role, action));
 }
 
