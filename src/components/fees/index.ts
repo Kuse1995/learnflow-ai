@@ -18,3 +18,5 @@ export { StudentBalancesList } from './StudentBalancesList';
 export { PaymentPlanManager } from './PaymentPlanManager';
 export { CreatePaymentPlanDialog } from './CreatePaymentPlanDialog';
 export { PaymentPlanDetails } from './PaymentPlanDetails';
+export { PaymentPlanTemplateManager } from './PaymentPlanTemplateManager';
+export { AddPaymentPlanTemplateDialog } from './AddPaymentPlanTemplateDialog';

@@ -3768,6 +3768,59 @@ export type Database = {
           },
         ]
       }
+      payment_plan_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          frequency: string
+          frequency_days: number | null
+          id: string
+          installment_count: number
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          school_id: string
+          split_percentages: number[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          frequency: string
+          frequency_days?: number | null
+          id?: string
+          installment_count: number
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          school_id: string
+          split_percentages?: number[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          frequency?: string
+          frequency_days?: number | null
+          id?: string
+          installment_count?: number
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          school_id?: string
+          split_percentages?: number[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_plan_templates_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_plan_workflow_history: {
         Row: {
           action: string
