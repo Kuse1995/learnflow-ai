@@ -51,7 +51,6 @@ export function RecordPaymentForm({
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodKey>('cash');
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
-  const [receiptNumber, setReceiptNumber] = useState('');
   const [referenceNumber, setReferenceNumber] = useState('');
   const [payerName, setPayerName] = useState('');
   const [notes, setNotes] = useState('');
@@ -74,7 +73,6 @@ export function RecordPaymentForm({
       amount: parsedAmount,
       paymentMethod,
       paymentDate: format(paymentDate, 'yyyy-MM-dd'),
-      receiptNumber: receiptNumber || undefined,
       referenceNumber: referenceNumber || undefined,
       payerName: payerName || undefined,
       notes: notes || undefined,
@@ -156,17 +154,10 @@ export function RecordPaymentForm({
         </Popover>
       </div>
 
-      {/* Receipt Number */}
-      <div className="space-y-2">
-        <Label htmlFor="receiptNumber">Receipt Number</Label>
-        <Input
-          id="receiptNumber"
-          placeholder="REC-2025-001"
-          value={receiptNumber}
-          onChange={(e) => setReceiptNumber(e.target.value)}
-        />
-        <p className="text-xs text-muted-foreground">
-          Optional but recommended for record keeping
+      {/* Auto-generated Receipt Number Notice */}
+      <div className="p-3 bg-muted/50 rounded-lg border border-dashed">
+        <p className="text-sm text-muted-foreground">
+          📄 A receipt number will be <strong>auto-generated</strong> when this payment is recorded.
         </p>
       </div>
 
