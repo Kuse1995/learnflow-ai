@@ -173,11 +173,12 @@ export default function AdminSettings() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="grade">Grades (Grade 1, 2...)</SelectItem>
-                    <SelectItem value="form">Forms (Form 1, 2...)</SelectItem>
-                    <SelectItem value="year">Years (Year 1, 2...)</SelectItem>
-                    <SelectItem value="standard">Standards (Std 1, 2...)</SelectItem>
-                    <SelectItem value="class">Classes (Class 1, 2...)</SelectItem>
+                    <SelectItem value="zambia_2023">Zambia 2023 (Grade 1-6 + Form 1-6)</SelectItem>
+                    <SelectItem value="grade">Grades (Grade 1-12)</SelectItem>
+                    <SelectItem value="form">Forms (Form 1-6)</SelectItem>
+                    <SelectItem value="year">Years (Year 1-13)</SelectItem>
+                    <SelectItem value="standard">Standards (Std 1-8)</SelectItem>
+                    <SelectItem value="class">Classes (Class 1-8)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

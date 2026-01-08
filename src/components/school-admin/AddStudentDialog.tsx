@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, UserPlus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
 
 interface AddStudentDialogProps {
   open: boolean;
@@ -30,24 +31,6 @@ interface AddStudentDialogProps {
   classes: Array<{ id: string; name: string; grade: string | null }>;
 }
 
-const GRADE_OPTIONS = [
-  "Baby Class",
-  "Middle Class", 
-  "Reception",
-  "Grade 1",
-  "Grade 2",
-  "Grade 3",
-  "Grade 4",
-  "Grade 5",
-  "Grade 6",
-  "Grade 7",
-  "Grade 8",
-  "Grade 9",
-  "Grade 10",
-  "Grade 11",
-  "Grade 12",
-];
-
 export function AddStudentDialog({
   open,
   onOpenChange,
@@ -55,6 +38,7 @@ export function AddStudentDialog({
   classes,
 }: AddStudentDialogProps) {
   const queryClient = useQueryClient();
+  const { config: terminologyConfig } = useClassLevelTerminology(schoolId);
   
   // Student info
   const [studentName, setStudentName] = useState("");
@@ -198,15 +182,15 @@ export function AddStudentDialog({
               </div>
               
               <div>
-                <Label htmlFor="grade">Grade</Label>
+                <Label htmlFor="grade">{terminologyConfig.singular}</Label>
                 <Select value={grade} onValueChange={setGrade}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select grade" />
+                    <SelectValue placeholder={`Select ${terminologyConfig.singular.toLowerCase()}`} />
                   </SelectTrigger>
                   <SelectContent>
-                    {GRADE_OPTIONS.map((g) => (
-                      <SelectItem key={g} value={g}>
-                        {g}
+                    {terminologyConfig.levels.map((level) => (
+                      <SelectItem key={level} value={level}>
+                        {level}
                       </SelectItem>
                     ))}
                   </SelectContent>

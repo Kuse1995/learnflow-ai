@@ -25,6 +25,7 @@ import { useSchoolStudents } from "@/hooks/useSchoolStudents";
 import { AdminLayout } from "@/components/navigation/AdminNav";
 import { usePlatformOwner } from "@/hooks/usePlatformOwner";
 import { AddStudentDialog } from "@/components/school-admin/AddStudentDialog";
+import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
 
 export default function AdminStudents() {
   const { data: school, isLoading: schoolLoading } = useSchoolAdminSchool();
@@ -35,6 +36,7 @@ export default function AdminStudents() {
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { config: terminologyConfig } = useClassLevelTerminology(school?.id);
 
   const isLoading = schoolLoading || classesLoading || isAdminLoading || studentsLoading;
   const activeClasses = classes?.filter(c => !c.deleted_at) || [];
@@ -126,7 +128,7 @@ export default function AdminStudents() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Student ID</TableHead>
-                    <TableHead>Grade</TableHead>
+                    <TableHead>{terminologyConfig.singular}</TableHead>
                     <TableHead>Class</TableHead>
                     <TableHead>Guardian</TableHead>
                     <TableHead>Contact</TableHead>
