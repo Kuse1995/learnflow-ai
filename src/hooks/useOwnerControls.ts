@@ -344,7 +344,10 @@ interface CreateSchoolInput {
   name: string;
   planId?: string;
   isDemo: boolean;
-  billingStatus: 'trial' | 'active';
+  billingStatus: string;
+  country?: string;
+  timezone?: string;
+  adminUserIds?: string[];
 }
 
 export function useCreateSchool() {
@@ -352,6 +355,7 @@ export function useCreateSchool() {
 
   return useMutation({
     mutationFn: async (input: CreateSchoolInput) => {
+      // Use type assertion since country/timezone columns were just added
       const { data: school, error } = await supabase
         .from('schools')
         .insert({
@@ -360,7 +364,9 @@ export function useCreateSchool() {
           billing_status: input.billingStatus,
           billing_start_date: new Date().toISOString(),
           billing_end_date: addDays(new Date(), 14).toISOString(),
-        })
+          country: input.country || 'Zambia',
+          timezone: input.timezone || 'Africa/Lusaka',
+        } as any)
         .select()
         .single();
 
@@ -375,11 +381,39 @@ export function useCreateSchool() {
         });
       }
 
+      // Assign admins if provided
+      if (input.adminUserIds && input.adminUserIds.length > 0 && school) {
+        const adminRoles = input.adminUserIds.map(userId => ({
+          user_id: userId,
+          school_id: school.id,
+          role: 'school_admin' as AppRole,
+        }));
+        
+        await supabase.from('user_roles').insert(adminRoles);
+
+        // Seed default subjects for the school
+        const defaultSubjects = [
+          { name: 'Mathematics', code: 'MATH', category: 'core', sort_order: 1, school_id: school.id },
+          { name: 'English', code: 'ENG', category: 'core', sort_order: 2, school_id: school.id },
+          { name: 'Science', code: 'SCI', category: 'core', sort_order: 3, school_id: school.id },
+          { name: 'Social Studies', code: 'SS', category: 'core', sort_order: 4, school_id: school.id },
+          { name: 'Creative Arts', code: 'CA', category: 'elective', sort_order: 5, school_id: school.id },
+          { name: 'Physical Education', code: 'PE', category: 'elective', sort_order: 6, school_id: school.id },
+          { name: 'Religious Education', code: 'RE', category: 'elective', sort_order: 7, school_id: school.id },
+          { name: 'Local Language', code: 'LL', category: 'elective', sort_order: 8, school_id: school.id },
+          { name: 'Technology Studies', code: 'TECH', category: 'elective', sort_order: 9, school_id: school.id },
+          { name: 'Home Economics', code: 'HE', category: 'vocational', sort_order: 10, school_id: school.id },
+        ];
+
+        await supabase.from('school_subjects').insert(defaultSubjects as any);
+      }
+
       return school;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['owner-all-schools'] });
       queryClient.invalidateQueries({ queryKey: ['admin-all-schools'] });
+      queryClient.invalidateQueries({ queryKey: ['owner-all-user-roles'] });
       toast.success('School created successfully');
     },
     onError: (error) => {
@@ -441,6 +475,7 @@ export function useReinstateSchool() {
 interface UserRole {
   id: string;
   user_id: string;
+  user_email?: string;
   school_id: string;
   role: AppRole;
   created_at: string;
@@ -465,7 +500,20 @@ export function useAllUsersWithRoles() {
         .limit(100);
 
       if (error) throw error;
-      return data || [];
+      
+      // Try to get user emails from profiles or demo_users
+      const userIds = [...new Set((data || []).map(r => r.user_id))];
+      const { data: profiles } = await supabase
+        .from('demo_users')
+        .select('id, email')
+        .in('id', userIds);
+      
+      const emailMap = new Map(profiles?.map(p => [p.id, p.email]) || []);
+      
+      return (data || []).map(role => ({
+        ...role,
+        user_email: emailMap.get(role.user_id) || undefined,
+      }));
     },
   });
 }
@@ -623,6 +671,76 @@ export function useDeleteClass() {
     },
     onError: (error) => {
       toast.error('Failed to delete class: ' + (error as Error).message);
+    },
+  });
+}
+
+// =============================================================================
+// SCHOOL SUBJECTS
+// =============================================================================
+
+interface SchoolSubject {
+  id: string;
+  school_id: string;
+  name: string;
+  code: string | null;
+  category: string | null;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export function useSchoolSubjects(schoolId: string) {
+  return useQuery({
+    queryKey: ['school-subjects', schoolId],
+    queryFn: async (): Promise<SchoolSubject[]> => {
+      // Use type assertion since school_subjects table was just added
+      const { data, error } = await (supabase
+        .from('school_subjects' as any)
+        .select('*')
+        .eq('school_id', schoolId)
+        .eq('is_active', true)
+        .order('sort_order') as any);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!schoolId,
+  });
+}
+
+interface CreateSubjectInput {
+  schoolId: string;
+  name: string;
+  code?: string;
+  category?: string;
+}
+
+export function useCreateSubject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateSubjectInput) => {
+      // Use type assertion since school_subjects table was just added
+      const { data, error } = await (supabase
+        .from('school_subjects' as any)
+        .insert({
+          school_id: input.schoolId,
+          name: input.name,
+          code: input.code || null,
+          category: input.category || 'custom',
+        } as any)
+        .select()
+        .single() as any);
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['school-subjects', variables.schoolId] });
+      toast.success('Subject added');
+    },
+    onError: (error) => {
+      toast.error('Failed to add subject: ' + (error as Error).message);
     },
   });
 }
