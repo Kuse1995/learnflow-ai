@@ -30,7 +30,7 @@ export default function TeacherUploads() {
   const classOptions = classes?.map((c) => ({ id: c.id, name: c.name })) || [];
 
   return (
-    <TeacherLayout schoolName="Stitch Academy">
+    <TeacherLayout schoolName="Omanut Academy">
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
         <header className="px-4 pt-6 pb-4 border-b">
           <h1 className="text-xl font-bold">Uploads</h1>

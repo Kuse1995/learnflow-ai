@@ -143,7 +143,7 @@ export default function Auth() {
         <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
           <Beaker className="h-5 w-5 text-primary-foreground" />
         </div>
-        <span className="font-bold text-2xl">Stitch SMS</span>
+        <span className="font-bold text-2xl">Omanut SMS</span>
         <Badge variant="secondary">Beta</Badge>
       </div>
 
@@ -220,7 +220,7 @@ export default function Auth() {
             <TabsContent value="signup" className="mt-0">
               <CardTitle className="text-xl mb-2">Create an account</CardTitle>
               <CardDescription className="mb-6">
-                Get started with Stitch SMS
+                Get started with Omanut SMS
               </CardDescription>
               
               <form onSubmit={handleSignUp} className="space-y-4">

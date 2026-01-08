@@ -37,7 +37,7 @@ export default function TeacherStudentReport() {
 
   if (isLoadingStudent) {
     return (
-      <TeacherLayout schoolName="Stitch Academy">
+      <TeacherLayout schoolName="Omanut Academy">
         <div className="p-4 space-y-4">
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-24 w-full rounded-xl" />
@@ -48,7 +48,7 @@ export default function TeacherStudentReport() {
 
   if (!student) {
     return (
-      <TeacherLayout schoolName="Stitch Academy">
+      <TeacherLayout schoolName="Omanut Academy">
         <div className="p-4">
           <Button variant="ghost" onClick={handleBack} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -65,7 +65,7 @@ export default function TeacherStudentReport() {
   }
 
   return (
-    <TeacherLayout schoolName="Stitch Academy">
+    <TeacherLayout schoolName="Omanut Academy">
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
         {/* Header */}
         <header className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b px-4 pt-4 pb-4">
