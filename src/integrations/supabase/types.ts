@@ -3834,6 +3834,130 @@ export type Database = {
           },
         ]
       }
+      student_fee_ledger: {
+        Row: {
+          academic_year: number
+          credit_amount: number
+          debit_amount: number
+          description: string
+          effective_date: string
+          entry_date: string
+          entry_hash: string
+          entry_type: Database["public"]["Enums"]["ledger_entry_type"]
+          fee_category_id: string | null
+          fee_structure_id: string | null
+          id: string
+          notes: string | null
+          payment_id: string | null
+          previous_hash: string | null
+          recorded_at: string
+          recorded_by: string | null
+          recorded_by_role: string | null
+          reference_number: string | null
+          related_entry_id: string | null
+          running_balance: number
+          school_id: string
+          sequence_number: number
+          student_id: string
+          term: number | null
+        }
+        Insert: {
+          academic_year: number
+          credit_amount?: number
+          debit_amount?: number
+          description: string
+          effective_date?: string
+          entry_date?: string
+          entry_hash: string
+          entry_type: Database["public"]["Enums"]["ledger_entry_type"]
+          fee_category_id?: string | null
+          fee_structure_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_id?: string | null
+          previous_hash?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
+          recorded_by_role?: string | null
+          reference_number?: string | null
+          related_entry_id?: string | null
+          running_balance: number
+          school_id: string
+          sequence_number: number
+          student_id: string
+          term?: number | null
+        }
+        Update: {
+          academic_year?: number
+          credit_amount?: number
+          debit_amount?: number
+          description?: string
+          effective_date?: string
+          entry_date?: string
+          entry_hash?: string
+          entry_type?: Database["public"]["Enums"]["ledger_entry_type"]
+          fee_category_id?: string | null
+          fee_structure_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_id?: string | null
+          previous_hash?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
+          recorded_by_role?: string | null
+          reference_number?: string | null
+          related_entry_id?: string | null
+          running_balance?: number
+          school_id?: string
+          sequence_number?: number
+          student_id?: string
+          term?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_fee_ledger_fee_category_id_fkey"
+            columns: ["fee_category_id"]
+            isOneToOne: false
+            referencedRelation: "fee_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_fee_ledger_fee_structure_id_fkey"
+            columns: ["fee_structure_id"]
+            isOneToOne: false
+            referencedRelation: "fee_structures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_fee_ledger_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "fee_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_fee_ledger_related_entry_id_fkey"
+            columns: ["related_entry_id"]
+            isOneToOne: false
+            referencedRelation: "student_fee_ledger"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_fee_ledger_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_fee_ledger_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_intervention_plans: {
         Row: {
           class_id: string
@@ -4984,6 +5108,18 @@ export type Database = {
         Args: { p_guardian_id: string; p_student_id: string }
         Returns: Json
       }
+      compute_ledger_hash: {
+        Args: {
+          p_credit: number
+          p_debit: number
+          p_description: string
+          p_entry_type: Database["public"]["Enums"]["ledger_entry_type"]
+          p_previous_hash: string
+          p_sequence: number
+          p_student_id: string
+        }
+        Returns: string
+      }
       confirm_guardian_link: {
         Args: { p_confirmation_code: string; p_request_id: string }
         Returns: boolean
@@ -5037,6 +5173,10 @@ export type Database = {
           student_id: string
         }[]
       }
+      get_next_ledger_sequence: {
+        Args: { p_student_id: string }
+        Returns: number
+      }
       get_next_queued_message: {
         Args: { p_school_id?: string }
         Returns: {
@@ -5058,6 +5198,10 @@ export type Database = {
       get_parent_permission_tier: {
         Args: { _guardian_id: string; _student_id: string }
         Returns: Database["public"]["Enums"]["parent_permission_tier"]
+      }
+      get_student_running_balance: {
+        Args: { p_student_id: string }
+        Returns: number
       }
       has_role: {
         Args: {
@@ -5093,6 +5237,29 @@ export type Database = {
           p_requires_confirmation?: boolean
           p_student_id: string
           p_verification_notes?: string
+        }
+        Returns: string
+      }
+      insert_ledger_entry: {
+        Args: {
+          p_academic_year: number
+          p_credit_amount: number
+          p_debit_amount: number
+          p_description: string
+          p_effective_date: string
+          p_entry_date: string
+          p_entry_type: Database["public"]["Enums"]["ledger_entry_type"]
+          p_fee_category_id: string
+          p_fee_structure_id: string
+          p_notes: string
+          p_payment_id: string
+          p_recorded_by: string
+          p_recorded_by_role: string
+          p_reference_number: string
+          p_related_entry_id: string
+          p_school_id: string
+          p_student_id: string
+          p_term: number
         }
         Returns: string
       }
@@ -5259,6 +5426,16 @@ export type Database = {
         | "primary_guardian"
         | "secondary_guardian"
         | "informational_contact"
+      ledger_entry_type:
+        | "charge"
+        | "payment"
+        | "credit"
+        | "adjustment_debit"
+        | "adjustment_credit"
+        | "waiver"
+        | "reversal"
+        | "transfer_in"
+        | "transfer_out"
       link_duration:
         | "permanent"
         | "temporary_term"
@@ -5485,6 +5662,17 @@ export const Constants = {
         "primary_guardian",
         "secondary_guardian",
         "informational_contact",
+      ],
+      ledger_entry_type: [
+        "charge",
+        "payment",
+        "credit",
+        "adjustment_debit",
+        "adjustment_credit",
+        "waiver",
+        "reversal",
+        "transfer_in",
+        "transfer_out",
       ],
       link_duration: [
         "permanent",
