@@ -104,5 +104,17 @@ export {
   useCanPerformAction,
 } from "./useUsageLimits";
 
+// Parent permissions
+export {
+  useParentPermission,
+  useGuardianPermissions,
+  useStudentGuardianPermissions,
+  useGrantPermission,
+  useRevokePermission,
+  useCanAccessFeature,
+  useAccessibleStudents,
+  useCurrentParentPermissions,
+} from "./useParentPermissions";
+
 // Utility hooks
 export { useIsMobile } from "./use-mobile";
