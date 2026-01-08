@@ -37,6 +37,64 @@ export interface ParentStudentLink {
 }
 
 // =============================================================================
+// SIMPLE QUERY HELPERS (use eslint-disable to break deep type chain)
+// =============================================================================
+
+interface GuardianLinkRow { student_id: string }
+interface StudentRow { id: string; name: string; class_id: string | null; school_id?: string }
+interface UploadRow { id: string; class_id: string | null; school_id: string; created_at: string; file_name?: string; file_type?: string }
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+async function fetchGuardianLinks(guardianId: string): Promise<GuardianLinkRow[]> {
+  const result = await (supabase as any).from('guardian_student_links').select('student_id').eq('guardian_id', guardianId).eq('is_active', true);
+  if (result.error) throw result.error;
+  return result.data || [];
+}
+
+async function fetchStudentsByIds(ids: string[]): Promise<StudentRow[]> {
+  const result = await (supabase as any).from('students').select('id, name, class_id').in('id', ids);
+  if (result.error) throw result.error;
+  return result.data || [];
+}
+
+async function fetchStudentByUserId(userId: string): Promise<StudentRow | null> {
+  const result = await (supabase as any).from('students').select('id, name, class_id').eq('user_id', userId).limit(1);
+  if (result.error) throw result.error;
+  return result.data && result.data.length > 0 ? result.data[0] : null;
+}
+
+async function fetchScopedStudents(params: {
+  schoolId: string;
+  classId?: string;
+  studentIds?: string[];
+  classIds?: string[];
+}): Promise<StudentRow[]> {
+  const { schoolId, classId, studentIds, classIds } = params;
+  let q = (supabase as any).from('students').select('id, name, class_id, school_id').eq('school_id', schoolId);
+  if (classId) q = q.eq('class_id', classId);
+  else if (studentIds?.length) q = q.in('id', studentIds);
+  else if (classIds?.length) q = q.in('class_id', classIds);
+  const result = await q.order('name');
+  if (result.error) throw result.error;
+  return result.data || [];
+}
+
+async function fetchScopedUploads(params: {
+  schoolId: string;
+  classId?: string;
+  classIds?: string[];
+}): Promise<UploadRow[]> {
+  const { schoolId, classId, classIds } = params;
+  let q = (supabase as any).from('uploads').select('id, class_id, school_id, created_at, file_name, file_type').eq('school_id', schoolId);
+  if (classId) q = q.eq('class_id', classId);
+  else if (classIds?.length) q = q.in('class_id', classIds);
+  const result = await q.order('created_at', { ascending: false });
+  if (result.error) throw result.error;
+  return result.data || [];
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+// =============================================================================
 // HOOKS FOR FETCHING SCOPE DATA
 // =============================================================================
 
@@ -78,25 +136,13 @@ export function useParentLinkedStudents(userId: string | undefined, schoolId: st
     queryFn: async (): Promise<ParentStudentLink[]> => {
       if (!userId || !schoolId) return [];
 
-      const { data: links, error: linksError } = await supabase
-        .from('guardian_student_links')
-        .select('student_id')
-        .eq('guardian_id', userId)
-        .eq('is_active', true);
-
-      if (linksError) throw linksError;
-      if (!links || links.length === 0) return [];
+      const links = await fetchGuardianLinks(userId);
+      if (links.length === 0) return [];
 
       const studentIds = links.map(l => l.student_id);
-      
-      const { data: students, error: studentsError } = await supabase
-        .from('students')
-        .select('id, name, class_id')
-        .in('id', studentIds) as { data: Array<{ id: string; name: string; class_id: string | null }> | null; error: Error | null };
+      const students = await fetchStudentsByIds(studentIds);
 
-      if (studentsError) throw studentsError;
-
-      return (students || []).map(s => ({
+      return students.map(s => ({
         studentId: s.id,
         studentName: s.name,
         classId: s.class_id,
@@ -115,16 +161,9 @@ export function useStudentSelf(userId: string | undefined) {
     queryFn: async (): Promise<ParentStudentLink | null> => {
       if (!userId) return null;
 
-      const { data, error } = await supabase
-        .from('students')
-        .select('id, name, class_id')
-        .eq('user_id', userId)
-        .limit(1) as { data: Array<{ id: string; name: string; class_id: string | null }> | null; error: Error | null };
+      const student = await fetchStudentByUserId(userId);
+      if (!student) return null;
 
-      if (error) throw error;
-      if (!data || data.length === 0) return null;
-
-      const student = data[0];
       return {
         studentId: student.id,
         studentName: student.name,
@@ -421,40 +460,27 @@ export function useLogScopeViolation() {
  * Get classes with scope filtering applied
  */
 export function useScopedClasses() {
-  const { context, isLoading: scopeLoading, assignedClasses } = useDataScopeContext();
+  const { context, isLoading: scopeLoading } = useDataScopeContext();
   const rbac = useRBACContext();
 
   return useQuery({
     queryKey: ['scoped-classes', rbac.schoolId, context?.assignedClassIds],
     queryFn: async () => {
       if (!context || !context.schoolId) return [];
-
-      let query = supabase
-        .from('classes')
-        .select('*')
-        .eq('school_id', context.schoolId)
-        .is('deleted_at', null)
-        .order('name');
-
-      // Apply class filter for teachers
-      if (
-        context.role === 'teacher' &&
-        context.assignedClassIds.length > 0
-      ) {
-        query = query.in('id', context.assignedClassIds);
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      let q = (supabase as any).from('classes').select('*').eq('school_id', context.schoolId).is('deleted_at', null);
+      if (context.role === 'teacher' && context.assignedClassIds.length > 0) {
+        q = q.in('id', context.assignedClassIds);
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
+      const result = await q.order('name');
+      /* eslint-enable @typescript-eslint/no-explicit-any */
+      if (result.error) throw result.error;
+      return result.data || [];
     },
     enabled: !scopeLoading && !!context?.schoolId,
   });
 }
 
-/**
- * Get students with scope filtering applied
- */
 export function useScopedStudents(classId?: string) {
   const { context, isLoading: scopeLoading } = useDataScopeContext();
   const rbac = useRBACContext();
@@ -463,39 +489,17 @@ export function useScopedStudents(classId?: string) {
     queryKey: ['scoped-students', rbac.schoolId, classId, context?.linkedStudentIds],
     queryFn: async () => {
       if (!context || !context.schoolId) return [];
-
-      // Build filters
-      const filters: Record<string, string | string[]> = {
-        school_id: context.schoolId,
-      };
-
-      if (classId) {
-        const classAccess = canAccessClass(context, classId);
-        if (!classAccess.valid) return [];
-        filters.class_id = classId;
-      }
-
-      let query = supabase.from('students').select('id, name, class_id, school_id').eq('school_id', context.schoolId).order('name');
-
-      if (classId) {
-        query = query.eq('class_id', classId);
-      } else if (['parent', 'student'].includes(context.role) && context.linkedStudentIds.length > 0) {
-        query = query.in('id', context.linkedStudentIds);
-      } else if (context.role === 'teacher' && context.assignedClassIds.length > 0) {
-        query = query.in('class_id', context.assignedClassIds);
-      }
-
-      const { data, error } = query as unknown as { data: unknown[] | null; error: Error | null };
-      if (error) throw error;
-      return data || [];
+      if (classId && !canAccessClass(context, classId).valid) return [];
+      
+      const studentIds = ['parent', 'student'].includes(context.role) ? context.linkedStudentIds : undefined;
+      const classIds = context.role === 'teacher' && !classId ? context.assignedClassIds : undefined;
+      
+      return fetchScopedStudents({ schoolId: context.schoolId, classId, studentIds, classIds });
     },
     enabled: !scopeLoading && !!context?.schoolId,
   });
 }
 
-/**
- * Get uploads with scope filtering applied
- */
 export function useScopedUploads(classId?: string) {
   const { context, isLoading: scopeLoading } = useDataScopeContext();
   const rbac = useRBACContext();
@@ -504,19 +508,10 @@ export function useScopedUploads(classId?: string) {
     queryKey: ['scoped-uploads', rbac.schoolId, classId, context?.assignedClassIds],
     queryFn: async () => {
       if (!context || !context.schoolId) return [];
-
-      let query = supabase.from('uploads').select('id, class_id, school_id, created_at').eq('school_id', context.schoolId).order('created_at', { ascending: false });
-
-      if (classId) {
-        if (!canAccessUpload(context, classId)) return [];
-        query = query.eq('class_id', classId);
-      } else if (context.role === 'teacher' && context.assignedClassIds.length > 0) {
-        query = query.in('class_id', context.assignedClassIds);
-      }
-
-      const { data, error } = query as unknown as { data: unknown[] | null; error: Error | null };
-      if (error) throw error;
-      return data || [];
+      if (classId && !canAccessUpload(context, classId)) return [];
+      
+      const classIds = context.role === 'teacher' && !classId ? context.assignedClassIds : undefined;
+      return fetchScopedUploads({ schoolId: context.schoolId, classId, classIds });
     },
     enabled: !scopeLoading && !!context?.schoolId,
   });
