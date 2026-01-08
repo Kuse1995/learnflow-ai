@@ -2922,6 +2922,7 @@ export type Database = {
           ledger_entry_ids: string[] | null
           notes: string | null
           paid_date: string | null
+          payment_history: Json | null
           payment_reference: string | null
           plan_id: string
           status: string
@@ -2937,6 +2938,7 @@ export type Database = {
           ledger_entry_ids?: string[] | null
           notes?: string | null
           paid_date?: string | null
+          payment_history?: Json | null
           payment_reference?: string | null
           plan_id: string
           status?: string
@@ -2952,6 +2954,7 @@ export type Database = {
           ledger_entry_ids?: string[] | null
           notes?: string | null
           paid_date?: string | null
+          payment_history?: Json | null
           payment_reference?: string | null
           plan_id?: string
           status?: string
@@ -5517,6 +5520,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      calculate_installment_status: {
+        Args: { p_amount: number; p_amount_paid: number; p_due_date: string }
+        Returns: string
+      }
       can_access_class: {
         Args: { _class_id: string; _user_id: string }
         Returns: boolean
@@ -5806,9 +5813,24 @@ export type Database = {
         }
         Returns: string
       }
+      record_installment_payment: {
+        Args: {
+          p_amount: number
+          p_installment_id: string
+          p_ledger_entry_id?: string
+          p_notes?: string
+          p_payment_date: string
+          p_payment_reference?: string
+        }
+        Returns: Json
+      }
       recover_guardian_link: {
         Args: { p_reason: string; p_retention_id: string }
         Returns: Json
+      }
+      refresh_plan_installment_statuses: {
+        Args: { p_plan_id: string }
+        Returns: number
       }
       reject_guardian_link: {
         Args: { p_reason: string; p_request_id: string }
