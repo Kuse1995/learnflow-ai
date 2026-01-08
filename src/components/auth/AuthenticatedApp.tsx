@@ -31,6 +31,7 @@ import {
 import PlatformAdminOnboarding from '@/pages/platform-admin/PlatformAdminOnboarding';
 import PlatformAdminSystemStatus from '@/pages/platform-admin/PlatformAdminSystemStatus';
 import PlatformAdminPilot from '@/pages/platform-admin/PlatformAdminPilot';
+import PlatformAdmin from '@/pages/platform-admin/PlatformAdmin';
 import NotFound from '@/pages/NotFound';
 
 export function AuthenticatedApp() {
@@ -155,6 +156,7 @@ export function AuthenticatedApp() {
         } />
         
         {/* Platform Admin Routes - Protected */}
+        <Route path="/platform-admin" element={<PlatformAdmin />} />
         <Route path="/platform-admin/compliance" element={
           <ProtectedRoute permissions={ROUTE_PERMISSIONS.platformAdmin}>
             <PlatformAdminCompliance />
