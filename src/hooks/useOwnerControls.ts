@@ -468,6 +468,33 @@ export function useReinstateSchool() {
   });
 }
 
+export function useDeleteSchool() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (schoolId: string) => {
+      const { error } = await supabase
+        .from('schools')
+        .update({ 
+          is_archived: true, 
+          archived_at: new Date().toISOString(),
+          billing_status: 'suspended'
+        })
+        .eq('id', schoolId);
+
+      if (error) throw error;
+      return schoolId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['owner-all-schools'] });
+      toast.success('School deleted (archived)');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete school: ' + (error as Error).message);
+    },
+  });
+}
+
 // =============================================================================
 // USER ROLE MANAGEMENT
 // =============================================================================

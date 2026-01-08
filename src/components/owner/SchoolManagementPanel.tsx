@@ -18,12 +18,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Building2, ExternalLink } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Building2, ExternalLink, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
   useAllSchoolsWithPlans, 
   useSuspendSchool, 
   useReinstateSchool,
+  useDeleteSchool,
   useAvailablePlans,
 } from '@/hooks/useOwnerControls';
 import { useActivatePlan } from '@/hooks/useSuperAdmin';
@@ -34,8 +45,10 @@ export function SchoolManagementPanel() {
   const { data: plans } = useAvailablePlans();
   const suspendSchool = useSuspendSchool();
   const reinstateSchool = useReinstateSchool();
+  const deleteSchool = useDeleteSchool();
   const activatePlan = useActivatePlan();
   const [changingPlanForSchool, setChangingPlanForSchool] = useState<string | null>(null);
+  const [schoolToDelete, setSchoolToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const handlePlanChange = (schoolId: string, planId: string) => {
     activatePlan.mutate({
@@ -162,6 +175,14 @@ export function SchoolManagementPanel() {
                           Suspend
                         </Button>
                       )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setSchoolToDelete({ id: school.id, name: school.name })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                       <Button size="sm" variant="ghost" asChild>
                         <Link to={`/platform-admin/schools`}>
                           <ExternalLink className="h-4 w-4" />
@@ -174,6 +195,33 @@ export function SchoolManagementPanel() {
             </TableBody>
           </Table>
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!schoolToDelete} onOpenChange={() => setSchoolToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete School</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete <strong>{schoolToDelete?.name}</strong>? 
+                This will archive the school and suspend its billing. This action can be reversed by a super admin.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (schoolToDelete) {
+                    deleteSchool.mutate(schoolToDelete.id);
+                    setSchoolToDelete(null);
+                  }
+                }}
+              >
+                Delete School
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );
