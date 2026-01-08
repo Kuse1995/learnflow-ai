@@ -1,0 +1,237 @@
+import { Navigate } from 'react-router-dom';
+import { useDemoMode } from '@/contexts/DemoModeContext';
+import { useSystemMode } from '@/hooks/useDemoSuperAdmin';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  RotateCcw, 
+  Trash2, 
+  FileText, 
+  Brain, 
+  BellOff, 
+  AlertTriangle,
+  Shield
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+export default function PlatformAdmin() {
+  const { isDemoMode, isSuperAdmin, superAdminInfo, demoRole } = useDemoMode();
+  const { data: systemMode, isLoading: loadingMode } = useSystemMode();
+
+  // Fetch pending counts
+  const { data: pendingCounts, isLoading: loadingCounts } = useQuery({
+    queryKey: ['platform-admin-pending-counts'],
+    queryFn: async (): Promise<{ pendingInsights: number; pendingPlans: number }> => {
+      // Get pending parent insights count
+      const insightsRes = await (supabase
+        .from('parent_insight_summaries') as any)
+        .select('id', { count: 'exact', head: true })
+        .eq('approved', false);
+
+      // Get pending adaptive support plans count
+      const plansRes = await (supabase
+        .from('adaptive_support_plans') as any)
+        .select('id', { count: 'exact', head: true })
+        .eq('teacher_acknowledged', false);
+
+      return {
+        pendingInsights: insightsRes.count ?? 0,
+        pendingPlans: plansRes.count ?? 0,
+      };
+    },
+    enabled: isSuperAdmin,
+  });
+
+  // Check access - must be demo super admin
+  if (loadingMode) {
+    return (
+      <div className="min-h-screen bg-background p-8">
+        <Skeleton className="h-12 w-64 mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-48" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect non-super admins to teacher dashboard
+  if (!isSuperAdmin || demoRole !== 'super_admin') {
+    return <Navigate to="/teacher" replace />;
+  }
+
+  const handleResetDemoData = async () => {
+    toast.info('Reset demo data functionality coming soon');
+  };
+
+  const handleClearDemoAnalytics = async () => {
+    toast.info('Clear demo analytics functionality coming soon');
+  };
+
+  const isDemoSystemMode = systemMode === 'demo';
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Demo Mode Banner */}
+      <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-3">
+        <div className="container mx-auto flex items-center gap-3">
+          <Badge variant="outline" className="bg-amber-500/20 text-amber-700 border-amber-500/30">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            DEMO MODE
+          </Badge>
+          <span className="text-sm text-amber-700">
+            You are viewing the platform in demo mode as <strong>{superAdminInfo?.email}</strong>
+          </span>
+        </div>
+      </div>
+
+      {/* Header */}
+      <header className="border-b bg-card">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center gap-3">
+            <Shield className="h-8 w-8 text-primary" />
+            <div>
+              <h1 className="text-2xl font-bold">Platform Administration</h1>
+              <p className="text-muted-foreground">Manage system settings and monitor platform health</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto p-6 space-y-6">
+        {/* Demo Controls */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5" />
+              Demo Controls
+            </CardTitle>
+            <CardDescription>
+              Manage demo environment data and analytics
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-4">
+            <Button 
+              variant="outline" 
+              onClick={handleResetDemoData}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reset Demo Data
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleClearDemoAnalytics}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Clear Demo Analytics
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Pending Reviews */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Pending Reviews
+            </CardTitle>
+            <CardDescription>
+              Items awaiting teacher acknowledgment or approval
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Pending Parent Insights</p>
+                    <p className="text-sm text-muted-foreground">Awaiting teacher approval</p>
+                  </div>
+                </div>
+                {loadingCounts ? (
+                  <Skeleton className="h-8 w-12" />
+                ) : (
+                  <Badge variant="secondary" className="text-lg px-3 py-1">
+                    {pendingCounts?.pendingInsights ?? 0}
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <Brain className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Pending Adaptive Support Plans</p>
+                    <p className="text-sm text-muted-foreground">Awaiting teacher acknowledgment</p>
+                  </div>
+                </div>
+                {loadingCounts ? (
+                  <Skeleton className="h-8 w-12" />
+                ) : (
+                  <Badge variant="secondary" className="text-lg px-3 py-1">
+                    {pendingCounts?.pendingPlans ?? 0}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* System Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              System Status
+            </CardTitle>
+            <CardDescription>
+              Current platform configuration and safety indicators
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Demo Mode Indicator */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-500" />
+                  <div>
+                    <p className="font-medium">Demo Mode</p>
+                    <p className="text-sm text-muted-foreground">System operating environment</p>
+                  </div>
+                </div>
+                <Badge 
+                  variant={isDemoSystemMode ? 'default' : 'secondary'}
+                  className={isDemoSystemMode ? 'bg-amber-500 hover:bg-amber-500/80' : ''}
+                >
+                  {isDemoSystemMode ? 'ACTIVE' : 'INACTIVE'}
+                </Badge>
+              </div>
+
+              {/* Notifications Disabled Indicator */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <BellOff className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Notifications Disabled</p>
+                    <p className="text-sm text-muted-foreground">No external messages sent in demo</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-green-600 border-green-600">
+                  SAFE
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  );
+}
