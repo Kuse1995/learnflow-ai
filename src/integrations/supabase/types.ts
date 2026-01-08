@@ -6963,6 +6963,7 @@ export type Database = {
         Args: { p_issued_by?: string; p_ledger_entry_id: string }
         Returns: string
       }
+      delete_demo_school: { Args: { target_school_id: string }; Returns: Json }
       edit_message_draft: {
         Args: {
           p_change_summary?: string

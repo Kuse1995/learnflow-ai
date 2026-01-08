@@ -136,3 +136,18 @@ export {
   useActionVisibility,
   useScopeGuard,
 } from "./usePermissionGuard";
+
+// Demo safety hooks
+export {
+  useIsDemoSchool,
+  useIsDemoClass,
+  useDemoBadgeConfig,
+  useDemoDataSummary,
+  useResetDemoData,
+  useDeleteDemoSchool,
+  useShouldSuppressNotifications,
+  isDemoSchool,
+  isDemoClass,
+  isDemoStudent,
+  DELETE_DEMO_CONFIRMATION_PHRASE,
+} from "./useDemoSafety";

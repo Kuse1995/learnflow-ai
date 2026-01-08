@@ -11,6 +11,11 @@ import {
   ChevronRight,
   BookOpen
 } from "lucide-react";
+import { DemoModeBanner } from "@/components/demo";
+import { useIsDemoSchool } from "@/hooks/useDemoSafety";
+
+// Demo school ID for development
+const DEMO_SCHOOL_ID = "5e508bfd-bd20-4461-8687-450a450111b8";
 
 // Placeholder data - will be replaced with real data later
 const todaysClasses = [
@@ -32,9 +37,18 @@ export default function TeacherDashboard() {
     day: "numeric",
   });
 
+  const { data: isDemo } = useIsDemoSchool(DEMO_SCHOOL_ID);
+
   return (
     <TeacherLayout schoolName="Stitch Academy">
       <div className="flex flex-col min-h-full pb-24 md:pb-8">
+        {/* Demo Mode Banner */}
+        {isDemo && (
+          <div className="px-4 pt-4">
+            <DemoModeBanner schoolId={DEMO_SCHOOL_ID} context="teacher" />
+          </div>
+        )}
+
         {/* Header */}
         <header className="px-4 pt-6 pb-4">
           <p className="text-sm text-muted-foreground">{currentDate}</p>
