@@ -270,7 +270,8 @@ async function logAuditEvent(
   }
 }
 
-// Activate plan for a school
+// Activate plan for a school - Super Admin only
+// Ignores billing checks and demo flags - changes apply immediately
 export function useActivatePlan() {
   const queryClient = useQueryClient();
 
@@ -284,10 +285,13 @@ export function useActivatePlan() {
 
       if (!adminData) throw new Error("Not a super admin");
 
+      // Super Admin bypass: No billing checks, no demo flag checks
+      // All plan activations are immediate and authoritative
+
       // Check if subscription exists
       const { data: existing } = await supabase
         .from("school_subscriptions")
-        .select("id, plan_id")
+        .select("id, plan_id, status")
         .eq("school_id", payload.schoolId)
         .maybeSingle();
 
