@@ -129,3 +129,10 @@ export {
 
 // Utility hooks
 export { useIsMobile } from "./use-mobile";
+
+// Permission guard hooks
+export {
+  usePermissionGuard,
+  useActionVisibility,
+  useScopeGuard,
+} from "./usePermissionGuard";

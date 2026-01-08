@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { RBACProvider } from "@/contexts/RBACContext";
+import { ProtectedRoute, ROUTE_PERMISSIONS, AccessDeniedPage } from "@/components/rbac";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import {
@@ -49,58 +51,163 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Default redirect to teacher dashboard for now */}
-          <Route path="/" element={<Navigate to="/teacher" replace />} />
+      {/* 
+        RBACProvider - temporarily using null userId during development.
+        In production, this would come from auth context.
+      */}
+      <RBACProvider userId={null} schoolId={null}>
+        <BrowserRouter>
+          <Routes>
+            {/* Default redirect to teacher dashboard for now */}
+            <Route path="/" element={<Navigate to="/teacher" replace />} />
+            
+            {/* Access denied route */}
+            <Route path="/access-denied" element={<AccessDeniedPage />} />
+            
+            {/* Teacher Routes - Protected */}
+            <Route path="/teacher" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/attendance" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherAttendance />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/classes" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherClasses />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/classes/:classId" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherClassDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/classes/:classId/reports" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherClassReport />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/classes/:classId/students/:studentId" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherStudentProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/classes/:classId/actions" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherActions />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/classes/:classId/parent-insights" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherParentInsights />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/students/:studentId/report" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherStudentReport />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/uploads" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherUploads />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/insights" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherInsights />
+              </ProtectedRoute>
+            } />
+            <Route path="/teacher/training" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.teacher}>
+                <TeacherTraining />
+              </ProtectedRoute>
+            } />
+            
+            {/* Parent Routes - Protected */}
+            <Route path="/parent/:studentId" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.parent}>
+                <ParentDashboard />
+              </ProtectedRoute>
+            } />
+            
+            {/* Student Routes - Protected */}
+            <Route path="/student/:classId/:studentId/practice" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.student}>
+                <StudentPractice />
+              </ProtectedRoute>
+            } />
+            
+            {/* School Admin Routes - Protected */}
+            <Route path="/admin" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+                <SchoolAdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/reports" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+                <AdminReportsDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/term-reports" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.schoolAdmin}>
+                <SchoolReports />
+              </ProtectedRoute>
+            } />
+            
+            {/* Platform Admin Routes - Protected */}
+            <Route path="/platform-admin/compliance" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.platformAdmin}>
+                <PlatformAdminCompliance />
+              </ProtectedRoute>
+            } />
+            <Route path="/platform-admin/backups" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.platformAdmin}>
+                <PlatformAdminBackups />
+              </ProtectedRoute>
+            } />
+            <Route path="/platform-admin/usage" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.platformAdmin}>
+                <PlatformAdminUsage />
+              </ProtectedRoute>
+            } />
+            <Route path="/platform-admin/security" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.platformAdmin}>
+                <PlatformAdminSecurity />
+              </ProtectedRoute>
+            } />
+            <Route path="/platform-admin/onboarding" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.platformAdmin}>
+                <PlatformAdminOnboarding />
+              </ProtectedRoute>
+            } />
+            <Route path="/platform-admin/system-status" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.platformAdmin}>
+                <PlatformAdminSystemStatus />
+              </ProtectedRoute>
+            } />
+            <Route path="/platform-admin/pilot" element={
+              <ProtectedRoute permissions={ROUTE_PERMISSIONS.platformAdmin}>
+                <PlatformAdminPilot />
+              </ProtectedRoute>
+            } />
+            
+            {/* Legal Routes - Public */}
+            <Route path="/legal/:type" element={<LegalDocument />} />
+            
+            {/* Demo page - Public for development */}
+            <Route path="/demo" element={<Index />} />
+            
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
           
-          {/* Teacher Routes */}
-          <Route path="/teacher" element={<TeacherDashboard />} />
-          <Route path="/teacher/attendance" element={<TeacherAttendance />} />
-          <Route path="/teacher/classes" element={<TeacherClasses />} />
-          <Route path="/teacher/classes/:classId" element={<TeacherClassDetail />} />
-          <Route path="/teacher/classes/:classId/reports" element={<TeacherClassReport />} />
-          <Route path="/teacher/classes/:classId/students/:studentId" element={<TeacherStudentProfile />} />
-          <Route path="/teacher/classes/:classId/actions" element={<TeacherActions />} />
-          <Route path="/teacher/classes/:classId/parent-insights" element={<TeacherParentInsights />} />
-          <Route path="/teacher/students/:studentId/report" element={<TeacherStudentReport />} />
-          <Route path="/teacher/uploads" element={<TeacherUploads />} />
-          <Route path="/teacher/insights" element={<TeacherInsights />} />
-          <Route path="/teacher/training" element={<TeacherTraining />} />
-          
-          {/* Parent Routes */}
-          <Route path="/parent/:studentId" element={<ParentDashboard />} />
-          
-          {/* Student Routes */}
-          <Route path="/student/:classId/:studentId/practice" element={<StudentPractice />} />
-          
-          {/* School Admin Routes */}
-          <Route path="/admin" element={<SchoolAdminDashboard />} />
-          <Route path="/admin/reports" element={<AdminReportsDashboard />} />
-          <Route path="/admin/term-reports" element={<SchoolReports />} />
-          
-          {/* Platform Admin Routes */}
-          <Route path="/platform-admin/compliance" element={<PlatformAdminCompliance />} />
-          <Route path="/platform-admin/backups" element={<PlatformAdminBackups />} />
-          <Route path="/platform-admin/usage" element={<PlatformAdminUsage />} />
-          <Route path="/platform-admin/security" element={<PlatformAdminSecurity />} />
-          <Route path="/platform-admin/onboarding" element={<PlatformAdminOnboarding />} />
-          <Route path="/platform-admin/system-status" element={<PlatformAdminSystemStatus />} />
-          <Route path="/platform-admin/pilot" element={<PlatformAdminPilot />} />
-          
-          {/* Legal Routes */}
-          <Route path="/legal/:type" element={<LegalDocument />} />
-          
-          {/* Demo page */}
-          <Route path="/demo" element={<Index />} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        
-        {/* Global offline indicator */}
-        <OfflineIndicator />
-      </BrowserRouter>
+          {/* Global offline indicator */}
+          <OfflineIndicator />
+        </BrowserRouter>
+      </RBACProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

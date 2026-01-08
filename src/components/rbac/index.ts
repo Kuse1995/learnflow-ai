@@ -9,11 +9,20 @@ export {
   PlatformAdminGate,
 } from './PermissionGate';
 
+// Route protection
+export {
+  ProtectedRoute,
+  ROUTE_PERMISSIONS,
+  withRouteProtection,
+  type RoutePermissions,
+} from './ProtectedRoute';
+
 // Access denied states
 export {
   AccessDenied,
   AccessDeniedPage,
   FeatureNotAvailable,
+  DataNotAccessible,
 } from './AccessDenied';
 
 // Role switching
