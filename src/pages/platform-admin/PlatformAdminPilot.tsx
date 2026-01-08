@@ -36,7 +36,7 @@ import {
   useInitializePilotSchool,
   useSchoolRolloutStatus,
   useMarkPilotComplete,
-  PHASE_LABELS,
+  useNonPilotSchools,
 } from "@/hooks/usePilotDeployment";
 
 import { Beaker, Plus, School, CheckCircle2, AlertTriangle } from "lucide-react";
@@ -50,6 +50,7 @@ export default function PlatformAdminPilot() {
   const [newPilotNotes, setNewPilotNotes] = useState("");
 
   const { data: pilotSchools, isLoading: pilotsLoading } = usePilotSchools();
+  const { data: nonPilotSchools } = useNonPilotSchools();
   const { data: selectedRolloutStatus } = useSchoolRolloutStatus(selectedSchoolId);
   const initializePilot = useInitializePilotSchool();
   const markComplete = useMarkPilotComplete();
