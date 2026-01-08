@@ -848,6 +848,47 @@ export type Database = {
           },
         ]
       }
+      demo_users: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          demo_password_hint: string | null
+          email: string
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          school_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          demo_password_hint?: string | null
+          email: string
+          full_name: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          school_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          demo_password_hint?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_users_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deployment_checks: {
         Row: {
           check_name: string
@@ -4246,6 +4287,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          is_demo: boolean
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          is_demo?: boolean
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          is_demo?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
       rate_limit_violations: {
         Row: {
