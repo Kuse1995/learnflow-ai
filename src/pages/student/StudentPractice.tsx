@@ -1,14 +1,20 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BookOpen, Sparkles, ArrowLeft } from "lucide-react";
+import { BookOpen, Sparkles, ArrowLeft, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StudentPracticeSession } from "@/components/student-practice";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function StudentPractice() {
   const { classId, studentId } = useParams<{ classId: string; studentId: string }>();
   const navigate = useNavigate();
   const [isInSession, setIsInSession] = useState(false);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
 
   if (!classId || !studentId) {
     return (
@@ -37,10 +43,14 @@ export default function StudentPractice() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background">
-      <header className="p-4 border-b bg-background/80 backdrop-blur-sm">
+      <header className="p-4 border-b bg-background/80 backdrop-blur-sm flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
+        </Button>
+        <Button variant="ghost" size="sm" onClick={handleLogout}>
+          <LogOut className="h-4 w-4 mr-2" />
+          Logout
         </Button>
       </header>
 

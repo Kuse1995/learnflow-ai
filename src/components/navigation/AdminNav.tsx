@@ -1,8 +1,10 @@
 import { BottomNav } from "./BottomNav";
 import { ADMIN_MOBILE_NAV_ITEMS, ADMIN_NAV_ITEMS } from "./navigation-config";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 import {
   LayoutGrid,
   Users,
@@ -13,6 +15,7 @@ import {
   BarChart3,
   Settings,
   Bell,
+  LogOut,
   LucideIcon,
 } from "lucide-react";
 import {
@@ -62,6 +65,7 @@ export function AdminLayout({ children, schoolName = "School SMS" }: AdminLayout
   if (isMobile) {
     return (
       <div className="min-h-screen bg-background">
+        <MobileHeader />
         {children}
         {/* Optional bottom nav for alerts only on mobile */}
         <BottomNav items={ADMIN_MOBILE_NAV_ITEMS} />
@@ -142,10 +146,45 @@ function AdminSidebar({ schoolName }: { schoolName: string }) {
 }
 
 function AdminHeader() {
+  const navigate = useNavigate();
+  const { signOut, isAuthenticated } = useAuthContext();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 md:px-6">
       <SidebarTrigger />
       <div className="flex-1" />
+      {isAuthenticated && (
+        <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
+          <LogOut className="h-4 w-4" />
+          <span className="hidden sm:inline">Logout</span>
+        </Button>
+      )}
+    </header>
+  );
+}
+
+function MobileHeader() {
+  const navigate = useNavigate();
+  const { signOut, isAuthenticated } = useAuthContext();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  return (
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4">
+      <span className="font-semibold text-sm">Admin Portal</span>
+      {isAuthenticated && (
+        <Button variant="ghost" size="icon" onClick={handleLogout}>
+          <LogOut className="h-4 w-4" />
+        </Button>
+      )}
     </header>
   );
 }

@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { 
   Loader2, 
   BookOpen, 
@@ -6,7 +6,8 @@ import {
   Bell, 
   Home,
   RefreshCw,
-  WifiOff
+  WifiOff,
+  LogOut
 } from "lucide-react";
 import { ParentInsightView } from "@/components/parent-insights";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,8 +29,14 @@ const DEMO_SCHOOL_ID = "5e508bfd-bd20-4461-8687-450a450111b8";
 
 export default function ParentDashboard() {
   const { studentId } = useParams<{ studentId: string }>();
+  const navigate = useNavigate();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
 
   // Monitor online status
   useEffect(() => {
@@ -120,15 +127,25 @@ export default function ParentDashboard() {
               {/* Subtle demo indicator for parent view */}
               <DemoModeBanner schoolId={DEMO_SCHOOL_ID} context="parent" />
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={isOffline}
-              className="text-muted-foreground"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRefresh}
+                disabled={isOffline}
+                className="text-muted-foreground"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="text-muted-foreground"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           {lastUpdated && (
             <p className="text-xs text-muted-foreground mt-2">
