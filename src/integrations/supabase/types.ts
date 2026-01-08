@@ -6000,6 +6000,7 @@ export type Database = {
           class_id: string
           created_at: string
           id: string
+          is_demo: boolean
           reflection_notes: string | null
           topic: string | null
           upload_id: string | null
@@ -6009,6 +6010,7 @@ export type Database = {
           class_id: string
           created_at?: string
           id?: string
+          is_demo?: boolean
           reflection_notes?: string | null
           topic?: string | null
           upload_id?: string | null
@@ -6018,6 +6020,7 @@ export type Database = {
           class_id?: string
           created_at?: string
           id?: string
+          is_demo?: boolean
           reflection_notes?: string | null
           topic?: string | null
           upload_id?: string | null
