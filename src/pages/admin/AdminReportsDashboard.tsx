@@ -36,6 +36,7 @@ import {
   Eye,
   BarChart3,
 } from "lucide-react";
+import { usePlatformOwner } from "@/hooks/usePlatformOwner";
 
 export default function AdminReportsDashboard() {
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ export default function AdminReportsDashboard() {
 
   const { data: isAdmin, isLoading: isAdminLoading } = useIsSchoolAdmin();
   const { data: school, isLoading: isSchoolLoading } = useSchoolAdminSchool();
+  const { isPlatformOwner } = usePlatformOwner();
   
   const schoolId = school?.id;
   const { data: overview, isLoading: overviewLoading } = useSchoolOverview(schoolId);
@@ -64,7 +66,7 @@ export default function AdminReportsDashboard() {
     );
   }
 
-  if (!isAdmin) {
+  if (!isAdmin && !isPlatformOwner) {
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <Alert variant="destructive" className="max-w-md">
