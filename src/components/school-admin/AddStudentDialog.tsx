@@ -215,12 +215,15 @@ export function AddStudentDialog({
               
               <div className="col-span-2">
                 <Label htmlFor="classId">Assign to Class</Label>
-                <Select value={classId} onValueChange={setClassId}>
+                <Select 
+                  value={classId || "none"} 
+                  onValueChange={(val) => setClassId(val === "none" ? "" : val)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="No class (enroll later)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No class (enroll later)</SelectItem>
+                    <SelectItem value="none">No class (enroll later)</SelectItem>
                     {classes.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name} {c.grade && `(${c.grade})`}
