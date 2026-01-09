@@ -8,6 +8,7 @@ export interface Plan {
   display_name: string;
   description: string | null;
   price_monthly: number | null;
+  price_termly: number | null;
   price_annual: number | null;
   currency: string;
   max_students: number | null;
@@ -22,11 +23,30 @@ export interface Plan {
   updated_at: string;
 }
 
+// Discount rates for billing periods
+export const BILLING_DISCOUNTS = {
+  termly: 0.10,  // 10% off
+  annual: 0.20,  // 20% off
+} as const;
+
+// Calculate discounted prices from monthly base
+export function calculateTermlyPrice(monthlyPrice: number): number {
+  const termlyMonths = 4; // 3 terms per year = ~4 months each
+  const basePrice = monthlyPrice * termlyMonths;
+  return Math.round(basePrice * (1 - BILLING_DISCOUNTS.termly));
+}
+
+export function calculateAnnualPrice(monthlyPrice: number): number {
+  const basePrice = monthlyPrice * 12;
+  return Math.round(basePrice * (1 - BILLING_DISCOUNTS.annual));
+}
+
 export interface CreatePlanInput {
   name: string;
   display_name: string;
   description?: string;
   price_monthly?: number;
+  price_termly?: number;
   price_annual?: number;
   currency?: string;
   max_students?: number;
@@ -41,6 +61,7 @@ export interface UpdatePlanInput {
   display_name?: string;
   description?: string;
   price_monthly?: number | null;
+  price_termly?: number | null;
   price_annual?: number | null;
   currency?: string;
   max_students?: number | null;
@@ -103,6 +124,7 @@ export function useCreatePlan() {
           display_name: input.display_name,
           description: input.description ?? null,
           price_monthly: input.price_monthly ?? null,
+          price_termly: input.price_termly ?? null,
           price_annual: input.price_annual ?? null,
           currency: input.currency ?? 'ZMW',
           max_students: input.max_students ?? null,
