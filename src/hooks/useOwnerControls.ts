@@ -343,6 +343,7 @@ export function useAvailablePlans() {
 interface CreateSchoolInput {
   name: string;
   planId?: string;
+  billingPeriod?: 'monthly' | 'termly' | 'annual';
   isDemo: boolean;
   billingStatus: string;
   country?: string;
@@ -378,7 +379,8 @@ export function useCreateSchool() {
           school_id: school.id,
           plan_id: input.planId,
           status: 'active',
-        });
+          billing_period: input.billingPeriod || 'monthly',
+        } as any);
       }
 
       // Assign admins if provided
