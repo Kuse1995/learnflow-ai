@@ -43,11 +43,18 @@ const BILLING_STATUSES = [
   { value: 'pending', label: 'Pending' },
 ];
 
+const BILLING_PERIODS = [
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'termly', label: 'Termly (10% off)' },
+  { value: 'annual', label: 'Annual (20% off)' },
+] as const;
+
 export function CreateSchoolDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [country, setCountry] = useState('Zambia');
   const [planId, setPlanId] = useState('');
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'termly' | 'annual'>('monthly');
   const [isDemo, setIsDemo] = useState(false);
   const [billingStatus, setBillingStatus] = useState('active');
   const [adminEmail, setAdminEmail] = useState('');
@@ -86,6 +93,7 @@ export function CreateSchoolDialog() {
       {
         name: name.trim(),
         planId: planId || undefined,
+        billingPeriod: planId ? billingPeriod : undefined,
         isDemo,
         billingStatus,
         country,
@@ -98,6 +106,7 @@ export function CreateSchoolDialog() {
           setName('');
           setCountry('Zambia');
           setPlanId('');
+          setBillingPeriod('monthly');
           setIsDemo(false);
           setBillingStatus('active');
           setAdminEmail('');
@@ -166,6 +175,29 @@ export function CreateSchoolDialog() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Billing Period - only show when a plan is selected */}
+          {planId && (
+            <div className="space-y-2">
+              <Label htmlFor="billing-period">Billing Period</Label>
+              <div className="flex gap-2">
+                {BILLING_PERIODS.map((period) => (
+                  <button
+                    key={period.value}
+                    type="button"
+                    onClick={() => setBillingPeriod(period.value)}
+                    className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors ${
+                      billingPeriod === period.value
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-background border-input hover:bg-muted'
+                    }`}
+                  >
+                    {period.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="billing-status">Billing Status</Label>
