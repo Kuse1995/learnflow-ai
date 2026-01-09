@@ -110,58 +110,43 @@ export default function AcceptInvitation() {
   };
 
   const handleAcceptAsExistingUser = async () => {
-    if (!invitation) return;
+    if (!invitation || !token) return;
     
     setIsProcessing(true);
     try {
       // Check if user is logged in
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!user) {
+      if (!session) {
         // Redirect to login with return URL
         toast.info('Please log in to accept this invitation');
         navigate(`/auth?returnTo=/invite/${token}`);
         return;
       }
 
-      // Verify email matches
-      if (user.email?.toLowerCase() !== invitation.email.toLowerCase()) {
-        toast.error('Please log in with the email address the invitation was sent to');
-        return;
+      // Call edge function to accept invitation
+      const { data, error } = await supabase.functions.invoke('accept-teacher-invite', {
+        body: { inviteToken: token },
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to accept invitation');
       }
 
-      // Create teacher role for user
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: user.id,
-          school_id: invitation.school_id,
-          role: 'teacher',
-        });
-
-      if (roleError) {
-        if (roleError.code === '23505') {
-          toast.error('You already have a role at this school');
-        } else {
-          throw roleError;
+      if (data?.error) {
+        if (data.requiresLogin) {
+          toast.info('Please log in to accept this invitation');
+          navigate(`/auth?returnTo=/invite/${token}`);
+          return;
         }
-        return;
+        throw new Error(data.error);
       }
 
-      // Update invitation status
-      await supabase
-        .from('teacher_invitations')
-        .update({ 
-          status: 'accepted',
-          accepted_at: new Date().toISOString(),
-        })
-        .eq('id', invitation.id);
-
-      toast.success('Welcome! You have joined the school as a teacher.');
+      toast.success(data?.message || 'Welcome! You have joined the school as a teacher.');
       navigate('/teacher');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error accepting invitation:', error);
-      toast.error('Failed to accept invitation');
+      toast.error(error.message || 'Failed to accept invitation');
     } finally {
       setIsProcessing(false);
     }
@@ -169,7 +154,7 @@ export default function AcceptInvitation() {
 
   const handleSignupAndAccept = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!invitation) return;
+    if (!invitation || !token) return;
 
     if (password !== confirmPassword) {
       toast.error('Passwords do not match');
@@ -183,45 +168,37 @@ export default function AcceptInvitation() {
 
     setIsProcessing(true);
     try {
-      // Create new user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: invitation.email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
+      // Call edge function to create account and accept invitation
+      const { data, error } = await supabase.functions.invoke('accept-teacher-invite', {
+        body: { 
+          inviteToken: token,
+          password,
+          fullName,
         },
       });
 
-      if (authError) throw authError;
+      if (error) {
+        throw new Error(error.message || 'Failed to create account');
+      }
 
-      if (!authData.user) {
-        toast.error('Failed to create account');
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      // Sign in the new user
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: invitation.email,
+        password,
+      });
+
+      if (signInError) {
+        console.error('Auto sign-in failed:', signInError);
+        toast.success('Account created! Please log in with your credentials.');
+        navigate('/auth');
         return;
       }
 
-      // Create teacher role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: authData.user.id,
-          school_id: invitation.school_id,
-          role: 'teacher',
-        });
-
-      if (roleError) throw roleError;
-
-      // Update invitation status
-      await supabase
-        .from('teacher_invitations')
-        .update({ 
-          status: 'accepted',
-          accepted_at: new Date().toISOString(),
-        })
-        .eq('id', invitation.id);
-
-      toast.success('Account created! Welcome to the school.');
+      toast.success(data?.message || 'Account created! Welcome to the school.');
       navigate('/teacher');
     } catch (error: any) {
       console.error('Error during signup:', error);
