@@ -200,10 +200,11 @@ export function SchoolManagementPanel() {
         <AlertDialog open={!!schoolToDelete} onOpenChange={() => setSchoolToDelete(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete School</AlertDialogTitle>
+              <AlertDialogTitle>Archive School</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete <strong>{schoolToDelete?.name}</strong>? 
-                This will archive the school and suspend its billing. This action can be reversed by a super admin.
+                Are you sure you want to archive <strong>{schoolToDelete?.name}</strong>? 
+                This will archive the school along with all its classes, students, user roles, and related data. 
+                The data will be hidden from the system but preserved for recovery.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -212,12 +213,12 @@ export function SchoolManagementPanel() {
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => {
                   if (schoolToDelete) {
-                    deleteSchool.mutate(schoolToDelete.id);
+                    deleteSchool.mutate({ schoolId: schoolToDelete.id });
                     setSchoolToDelete(null);
                   }
                 }}
               >
-                Delete School
+                Archive School
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
