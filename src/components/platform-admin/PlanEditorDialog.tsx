@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plan, PLAN_FEATURE_KEYS, PLAN_AI_LIMIT_KEYS, useCreatePlan, useUpdatePlan } from '@/hooks/usePlanManagement';
+import { Plan, PLAN_FEATURE_KEYS, PLAN_AI_LIMIT_KEYS, useCreatePlan, useUpdatePlan, calculateTermlyPrice, calculateAnnualPrice, BILLING_DISCOUNTS } from '@/hooks/usePlanManagement';
 import {
   Dialog,
   DialogContent,
@@ -57,7 +57,9 @@ const planSchema = z.object({
   display_name: z.string().min(2, 'Display name must be at least 2 characters'),
   description: z.string().optional(),
   price_monthly: z.coerce.number().min(0).nullable(),
+  price_termly: z.coerce.number().min(0).nullable(),
   price_annual: z.coerce.number().min(0).nullable(),
+  auto_calculate_discounts: z.boolean(),
   currency: z.enum(['ZMW', 'USD']),
   max_students: z.coerce.number().min(-1).nullable(),
   max_teachers: z.coerce.number().min(-1).nullable(),
@@ -85,7 +87,9 @@ export function PlanEditorDialog({ open, onOpenChange, plan }: PlanEditorDialogP
       display_name: '',
       description: '',
       price_monthly: null,
+      price_termly: null,
       price_annual: null,
+      auto_calculate_discounts: true,
       currency: 'ZMW',
       max_students: null,
       max_teachers: null,
@@ -94,15 +98,31 @@ export function PlanEditorDialog({ open, onOpenChange, plan }: PlanEditorDialogP
     },
   });
 
+  const watchMonthly = form.watch('price_monthly');
+  const watchAutoCalc = form.watch('auto_calculate_discounts');
+
+  // Auto-calculate termly and annual prices when monthly changes
+  useEffect(() => {
+    if (watchAutoCalc && watchMonthly && watchMonthly > 0) {
+      form.setValue('price_termly', calculateTermlyPrice(watchMonthly));
+      form.setValue('price_annual', calculateAnnualPrice(watchMonthly));
+    }
+  }, [watchMonthly, watchAutoCalc, form]);
+
   // Populate form when editing
   useEffect(() => {
     if (plan) {
+      const hasCustomPricing = plan.price_monthly && plan.price_termly && 
+        plan.price_termly !== calculateTermlyPrice(plan.price_monthly);
+      
       form.reset({
         name: plan.name,
         display_name: plan.display_name,
         description: plan.description ?? '',
         price_monthly: plan.price_monthly,
+        price_termly: plan.price_termly,
         price_annual: plan.price_annual,
+        auto_calculate_discounts: !hasCustomPricing,
         currency: plan.currency as 'ZMW' | 'USD',
         max_students: plan.max_students,
         max_teachers: plan.max_teachers,
@@ -115,7 +135,9 @@ export function PlanEditorDialog({ open, onOpenChange, plan }: PlanEditorDialogP
         display_name: '',
         description: '',
         price_monthly: null,
+        price_termly: null,
         price_annual: null,
+        auto_calculate_discounts: true,
         currency: 'ZMW',
         max_students: null,
         max_teachers: null,
@@ -133,6 +155,7 @@ export function PlanEditorDialog({ open, onOpenChange, plan }: PlanEditorDialogP
           display_name: values.display_name,
           description: values.description || null,
           price_monthly: values.price_monthly,
+          price_termly: values.price_termly,
           price_annual: values.price_annual,
           currency: values.currency,
           max_students: values.max_students,
@@ -146,6 +169,7 @@ export function PlanEditorDialog({ open, onOpenChange, plan }: PlanEditorDialogP
           display_name: values.display_name,
           description: values.description,
           price_monthly: values.price_monthly ?? undefined,
+          price_termly: values.price_termly ?? undefined,
           price_annual: values.price_annual ?? undefined,
           currency: values.currency,
           max_students: values.max_students ?? undefined,
@@ -229,8 +253,34 @@ export function PlanEditorDialog({ open, onOpenChange, plan }: PlanEditorDialogP
 
             {/* Pricing */}
             <div>
-              <h4 className="text-sm font-medium mb-3">Pricing</h4>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium">Pricing</h4>
+                <FormField
+                  control={form.control}
+                  name="auto_calculate_discounts"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2 space-y-0">
+                      <FormLabel className="text-xs text-muted-foreground font-normal">
+                        Auto-calculate discounts
+                      </FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              {watchAutoCalc && (
+                <p className="text-xs text-muted-foreground mb-3">
+                  Termly: {Math.round(BILLING_DISCOUNTS.termly * 100)}% off • Annual: {Math.round(BILLING_DISCOUNTS.annual * 100)}% off (calculated from monthly)
+                </p>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
                 <FormField
                   control={form.control}
                   name="currency"
@@ -271,21 +321,53 @@ export function PlanEditorDialog({ open, onOpenChange, plan }: PlanEditorDialogP
                     </FormItem>
                   )}
                 />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="price_annual"
+                  name="price_termly"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Annual Price</FormLabel>
+                      <FormLabel>
+                        Termly Price
+                        {watchAutoCalc && <span className="text-xs text-green-600 ml-1">(10% off)</span>}
+                      </FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
                           {...field} 
                           value={field.value ?? ''} 
                           onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
-                          placeholder="Optional"
+                          placeholder="~4 months"
+                          disabled={watchAutoCalc}
                         />
                       </FormControl>
+                      <FormDescription className="text-xs">Per term (~4 months)</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="price_annual"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Annual Price
+                        {watchAutoCalc && <span className="text-xs text-green-600 ml-1">(20% off)</span>}
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          {...field} 
+                          value={field.value ?? ''} 
+                          onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
+                          placeholder="12 months"
+                          disabled={watchAutoCalc}
+                        />
+                      </FormControl>
+                      <FormDescription className="text-xs">Per year (12 months)</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

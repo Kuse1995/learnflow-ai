@@ -1,4 +1,4 @@
-import { Plan, PLAN_FEATURE_KEYS, PLAN_AI_LIMIT_KEYS } from '@/hooks/usePlanManagement';
+import { Plan, PLAN_FEATURE_KEYS, PLAN_AI_LIMIT_KEYS, BILLING_DISCOUNTS } from '@/hooks/usePlanManagement';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -101,6 +101,31 @@ export function PlanCard({ plan, onEdit, onArchive, onRestore }: PlanCardProps) 
             )}
           </div>
         </div>
+        
+        {/* Additional pricing tiers */}
+        {plan.price_monthly !== null && plan.price_monthly > 0 && (
+          <div className="flex gap-3 mt-2 text-xs">
+            {plan.price_termly !== null && (
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Termly:</span>
+                <span className="font-medium">{formatPrice(plan.price_termly, plan.currency)}</span>
+                <Badge variant="secondary" className="text-[10px] px-1 py-0 bg-green-100 text-green-700">
+                  {Math.round(BILLING_DISCOUNTS.termly * 100)}% off
+                </Badge>
+              </div>
+            )}
+            {plan.price_annual !== null && (
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Annual:</span>
+                <span className="font-medium">{formatPrice(plan.price_annual, plan.currency)}</span>
+                <Badge variant="secondary" className="text-[10px] px-1 py-0 bg-green-100 text-green-700">
+                  {Math.round(BILLING_DISCOUNTS.annual * 100)}% off
+                </Badge>
+              </div>
+            )}
+          </div>
+        )}
+        
         {plan.description && (
           <p className="text-sm text-muted-foreground mt-2">{plan.description}</p>
         )}
