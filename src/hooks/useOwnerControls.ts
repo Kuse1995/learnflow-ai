@@ -529,10 +529,10 @@ export function useAllUsersWithRoles() {
 
       if (error) throw error;
       
-      // Try to get user emails from profiles or demo_users
+      // Get user emails from profiles table (not demo_users)
       const userIds = [...new Set((data || []).map(r => r.user_id))];
       const { data: profiles } = await supabase
-        .from('demo_users')
+        .from('profiles')
         .select('id, email')
         .in('id', userIds);
       
@@ -542,6 +542,22 @@ export function useAllUsersWithRoles() {
         ...role,
         user_email: emailMap.get(role.user_id) || undefined,
       }));
+    },
+  });
+}
+
+// Hook to get all registered users for admin assignment
+export function useAllRegisteredUsers() {
+  return useQuery({
+    queryKey: ['all-registered-users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email, full_name')
+        .order('email');
+      
+      if (error) throw error;
+      return data || [];
     },
   });
 }
