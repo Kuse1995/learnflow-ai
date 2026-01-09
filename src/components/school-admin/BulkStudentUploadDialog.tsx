@@ -1,10 +1,10 @@
 /**
  * Bulk Student Upload Dialog
- * Allows CSV file upload or paste for importing multiple students
+ * Allows CSV file upload, paste, document scanning, or names-only import
  */
 
 import { useState, useCallback, useRef } from "react";
-import { Upload, FileText, Download, AlertCircle, CheckCircle2, AlertTriangle, X } from "lucide-react";
+import { Upload, FileText, Download, AlertCircle, CheckCircle2, AlertTriangle, X, Camera, ListPlus, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -26,8 +27,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { parseStudentCSV, generateCSVTemplate, ParseResult, ParsedStudent } from "@/lib/csv-student-parser";
+import { parseStudentCSV, parseNamesOnly, convertExtractedStudents, generateCSVTemplate, ParseResult, ParsedStudent } from "@/lib/csv-student-parser";
 import { useBulkImportStudents, useExistingStudentIds } from "@/hooks/useBulkStudents";
+import { useDocumentExtraction } from "@/hooks/useDocumentExtraction";
 import { cn } from "@/lib/utils";
 
 interface BulkStudentUploadDialogProps {
@@ -46,14 +48,17 @@ export function BulkStudentUploadDialog({
   classes,
 }: BulkStudentUploadDialogProps) {
   const [csvText, setCsvText] = useState('');
+  const [namesText, setNamesText] = useState('');
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [filter, setFilter] = useState<FilterType>('all');
   const [progress, setProgress] = useState(0);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const { data: existingIds = [] } = useExistingStudentIds(schoolId);
   const bulkImport = useBulkImportStudents();
+  const { extractFromImage, isExtracting } = useDocumentExtraction();
 
   const handleParse = useCallback((text: string) => {
     setCsvText(text);
@@ -65,6 +70,16 @@ export function BulkStudentUploadDialog({
     }
   }, [classes, existingIds]);
 
+  const handleNamesOnlyParse = useCallback((text: string) => {
+    setNamesText(text);
+    if (text.trim()) {
+      const result = parseNamesOnly(text, existingIds);
+      setParseResult(result);
+    } else {
+      setParseResult(null);
+    }
+  }, [existingIds]);
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -74,6 +89,17 @@ export function BulkStudentUploadDialog({
         handleParse(text);
       };
       reader.readAsText(file);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const result = await extractFromImage(file);
+    if (result?.success && result.students.length > 0) {
+      const parsed = convertExtractedStudents(result.students, classes, existingIds);
+      setParseResult(parsed);
     }
   };
 
@@ -115,8 +141,7 @@ export function BulkStudentUploadDialog({
       });
       
       // Reset and close on success
-      setCsvText('');
-      setParseResult(null);
+      handleReset();
       onOpenChange(false);
     } finally {
       setIsImporting(false);
@@ -126,10 +151,14 @@ export function BulkStudentUploadDialog({
 
   const handleReset = () => {
     setCsvText('');
+    setNamesText('');
     setParseResult(null);
     setFilter('all');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
     }
   };
 
@@ -148,15 +177,23 @@ export function BulkStudentUploadDialog({
             Bulk Student Upload
           </DialogTitle>
           <DialogDescription>
-            Import multiple students at once via CSV file or paste
+            Import students via CSV, scan paper registers, or paste names
           </DialogDescription>
         </DialogHeader>
 
         {!parseResult ? (
           <div className="space-y-4">
             <Tabs defaultValue="upload">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="upload">Upload File</TabsTrigger>
+                <TabsTrigger value="scan" className="gap-1">
+                  <Camera className="h-3.5 w-3.5" />
+                  Scan
+                </TabsTrigger>
+                <TabsTrigger value="names" className="gap-1">
+                  <ListPlus className="h-3.5 w-3.5" />
+                  Names Only
+                </TabsTrigger>
                 <TabsTrigger value="paste">Paste CSV</TabsTrigger>
               </TabsList>
 
@@ -179,6 +216,62 @@ export function BulkStudentUploadDialog({
                     className="hidden"
                   />
                 </div>
+              </TabsContent>
+
+              <TabsContent value="scan" className="space-y-4">
+                <div
+                  className={cn(
+                    "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors",
+                    isExtracting && "pointer-events-none opacity-60"
+                  )}
+                  onClick={() => !isExtracting && imageInputRef.current?.click()}
+                >
+                  {isExtracting ? (
+                    <>
+                      <Loader2 className="h-12 w-12 mx-auto text-primary mb-4 animate-spin" />
+                      <p className="text-sm font-medium mb-2">AI is reading your document...</p>
+                      <p className="text-xs text-muted-foreground">This may take a few seconds</p>
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Take a photo or upload an image of your paper register
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Supports class registers, admission books, attendance sheets
+                      </p>
+                    </>
+                  )}
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  AI will extract student names and IDs from your document
+                </p>
+              </TabsContent>
+
+              <TabsContent value="names" className="space-y-4">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Enter student names, one per line. IDs will be auto-generated.
+                  </p>
+                  <Textarea
+                    placeholder="John Doe&#10;Jane Smith&#10;Mike Johnson&#10;..."
+                    value={namesText}
+                    onChange={(e) => handleNamesOnlyParse(e.target.value)}
+                    className="min-h-[200px] font-mono text-sm"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  💡 Perfect for quick imports - you can add IDs, grades, and classes later
+                </p>
               </TabsContent>
 
               <TabsContent value="paste" className="space-y-4">
@@ -311,9 +404,10 @@ export function BulkStudentUploadDialog({
 function StudentPreviewRow({ student }: { student: ParsedStudent }) {
   const hasErrors = student.errors.length > 0;
   const hasWarnings = student.warnings.length > 0;
+  const lowConfidence = student.confidence !== undefined && student.confidence < 70;
 
   return (
-    <TableRow className={cn(hasErrors && 'bg-destructive/5')}>
+    <TableRow className={cn(hasErrors && 'bg-destructive/5', lowConfidence && 'bg-yellow-50')}>
       <TableCell className="text-muted-foreground text-xs">{student.rowNumber}</TableCell>
       <TableCell>
         {hasErrors ? (
@@ -324,7 +418,18 @@ function StudentPreviewRow({ student }: { student: ParsedStudent }) {
           <CheckCircle2 className="h-4 w-4 text-green-600" />
         )}
       </TableCell>
-      <TableCell className="font-medium">{student.name || '—'}</TableCell>
+      <TableCell className="font-medium">
+        {student.name || '—'}
+        {student.confidence !== undefined && (
+          <span className={cn(
+            "ml-2 text-xs",
+            student.confidence >= 90 ? "text-green-600" :
+            student.confidence >= 70 ? "text-yellow-600" : "text-red-600"
+          )}>
+            {student.confidence}%
+          </span>
+        )}
+      </TableCell>
       <TableCell>
         <code className="text-xs bg-muted px-1 py-0.5 rounded">
           {student.studentId}
