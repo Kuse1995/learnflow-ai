@@ -7017,6 +7017,8 @@ export type Database = {
           id: string
           is_active: boolean
           notes: string | null
+          revoked_at: string | null
+          revoked_by: string | null
           role: Database["public"]["Enums"]["app_role"]
           school_id: string | null
           updated_at: string | null
@@ -7029,6 +7031,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           notes?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
           role: Database["public"]["Enums"]["app_role"]
           school_id?: string | null
           updated_at?: string | null
@@ -7041,6 +7045,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           notes?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           school_id?: string | null
           updated_at?: string | null
@@ -7094,6 +7100,10 @@ export type Database = {
           p_send_confirmation?: boolean
         }
         Returns: boolean
+      }
+      archive_school_cascade: {
+        Args: { p_archived_by?: string; p_school_id: string }
+        Returns: undefined
       }
       assign_dev_user_roles: { Args: { user_email: string }; Returns: boolean }
       bootstrap_owner_roles: {
