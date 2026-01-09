@@ -4,7 +4,7 @@
  */
 
 import { useState } from "react";
-import { Users, School, Plus, Search, Phone, Mail } from "lucide-react";
+import { Users, School, Plus, Search, Phone, Upload } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +25,7 @@ import { useSchoolStudents } from "@/hooks/useSchoolStudents";
 import { AdminLayout } from "@/components/navigation/AdminNav";
 import { usePlatformOwner } from "@/hooks/usePlatformOwner";
 import { AddStudentDialog } from "@/components/school-admin/AddStudentDialog";
+import { BulkStudentUploadDialog } from "@/components/school-admin/BulkStudentUploadDialog";
 import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
 
 export default function AdminStudents() {
@@ -35,6 +36,7 @@ export default function AdminStudents() {
   const { isPlatformOwner } = usePlatformOwner();
 
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { config: terminologyConfig } = useClassLevelTerminology(school?.id);
 
@@ -96,10 +98,16 @@ export default function AdminStudents() {
               {students?.length || 0} students enrolled
             </p>
           </div>
-          <Button onClick={() => setShowAddDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Student
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowBulkDialog(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Bulk Upload
+            </Button>
+            <Button onClick={() => setShowAddDialog(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Student
+            </Button>
+          </div>
         </div>
 
         {/* Search */}
@@ -211,6 +219,18 @@ export default function AdminStudents() {
         <AddStudentDialog
           open={showAddDialog}
           onOpenChange={setShowAddDialog}
+          schoolId={school.id}
+          classes={activeClasses.map(c => ({
+            id: c.id,
+            name: c.name,
+            grade: c.grade,
+          }))}
+        />
+
+        {/* Bulk Upload Dialog */}
+        <BulkStudentUploadDialog
+          open={showBulkDialog}
+          onOpenChange={setShowBulkDialog}
           schoolId={school.id}
           classes={activeClasses.map(c => ({
             id: c.id,
