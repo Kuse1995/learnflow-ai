@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, X } from 'lucide-react';
-import { useCreateSchool, useAvailablePlans, useAllUsersWithRoles } from '@/hooks/useOwnerControls';
+import { useCreateSchool, useAvailablePlans, useAllRegisteredUsers } from '@/hooks/useOwnerControls';
 import { Badge } from '@/components/ui/badge';
 
 const COUNTRIES = [
@@ -62,15 +62,13 @@ export function CreateSchoolDialog() {
 
   const createSchool = useCreateSchool();
   const { data: plans } = useAvailablePlans();
-  const { data: users } = useAllUsersWithRoles();
+  const { data: registeredUsers } = useAllRegisteredUsers();
 
-  // Get unique users for admin selection
-  const availableUsers = users?.reduce((acc, role) => {
-    if (!acc.find(u => u.id === role.user_id)) {
-      acc.push({ id: role.user_id, email: role.user_email || 'Unknown email' });
-    }
-    return acc;
-  }, [] as { id: string; email: string }[]) || [];
+  // All registered users available for admin selection
+  const availableUsers = registeredUsers?.map(u => ({
+    id: u.id,
+    email: u.email || 'Unknown email',
+  })) || [];
 
   const handleAddAdmin = () => {
     const user = availableUsers.find(u => u.email.toLowerCase() === adminEmail.toLowerCase());
