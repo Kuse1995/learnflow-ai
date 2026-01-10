@@ -14,3 +14,4 @@ export { ClassManagementPanel } from './ClassManagementPanel';
 export { CreateClassDialog } from './CreateClassDialog';
 export { SubjectCombobox } from './SubjectCombobox';
 export { OwnerSchoolSelector } from './OwnerSchoolSelector';
+export { OrphanedUsersPanel } from './OrphanedUsersPanel';
