@@ -12,6 +12,7 @@ import {
   SchoolManagementPanel,
   UserManagementPanel,
   OrphanedUsersPanel,
+  PendingInvitationsPanel,
 } from '@/components/owner';
 import { PageHeader } from '@/components/layout';
 import { Badge } from '@/components/ui/badge';
@@ -68,6 +69,9 @@ export default function OwnerControl() {
 
         {/* Orphaned Users Panel */}
         <OrphanedUsersPanel />
+
+        {/* Pending Admin Invitations */}
+        <PendingInvitationsPanel />
 
         {/* Access Overrides - Full Width */}
         <AccessOverridesPanel />

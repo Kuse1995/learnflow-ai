@@ -4018,6 +4018,53 @@ export type Database = {
           },
         ]
       }
+      pending_admin_invitations: {
+        Row: {
+          claimed_at: string | null
+          claimed_by: string | null
+          created_at: string | null
+          email: string
+          expires_at: string | null
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          school_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string | null
+          email: string
+          expires_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          school_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_admin_invitations_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pilot_exit_criteria: {
         Row: {
           all_criteria_met: boolean | null

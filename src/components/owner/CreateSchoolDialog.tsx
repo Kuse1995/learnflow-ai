@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, X, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, X, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { useCreateSchool, useAvailablePlans, useAllRegisteredUsers } from '@/hooks/useOwnerControls';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -50,6 +50,12 @@ const BILLING_PERIODS = [
   { value: 'annual', label: 'Annual (20% off)' },
 ] as const;
 
+interface AdminAssignment {
+  id?: string;
+  email: string;
+  exists: boolean;
+}
+
 export function CreateSchoolDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -59,7 +65,7 @@ export function CreateSchoolDialog() {
   const [isDemo, setIsDemo] = useState(false);
   const [billingStatus, setBillingStatus] = useState('active');
   const [adminEmail, setAdminEmail] = useState('');
-  const [selectedAdmins, setSelectedAdmins] = useState<{ id: string; email: string }[]>([]);
+  const [selectedAdmins, setSelectedAdmins] = useState<AdminAssignment[]>([]);
 
   const createSchool = useCreateSchool();
   const { data: plans } = useAvailablePlans();
@@ -75,17 +81,39 @@ export function CreateSchoolDialog() {
   const emailLookupResult = adminEmail.trim() 
     ? availableUsers.find(u => u.email.toLowerCase() === adminEmail.toLowerCase().trim())
     : null;
-  const emailNotFound = adminEmail.trim().length > 0 && !emailLookupResult;
+  const emailNotFound = adminEmail.trim().length > 0 && adminEmail.includes('@') && !emailLookupResult;
+
+  // Validate email format
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleAddAdmin = () => {
-    if (emailLookupResult && !selectedAdmins.find(a => a.id === emailLookupResult.id)) {
-      setSelectedAdmins([...selectedAdmins, emailLookupResult]);
+    const trimmedEmail = adminEmail.toLowerCase().trim();
+    
+    // Check if already added
+    if (selectedAdmins.find(a => a.email.toLowerCase() === trimmedEmail)) {
+      return;
+    }
+
+    if (emailLookupResult) {
+      // User exists - will be assigned immediately
+      setSelectedAdmins([...selectedAdmins, {
+        id: emailLookupResult.id,
+        email: emailLookupResult.email,
+        exists: true
+      }]);
+      setAdminEmail('');
+    } else if (isValidEmail(trimmedEmail)) {
+      // User doesn't exist - will create pending invitation
+      setSelectedAdmins([...selectedAdmins, {
+        email: trimmedEmail,
+        exists: false
+      }]);
       setAdminEmail('');
     }
   };
 
-  const handleRemoveAdmin = (userId: string) => {
-    setSelectedAdmins(selectedAdmins.filter(a => a.id !== userId));
+  const handleRemoveAdmin = (email: string) => {
+    setSelectedAdmins(selectedAdmins.filter(a => a.email !== email));
   };
 
   const selectedCountry = COUNTRIES.find(c => c.name === country);
@@ -102,7 +130,7 @@ export function CreateSchoolDialog() {
         billingStatus,
         country,
         timezone: selectedCountry?.timezone || 'Africa/Lusaka',
-        adminUserIds: selectedAdmins.map(a => a.id),
+        admins: selectedAdmins.map(a => ({ id: a.id, email: a.email })),
       },
       {
         onSuccess: () => {
@@ -119,6 +147,9 @@ export function CreateSchoolDialog() {
       }
     );
   };
+
+  const existingAdmins = selectedAdmins.filter(a => a.exists);
+  const pendingAdmins = selectedAdmins.filter(a => !a.exists);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -226,15 +257,16 @@ export function CreateSchoolDialog() {
                 <Input
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
-                  placeholder="Enter user email"
+                  placeholder="Enter admin email"
                   list="user-emails"
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddAdmin())}
                   className={emailLookupResult ? 'pr-8 border-green-500' : emailNotFound ? 'pr-8 border-amber-500' : ''}
                 />
                 {emailLookupResult && (
                   <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
                 )}
                 {emailNotFound && (
-                  <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500" />
+                  <Clock className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500" />
                 )}
               </div>
               <Button 
@@ -242,7 +274,7 @@ export function CreateSchoolDialog() {
                 variant="outline" 
                 size="sm" 
                 onClick={handleAddAdmin}
-                disabled={!emailLookupResult}
+                disabled={!emailLookupResult && !isValidEmail(adminEmail.trim())}
               >
                 Add
               </Button>
@@ -254,33 +286,63 @@ export function CreateSchoolDialog() {
             </datalist>
             
             {/* Email lookup feedback */}
-            {emailNotFound && (
+            {emailNotFound && isValidEmail(adminEmail.trim()) && (
               <Alert variant="default" className="py-2 border-amber-500/50 bg-amber-500/10">
-                <AlertCircle className="h-4 w-4 text-amber-500" />
+                <Clock className="h-4 w-4 text-amber-500" />
                 <AlertDescription className="text-xs">
-                  User not registered yet. They must sign up at /auth before they can be assigned as admin.
+                  User not registered yet. An invitation will be created and they'll get access automatically when they sign up.
                 </AlertDescription>
               </Alert>
             )}
             
-            {selectedAdmins.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {selectedAdmins.map((admin) => (
-                  <Badge key={admin.id} variant="secondary" className="flex items-center gap-1">
-                    {admin.email}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAdmin(admin.id)}
-                      className="ml-1 hover:text-destructive"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
+            {/* Existing users - will be assigned immediately */}
+            {existingAdmins.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Will be assigned immediately:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {existingAdmins.map((admin) => (
+                    <Badge key={admin.email} variant="secondary" className="flex items-center gap-1 bg-green-100 text-green-800 border-green-200">
+                      {admin.email}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAdmin(admin.email)}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
+
+            {/* Pending users - invitation will be created */}
+            {pendingAdmins.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs text-amber-600 font-medium flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Invitation will be created (auto-assigned on signup):
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {pendingAdmins.map((admin) => (
+                    <Badge key={admin.email} variant="secondary" className="flex items-center gap-1 bg-amber-100 text-amber-800 border-amber-200">
+                      {admin.email}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAdmin(admin.email)}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <p className="text-xs text-muted-foreground">
-              These users will be assigned as school admins and can manage classes, teachers, and students.
+              You can add emails for users who haven't registered yet. They'll automatically get admin access when they sign up.
             </p>
           </div>
 

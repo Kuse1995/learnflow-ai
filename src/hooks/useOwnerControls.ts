@@ -340,6 +340,11 @@ export function useAvailablePlans() {
   });
 }
 
+interface AdminAssignment {
+  id?: string;  // User ID if they exist
+  email: string;
+}
+
 interface CreateSchoolInput {
   name: string;
   planId?: string;
@@ -348,7 +353,7 @@ interface CreateSchoolInput {
   billingStatus: string;
   country?: string;
   timezone?: string;
-  adminUserIds?: string[];
+  admins?: AdminAssignment[];  // Changed from adminUserIds to support pending invitations
 }
 
 export function useCreateSchool() {
@@ -383,15 +388,43 @@ export function useCreateSchool() {
         } as any);
       }
 
-      // Assign admins if provided
-      if (input.adminUserIds && input.adminUserIds.length > 0 && school) {
-        const adminRoles = input.adminUserIds.map(userId => ({
-          user_id: userId,
-          school_id: school.id,
-          role: 'school_admin' as AppRole,
-        }));
-        
-        await supabase.from('user_roles').insert(adminRoles);
+      // Assign admins if provided - handle both existing users and pending invitations
+      if (input.admins && input.admins.length > 0 && school) {
+        const existingUserAdmins = input.admins.filter(a => a.id);
+        const pendingAdmins = input.admins.filter(a => !a.id);
+
+        // Assign roles to existing users
+        if (existingUserAdmins.length > 0) {
+          const adminRoles = existingUserAdmins.map(admin => ({
+            user_id: admin.id!,
+            school_id: school.id,
+            role: 'school_admin' as AppRole,
+          }));
+          
+          const { error: roleError } = await supabase.from('user_roles').insert(adminRoles);
+          if (roleError) {
+            console.error('Failed to assign admin roles:', roleError);
+            throw new Error(`School created but failed to assign admins: ${roleError.message}`);
+          }
+        }
+
+        // Create pending invitations for unregistered users
+        if (pendingAdmins.length > 0) {
+          const { data: { user } } = await supabase.auth.getUser();
+          const pendingInvitations = pendingAdmins.map(admin => ({
+            school_id: school.id,
+            email: admin.email.toLowerCase().trim(),
+            role: 'school_admin' as AppRole,
+            invited_by: user?.id,
+          }));
+
+          const { error: inviteError } = await supabase.from('pending_admin_invitations').insert(pendingInvitations);
+          if (inviteError) {
+            console.error('Failed to create pending invitations:', inviteError);
+            // Don't throw - school and existing admins are already created
+            toast.error(`School created but some invitations failed: ${inviteError.message}`);
+          }
+        }
 
         // Seed default subjects for the school
         const defaultSubjects = [
@@ -416,6 +449,7 @@ export function useCreateSchool() {
       queryClient.invalidateQueries({ queryKey: ['owner-all-schools'] });
       queryClient.invalidateQueries({ queryKey: ['admin-all-schools'] });
       queryClient.invalidateQueries({ queryKey: ['owner-all-user-roles'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-admin-invitations'] });
       toast.success('School created successfully');
     },
     onError: (error) => {
