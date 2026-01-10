@@ -51,19 +51,28 @@ export function useUserRoles(userId: string | undefined, schoolId?: string) {
     queryFn: async () => {
       if (!userId) return [];
 
+      // Always fetch ALL active roles for this user first
+      // This ensures roles are loaded regardless of schoolId filtering
       let query = supabase
         .from('user_roles')
         .select('*')
         .eq('user_id', userId)
         .eq('is_active', true);
 
+      // Only filter by school if explicitly provided AND we want school-specific roles
+      // For initial RBAC loading, schoolId is null so we get ALL roles
       if (schoolId) {
         query = query.or(`school_id.eq.${schoolId},school_id.is.null`);
       }
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('[useUserRoles] Error fetching roles:', error);
+        throw error;
+      }
+
+      console.log('[useUserRoles] Fetched roles for user', userId, ':', data);
 
       return (data || []).map(row => ({
         id: row.id,
@@ -77,6 +86,8 @@ export function useUserRoles(userId: string | undefined, schoolId?: string) {
       })) as UserRole[];
     },
     enabled: !!userId,
+    staleTime: 0, // Always refetch on mount to get latest roles
+    retry: 2,
   });
 }
 

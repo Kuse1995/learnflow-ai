@@ -72,7 +72,11 @@ export function RBACProvider({
   const effectiveUserName = userName ?? (isDemoMode ? demoUserName : null);
   const effectiveSchoolId = schoolId ?? (isDemoMode ? demoSchoolId : null);
   
-  const { data: userRoles, isLoading } = useUserRoles(effectiveUserId ?? undefined, effectiveSchoolId ?? undefined);
+  // Fetch roles WITHOUT schoolId filter - we need ALL roles to determine where to redirect
+  const { data: userRoles, isLoading } = useUserRoles(effectiveUserId ?? undefined);
+  
+  // Debug logging for role loading issues
+  console.log('[RBACProvider] User:', effectiveUserId, 'Roles loaded:', userRoles, 'Loading:', isLoading);
   
   // In demo mode, inject the demo role directly
   // For Platform Owner, include all roles for simulation
@@ -84,9 +88,12 @@ export function RBACProvider({
     if (isDemoMode && demoRole) {
       return [DEMO_USERS[demoRole].role];
     }
-    if (!userRoles) return [];
+    if (!userRoles || userRoles.length === 0) {
+      console.warn('[RBACProvider] No roles found for user:', effectiveUserId);
+      return [];
+    }
     return userRoles.map(r => r.role);
-  }, [userRoles, isDemoMode, demoRole, isPlatformOwner]);
+  }, [userRoles, isDemoMode, demoRole, isPlatformOwner, effectiveUserId]);
 
   const sortedRoles = useMemo(() => sortRolesByPriority(roles), [roles]);
   
