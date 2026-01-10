@@ -495,18 +495,29 @@ export function useSchoolTeachersWithClasses(schoolId?: string) {
         }
       });
 
-      // Get profiles for teachers (try demo_users first, then create placeholder)
-      const { data: demoUsers } = await supabase
-        .from("demo_users")
+      // Get profiles for teachers from profiles table first, then fallback to demo_users
+      const { data: profiles } = await supabase
+        .from("profiles")
         .select("id, full_name, email")
         .in("id", teacherIds);
 
-      const demoUserMap = new Map(demoUsers?.map(u => [u.id, u]) || []);
+      const profileMap = new Map(profiles?.map(u => [u.id, u]) || []);
+
+      // Fallback to demo_users for any teachers not in profiles
+      const missingIds = teacherIds.filter(id => !profileMap.has(id));
+      if (missingIds.length > 0) {
+        const { data: demoUsers } = await supabase
+          .from("demo_users")
+          .select("id, full_name, email")
+          .in("id", missingIds);
+        
+        demoUsers?.forEach(u => profileMap.set(u.id, u));
+      }
 
       return teacherIds.map(userId => ({
         user_id: userId,
-        full_name: demoUserMap.get(userId)?.full_name || null,
-        email: demoUserMap.get(userId)?.email || null,
+        full_name: profileMap.get(userId)?.full_name || null,
+        email: profileMap.get(userId)?.email || null,
         class_count: classCountMap.get(userId) || 0,
       }));
     },
