@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { TeacherLayout } from "@/components/navigation";
 import { ConnectedAttendanceSheet } from "@/components/attendance";
-import { useClasses } from "@/hooks/useClasses";
+import { useScopedClasses } from "@/hooks/useDataScope";
 import { EmptyState } from "@/components/empty-states";
 import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
 import { useTeacherSchool } from "@/hooks/useTeacherSchool";
@@ -27,7 +27,7 @@ export default function TeacherAttendance() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [calendarOpen, setCalendarOpen] = useState(false);
 
-  const { data: classes = [], isLoading: classesLoading } = useClasses();
+  const { data: classes = [], isLoading: classesLoading } = useScopedClasses();
   const { schoolName } = useTeacherSchool();
   
   // Get school ID from first class to determine terminology

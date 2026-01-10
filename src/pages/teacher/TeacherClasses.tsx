@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { TeacherLayout } from "@/components/navigation";
-import { useClasses } from "@/hooks/useClasses";
+import { useScopedClasses } from "@/hooks/useDataScope";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-states";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,7 +10,7 @@ import { useTeacherSchool } from "@/hooks/useTeacherSchool";
 
 export default function TeacherClasses() {
   const navigate = useNavigate();
-  const { data: classes = [], isLoading } = useClasses();
+  const { data: classes = [], isLoading } = useScopedClasses();
   const { schoolName } = useTeacherSchool();
   
   // Get school ID from first class to determine terminology

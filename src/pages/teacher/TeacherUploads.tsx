@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Plus, List } from "lucide-react";
 import { TeacherLayout } from "@/components/navigation";
 import { UploadForm, UploadsList } from "@/components/uploads";
-import { useClasses } from "@/hooks/useClasses";
+import { useScopedClasses } from "@/hooks/useDataScope";
 import { useUploads, useUploadFile } from "@/hooks/useUploads";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +13,7 @@ import { useTeacherSchool } from "@/hooks/useTeacherSchool";
 
 export default function TeacherUploads() {
   const [activeTab, setActiveTab] = useState("upload");
-  const { data: classes, isLoading: classesLoading } = useClasses();
+  const { data: classes = [], isLoading: classesLoading } = useScopedClasses();
   const { data: uploads, isLoading: uploadsLoading } = useUploads();
   const { mutateAsync: uploadFile, uploadProgress, isPending } = useUploadFile();
   const { schoolName } = useTeacherSchool();
