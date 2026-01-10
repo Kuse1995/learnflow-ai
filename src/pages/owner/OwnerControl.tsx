@@ -11,8 +11,8 @@ import {
   QuickNavigationPanel,
   SchoolManagementPanel,
   UserManagementPanel,
+  OrphanedUsersPanel,
 } from '@/components/owner';
-import { OrphanedUsersPanel } from '@/components/owner/OrphanedUsersPanel';
 import { PageHeader } from '@/components/layout';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';

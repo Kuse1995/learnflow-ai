@@ -57,7 +57,7 @@ export function UserManagementPanel() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User ID</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>School</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Assigned</TableHead>
@@ -74,8 +74,15 @@ export function UserManagementPanel() {
               )}
               {userRoles?.map((ur) => (
                 <TableRow key={ur.id}>
-                  <TableCell className="font-mono text-xs">
-                    {ur.user_id.slice(0, 8)}...
+                  <TableCell>
+                    <div>
+                      <p className="text-sm font-medium truncate max-w-[180px]">
+                        {ur.user_email || 'Unknown'}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {ur.user_id.slice(0, 8)}...
+                      </p>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm">{ur.school?.name || 'Unknown'}</span>
