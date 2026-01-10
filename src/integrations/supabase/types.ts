@@ -7289,6 +7289,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"][]
       }
       grant_owner_access: { Args: { p_email: string }; Returns: boolean }
+      hard_delete_school_cascade: {
+        Args: { p_school_id: string }
+        Returns: undefined
+      }
       has_active_payment_plan: {
         Args: { p_academic_year: number; p_student_id: string; p_term: number }
         Returns: boolean

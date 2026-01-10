@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -28,13 +30,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Building2, ExternalLink, Trash2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Building2, ExternalLink, MoreVertical, Archive, Trash2, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
   useAllSchoolsWithPlans, 
   useSuspendSchool, 
   useReinstateSchool,
   useDeleteSchool,
+  useHardDeleteSchool,
   useAvailablePlans,
 } from '@/hooks/useOwnerControls';
 import { useActivatePlan } from '@/hooks/useSuperAdmin';
@@ -46,9 +56,12 @@ export function SchoolManagementPanel() {
   const suspendSchool = useSuspendSchool();
   const reinstateSchool = useReinstateSchool();
   const deleteSchool = useDeleteSchool();
+  const hardDeleteSchool = useHardDeleteSchool();
   const activatePlan = useActivatePlan();
   const [changingPlanForSchool, setChangingPlanForSchool] = useState<string | null>(null);
-  const [schoolToDelete, setSchoolToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [schoolToArchive, setSchoolToArchive] = useState<{ id: string; name: string } | null>(null);
+  const [schoolToHardDelete, setSchoolToHardDelete] = useState<{ id: string; name: string } | null>(null);
+  const [confirmationText, setConfirmationText] = useState('');
 
   const handlePlanChange = (schoolId: string, planId: string) => {
     activatePlan.mutate({
@@ -58,6 +71,14 @@ export function SchoolManagementPanel() {
     }, {
       onSuccess: () => setChangingPlanForSchool(null),
     });
+  };
+
+  const handleHardDelete = () => {
+    if (schoolToHardDelete && confirmationText === schoolToHardDelete.name) {
+      hardDeleteSchool.mutate(schoolToHardDelete.id);
+      setSchoolToHardDelete(null);
+      setConfirmationText('');
+    }
   };
 
   if (isLoading) {
@@ -175,14 +196,31 @@ export function SchoolManagementPanel() {
                           Suspend
                         </Button>
                       )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => setSchoolToDelete({ id: school.id, name: school.name })}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="ghost">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            onClick={() => setSchoolToArchive({ id: school.id, name: school.name })}
+                          >
+                            <Archive className="mr-2 h-4 w-4" />
+                            Archive School
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => setSchoolToHardDelete({ id: school.id, name: school.name })}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Permanently Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
                       <Button size="sm" variant="ghost" asChild>
                         <Link to={`/platform-admin/schools`}>
                           <ExternalLink className="h-4 w-4" />
@@ -196,13 +234,16 @@ export function SchoolManagementPanel() {
           </Table>
         </div>
 
-        {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!schoolToDelete} onOpenChange={() => setSchoolToDelete(null)}>
+        {/* Archive Confirmation Dialog */}
+        <AlertDialog open={!!schoolToArchive} onOpenChange={() => setSchoolToArchive(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Archive School</AlertDialogTitle>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Archive className="h-5 w-5" />
+                Archive School
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to archive <strong>{schoolToDelete?.name}</strong>? 
+                Are you sure you want to archive <strong>{schoolToArchive?.name}</strong>? 
                 This will archive the school along with all its classes, students, user roles, and related data. 
                 The data will be hidden from the system but preserved for recovery.
               </AlertDialogDescription>
@@ -210,15 +251,74 @@ export function SchoolManagementPanel() {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="bg-amber-600 text-white hover:bg-amber-700"
                 onClick={() => {
-                  if (schoolToDelete) {
-                    deleteSchool.mutate({ schoolId: schoolToDelete.id });
-                    setSchoolToDelete(null);
+                  if (schoolToArchive) {
+                    deleteSchool.mutate({ schoolId: schoolToArchive.id });
+                    setSchoolToArchive(null);
                   }
                 }}
               >
                 Archive School
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Hard Delete Confirmation Dialog */}
+        <AlertDialog 
+          open={!!schoolToHardDelete} 
+          onOpenChange={(open) => {
+            if (!open) {
+              setSchoolToHardDelete(null);
+              setConfirmationText('');
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+                Permanently Delete School
+              </AlertDialogTitle>
+              <AlertDialogDescription className="space-y-3">
+                <p>
+                  <strong className="text-destructive">WARNING: This action is irreversible!</strong>
+                </p>
+                <p>
+                  You are about to permanently delete <strong>{schoolToHardDelete?.name}</strong> and ALL associated data including:
+                </p>
+                <ul className="list-disc list-inside text-sm space-y-1 text-muted-foreground">
+                  <li>All students and their records</li>
+                  <li>All classes and attendance</li>
+                  <li>All fee payments and financial records</li>
+                  <li>All learning profiles and AI analyses</li>
+                  <li>All guardian links and communications</li>
+                  <li>All user roles and permissions</li>
+                  <li>All uploads and documents</li>
+                </ul>
+                <div className="pt-2">
+                  <Label htmlFor="confirm-name" className="text-sm font-medium">
+                    Type <strong>{schoolToHardDelete?.name}</strong> to confirm:
+                  </Label>
+                  <Input
+                    id="confirm-name"
+                    value={confirmationText}
+                    onChange={(e) => setConfirmationText(e.target.value)}
+                    placeholder="Enter school name"
+                    className="mt-2"
+                  />
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={confirmationText !== schoolToHardDelete?.name || hardDeleteSchool.isPending}
+                onClick={handleHardDelete}
+              >
+                {hardDeleteSchool.isPending ? 'Deleting...' : 'Permanently Delete'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
