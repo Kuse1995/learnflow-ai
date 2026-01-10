@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Beaker, Loader2, Mail, Lock, User, Sparkles } from 'lucide-react';
+import { Beaker, Loader2, Mail, Lock, User, Sparkles, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Please enter a valid email address');
@@ -27,6 +28,9 @@ export default function Auth() {
   const [fullName, setFullName] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string }>({});
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [activeTab, setActiveTab] = useState('signin');
+  const [alreadyRegisteredMessage, setAlreadyRegisteredMessage] = useState<string | null>(null);
+  const signinEmailRef = useRef<HTMLInputElement>(null);
 
   // Check for existing session - redirect to role-based dashboard
   useEffect(() => {
@@ -143,10 +147,16 @@ export default function Auth() {
 
     if (error) {
       if (error.message.includes('already registered')) {
+        // Auto-switch to sign in tab with the email pre-filled
+        setAlreadyRegisteredMessage(`This email is already registered. Please sign in below.`);
+        setActiveTab('signin');
+        // Focus the password field after tab switch
+        setTimeout(() => {
+          signinEmailRef.current?.focus();
+        }, 100);
         toast({
           title: 'Account exists',
-          description: 'This email is already registered. Please sign in instead.',
-          variant: 'destructive',
+          description: 'Switched to sign in. Enter your password to continue.',
         });
       } else {
         toast({
@@ -177,7 +187,10 @@ export default function Auth() {
       </div>
 
       <Card className="w-full max-w-md">
-        <Tabs defaultValue="signin" className="w-full">
+        <Tabs value={activeTab} onValueChange={(value) => {
+          setActiveTab(value);
+          setAlreadyRegisteredMessage(null);
+        }} className="w-full">
           <CardHeader className="pb-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -192,6 +205,13 @@ export default function Auth() {
               <CardDescription className="mb-6">
                 Sign in to your account to continue
               </CardDescription>
+
+              {alreadyRegisteredMessage && (
+                <Alert className="mb-4 border-primary/50 bg-primary/10">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{alreadyRegisteredMessage}</AlertDescription>
+                </Alert>
+              )}
               
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
@@ -199,6 +219,7 @@ export default function Auth() {
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
+                      ref={signinEmailRef}
                       id="signin-email"
                       type="email"
                       placeholder="you@example.com"

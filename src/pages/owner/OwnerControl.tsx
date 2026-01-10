@@ -11,8 +11,8 @@ import {
   QuickNavigationPanel,
   SchoolManagementPanel,
   UserManagementPanel,
-  
 } from '@/components/owner';
+import { OrphanedUsersPanel } from '@/components/owner/OrphanedUsersPanel';
 import { PageHeader } from '@/components/layout';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -65,6 +65,9 @@ export default function OwnerControl() {
           <SchoolManagementPanel />
           <UserManagementPanel />
         </div>
+
+        {/* Orphaned Users Panel */}
+        <OrphanedUsersPanel />
 
         {/* Access Overrides - Full Width */}
         <AccessOverridesPanel />
