@@ -496,6 +496,31 @@ export function useDeleteSchool() {
   });
 }
 
+export function useHardDeleteSchool() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (schoolId: string) => {
+      // Call the hard delete cascade function that permanently deletes all data
+      const { error } = await supabase.rpc('hard_delete_school_cascade', {
+        p_school_id: schoolId,
+      });
+
+      if (error) throw error;
+      return schoolId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['owner-all-schools'] });
+      queryClient.invalidateQueries({ queryKey: ['owner-all-user-roles'] });
+      queryClient.invalidateQueries({ queryKey: ['owner-all-classes'] });
+      toast.success('School and all data permanently deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete school: ' + (error as Error).message);
+    },
+  });
+}
+
 // =============================================================================
 // USER ROLE MANAGEMENT
 // =============================================================================
