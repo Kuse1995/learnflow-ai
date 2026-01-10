@@ -408,21 +408,49 @@ export function useCreateSchool() {
           }
         }
 
-        // Create pending invitations for unregistered users
+        // Handle "pending" admins - check if they actually exist in profiles now
+        // This implements auto-claim: if user exists, assign role immediately
         if (pendingAdmins.length > 0) {
           const { data: { user } } = await supabase.auth.getUser();
-          const pendingInvitations = pendingAdmins.map(admin => ({
-            school_id: school.id,
-            email: admin.email.toLowerCase().trim(),
-            role: 'school_admin' as AppRole,
-            invited_by: user?.id,
-          }));
-
-          const { error: inviteError } = await supabase.from('pending_admin_invitations').insert(pendingInvitations);
-          if (inviteError) {
-            console.error('Failed to create pending invitations:', inviteError);
-            // Don't throw - school and existing admins are already created
-            toast.error(`School created but some invitations failed: ${inviteError.message}`);
+          
+          for (const admin of pendingAdmins) {
+            const normalizedEmail = admin.email.toLowerCase().trim();
+            
+            // Check if this email now exists in profiles
+            const { data: existingProfile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('email', normalizedEmail)
+              .maybeSingle();
+            
+            if (existingProfile) {
+              // User exists - assign role immediately (auto-claim)
+              const { error: roleError } = await supabase.from('user_roles').insert({
+                user_id: existingProfile.id,
+                school_id: school.id,
+                role: 'school_admin' as AppRole,
+              });
+              
+              if (roleError) {
+                console.error('Failed to auto-assign admin role:', roleError);
+                toast.error(`Failed to assign ${normalizedEmail} as admin: ${roleError.message}`);
+              } else {
+                console.log(`Auto-claimed: Assigned ${normalizedEmail} as school_admin immediately`);
+              }
+            } else {
+              // User doesn't exist - create pending invitation
+              const { error: inviteError } = await supabase.from('pending_admin_invitations').insert({
+                school_id: school.id,
+                email: normalizedEmail,
+                role: 'school_admin' as AppRole,
+                invited_by: user?.id,
+              });
+              
+              if (inviteError) {
+                console.error('Failed to create pending invitation:', inviteError);
+                toast.error(`Failed to create invitation for ${normalizedEmail}: ${inviteError.message}`);
+              }
+            }
           }
         }
 
