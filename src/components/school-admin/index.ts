@@ -11,3 +11,5 @@ export { InviteTeacherDialog } from "./InviteTeacherDialog";
 export { CreateSchoolClassDialog } from "./CreateSchoolClassDialog";
 export { AssignTeacherToClassDialog } from "./AssignTeacherToClassDialog";
 export { AddStudentDialog } from "./AddStudentDialog";
+export { EditStudentDialog } from "./EditStudentDialog";
+export { TransferStudentDialog } from "./TransferStudentDialog";

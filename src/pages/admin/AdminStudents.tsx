@@ -1,10 +1,10 @@
 /**
  * Admin Students Page
- * School-wide student management with add/view capabilities
+ * School-wide student management with add/edit/transfer capabilities
  */
 
 import { useState } from "react";
-import { Users, School, Plus, Search, Phone, Upload } from "lucide-react";
+import { Users, School, Plus, Search, Phone, Upload, MoreHorizontal, Pencil, ArrowRightLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,14 +19,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { AlertCircle } from "lucide-react";
 import { useSchoolAdminSchool, useSchoolClassesWithDetails, useIsSchoolAdmin } from "@/hooks/useSchoolAdmin";
 import { useSchoolStudents } from "@/hooks/useSchoolStudents";
 import { AdminLayout } from "@/components/navigation/AdminNav";
 import { usePlatformOwner } from "@/hooks/usePlatformOwner";
 import { AddStudentDialog } from "@/components/school-admin/AddStudentDialog";
+import { EditStudentDialog } from "@/components/school-admin/EditStudentDialog";
+import { TransferStudentDialog } from "@/components/school-admin/TransferStudentDialog";
 import { BulkStudentUploadDialog } from "@/components/school-admin/BulkStudentUploadDialog";
 import { useClassLevelTerminology } from "@/hooks/useClassLevelTerminology";
+import type { SchoolStudent } from "@/hooks/useSchoolStudents";
 
 export default function AdminStudents() {
   const { data: school, isLoading: schoolLoading } = useSchoolAdminSchool();
@@ -37,6 +46,9 @@ export default function AdminStudents() {
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<SchoolStudent | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { config: terminologyConfig } = useClassLevelTerminology(school?.id);
 
@@ -140,6 +152,7 @@ export default function AdminStudents() {
                     <TableHead>Class</TableHead>
                     <TableHead>Guardian</TableHead>
                     <TableHead>Contact</TableHead>
+                    <TableHead className="w-[70px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -162,7 +175,7 @@ export default function AdminStudents() {
                         {student.class_name ? (
                           <Badge variant="secondary">{student.class_name}</Badge>
                         ) : (
-                          <span className="text-muted-foreground text-sm">Not assigned</span>
+                          <span className="text-yellow-600 text-sm">Not assigned</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -179,6 +192,36 @@ export default function AdminStudents() {
                         ) : (
                           <span className="text-muted-foreground text-sm">—</span>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Open menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedStudent(student);
+                                setShowEditDialog(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit Student
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedStudent(student);
+                                setShowTransferDialog(true);
+                              }}
+                            >
+                              <ArrowRightLeft className="h-4 w-4 mr-2" />
+                              Transfer Class
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -231,6 +274,32 @@ export default function AdminStudents() {
         <BulkStudentUploadDialog
           open={showBulkDialog}
           onOpenChange={setShowBulkDialog}
+          schoolId={school.id}
+          classes={activeClasses.map(c => ({
+            id: c.id,
+            name: c.name,
+            grade: c.grade,
+          }))}
+        />
+
+        {/* Edit Student Dialog */}
+        <EditStudentDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          student={selectedStudent}
+          schoolId={school.id}
+          classes={activeClasses.map(c => ({
+            id: c.id,
+            name: c.name,
+            grade: c.grade,
+          }))}
+        />
+
+        {/* Transfer Student Dialog */}
+        <TransferStudentDialog
+          open={showTransferDialog}
+          onOpenChange={setShowTransferDialog}
+          student={selectedStudent}
           schoolId={school.id}
           classes={activeClasses.map(c => ({
             id: c.id,
