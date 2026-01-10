@@ -501,7 +501,25 @@ export function useHardDeleteSchool() {
 
   return useMutation({
     mutationFn: async (schoolId: string) => {
-      // Call the hard delete cascade function that permanently deletes all data
+      // Step 1: Delete auth users associated with this school
+      // This edge function deletes users from auth.users if they only belong to this school
+      const { data: userDeleteResult, error: userDeleteError } = await supabase.functions.invoke(
+        'delete-school-users',
+        {
+          body: { school_id: schoolId },
+        }
+      );
+
+      if (userDeleteError) {
+        console.error('Error deleting school users:', userDeleteError);
+        // Continue with cascade even if user deletion fails - those users will be orphaned
+        // but won't block the school deletion
+        toast.error('Warning: Some user accounts may not have been deleted');
+      } else {
+        console.log('User deletion result:', userDeleteResult);
+      }
+
+      // Step 2: Call the hard delete cascade function that permanently deletes all data
       const { error } = await supabase.rpc('hard_delete_school_cascade', {
         p_school_id: schoolId,
       });

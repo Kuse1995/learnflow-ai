@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.accept-teacher-invite]
 verify_jwt = false
+
+[functions.delete-school-users]
+verify_jwt = false
