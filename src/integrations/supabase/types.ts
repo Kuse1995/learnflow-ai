@@ -7668,6 +7668,14 @@ export type Database = {
         }
         Returns: Json
       }
+      user_has_role_in_school: {
+        Args: {
+          p_roles: Database["public"]["Enums"]["app_role"][]
+          p_school_id?: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       validate_plan_transition: {
         Args: {
           p_from_status: string
