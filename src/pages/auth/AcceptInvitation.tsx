@@ -29,11 +29,21 @@ export default function AcceptInvitation() {
   const [invitation, setInvitation] = useState<InvitationData | null>(null);
   const [isNewUser, setIsNewUser] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   
   // Signup form state
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+
+  // Check current session on mount
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) {
+        setCurrentUserEmail(session.user.email);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (token) {
@@ -109,6 +119,12 @@ export default function AcceptInvitation() {
     }
   };
 
+  const handleSwitchAccount = async () => {
+    await supabase.auth.signOut();
+    setCurrentUserEmail(null);
+    navigate(`/auth?returnTo=/invite/${token}&email=${encodeURIComponent(invitation?.email || '')}`);
+  };
+
   const handleAcceptAsExistingUser = async () => {
     if (!invitation || !token) return;
     
@@ -120,7 +136,16 @@ export default function AcceptInvitation() {
       if (!session) {
         // Redirect to login with return URL
         toast.info('Please log in to accept this invitation');
-        navigate(`/auth?returnTo=/invite/${token}`);
+        navigate(`/auth?returnTo=/invite/${token}&email=${encodeURIComponent(invitation.email)}`);
+        return;
+      }
+
+      // Check if logged in with correct email
+      if (session.user.email?.toLowerCase() !== invitation.email.toLowerCase()) {
+        toast.error(`Please log in with ${invitation.email} to accept this invitation`);
+        await supabase.auth.signOut();
+        setCurrentUserEmail(null);
+        navigate(`/auth?returnTo=/invite/${token}&email=${encodeURIComponent(invitation.email)}`);
         return;
       }
 
@@ -130,13 +155,21 @@ export default function AcceptInvitation() {
       });
 
       if (error) {
-        throw new Error(error.message || 'Failed to accept invitation');
+        // Try to extract error message from the response
+        let errorMessage = 'Failed to accept invitation';
+        try {
+          const errorBody = JSON.parse(error.message);
+          errorMessage = errorBody.error || errorMessage;
+        } catch {
+          errorMessage = error.message || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       if (data?.error) {
         if (data.requiresLogin) {
           toast.info('Please log in to accept this invitation');
-          navigate(`/auth?returnTo=/invite/${token}`);
+          navigate(`/auth?returnTo=/invite/${token}&email=${encodeURIComponent(invitation.email)}`);
           return;
         }
         throw new Error(data.error);
@@ -373,23 +406,64 @@ export default function AcceptInvitation() {
             </form>
           ) : (
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground text-center">
-                An account with this email already exists. Log in to accept this invitation.
-              </p>
-              <Button 
-                onClick={handleAcceptAsExistingUser} 
-                className="w-full"
-                disabled={isProcessing}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  'Log In & Accept Invitation'
-                )}
-              </Button>
+              {currentUserEmail && currentUserEmail.toLowerCase() !== invitation?.email.toLowerCase() && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription>
+                    You're logged in as <strong>{currentUserEmail}</strong>. 
+                    You need to log in as <strong>{invitation?.email}</strong> to accept this invitation.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {currentUserEmail && currentUserEmail.toLowerCase() === invitation?.email.toLowerCase() ? (
+                <>
+                  <p className="text-sm text-muted-foreground text-center">
+                    You're logged in as <strong>{currentUserEmail}</strong>. Click below to accept the invitation.
+                  </p>
+                  <Button 
+                    onClick={handleAcceptAsExistingUser} 
+                    className="w-full"
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Accept Invitation'
+                    )}
+                  </Button>
+                </>
+              ) : currentUserEmail ? (
+                <Button 
+                  onClick={handleSwitchAccount} 
+                  className="w-full"
+                  variant="outline"
+                >
+                  Switch to {invitation?.email}
+                </Button>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground text-center">
+                    An account with this email already exists. Log in to accept this invitation.
+                  </p>
+                  <Button 
+                    onClick={handleAcceptAsExistingUser} 
+                    className="w-full"
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Log In & Accept Invitation'
+                    )}
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </CardContent>
