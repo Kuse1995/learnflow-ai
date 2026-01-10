@@ -19,9 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useCreateSchool, useAvailablePlans, useAllRegisteredUsers } from '@/hooks/useOwnerControls';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const COUNTRIES = [
   { code: 'ZM', name: 'Zambia', timezone: 'Africa/Lusaka' },
@@ -70,10 +71,15 @@ export function CreateSchoolDialog() {
     email: u.email || 'Unknown email',
   })) || [];
 
+  // Check if email exists in registered users
+  const emailLookupResult = adminEmail.trim() 
+    ? availableUsers.find(u => u.email.toLowerCase() === adminEmail.toLowerCase().trim())
+    : null;
+  const emailNotFound = adminEmail.trim().length > 0 && !emailLookupResult;
+
   const handleAddAdmin = () => {
-    const user = availableUsers.find(u => u.email.toLowerCase() === adminEmail.toLowerCase());
-    if (user && !selectedAdmins.find(a => a.id === user.id)) {
-      setSelectedAdmins([...selectedAdmins, user]);
+    if (emailLookupResult && !selectedAdmins.find(a => a.id === emailLookupResult.id)) {
+      setSelectedAdmins([...selectedAdmins, emailLookupResult]);
       setAdminEmail('');
     }
   };
@@ -216,14 +222,28 @@ export function CreateSchoolDialog() {
           <div className="space-y-2">
             <Label>Assign School Admins</Label>
             <div className="flex gap-2">
-              <Input
-                value={adminEmail}
-                onChange={(e) => setAdminEmail(e.target.value)}
-                placeholder="Enter user email"
-                className="flex-1"
-                list="user-emails"
-              />
-              <Button type="button" variant="outline" size="sm" onClick={handleAddAdmin}>
+              <div className="flex-1 relative">
+                <Input
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  placeholder="Enter user email"
+                  list="user-emails"
+                  className={emailLookupResult ? 'pr-8 border-green-500' : emailNotFound ? 'pr-8 border-amber-500' : ''}
+                />
+                {emailLookupResult && (
+                  <CheckCircle2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                )}
+                {emailNotFound && (
+                  <AlertCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500" />
+                )}
+              </div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                onClick={handleAddAdmin}
+                disabled={!emailLookupResult}
+              >
                 Add
               </Button>
             </div>
@@ -232,6 +252,17 @@ export function CreateSchoolDialog() {
                 <option key={user.id} value={user.email} />
               ))}
             </datalist>
+            
+            {/* Email lookup feedback */}
+            {emailNotFound && (
+              <Alert variant="default" className="py-2 border-amber-500/50 bg-amber-500/10">
+                <AlertCircle className="h-4 w-4 text-amber-500" />
+                <AlertDescription className="text-xs">
+                  User not registered yet. They must sign up at /auth before they can be assigned as admin.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             {selectedAdmins.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {selectedAdmins.map((admin) => (

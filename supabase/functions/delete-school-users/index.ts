@@ -10,6 +10,7 @@ const PLATFORM_OWNER_EMAIL = 'abkanyanta@gmail.com';
 
 interface DeleteSchoolUsersRequest {
   school_id: string;
+  user_ids_override?: string[]; // Optional: directly specify user IDs to delete (for orphaned user cleanup)
 }
 
 interface DeleteResult {
@@ -67,7 +68,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { school_id }: DeleteSchoolUsersRequest = await req.json();
+    const { school_id, user_ids_override }: DeleteSchoolUsersRequest = await req.json();
     
     if (!school_id) {
       return new Response(
@@ -76,38 +77,46 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Starting user deletion for school: ${school_id}`);
+    console.log(`Starting user deletion for school: ${school_id}, override mode: ${!!user_ids_override}`);
 
-    // Collect all user IDs associated with this school
-    // 1. From user_roles
-    const { data: userRoles, error: rolesError } = await supabaseAdmin
-      .from('user_roles')
-      .select('user_id')
-      .eq('school_id', school_id);
+    let allUserIds: string[] = [];
 
-    if (rolesError) {
-      console.error('Error fetching user_roles:', rolesError);
-      throw rolesError;
+    // If user_ids_override is provided, use those directly (for orphaned user cleanup)
+    if (user_ids_override && user_ids_override.length > 0) {
+      allUserIds = user_ids_override;
+      console.log(`Using override user IDs: ${allUserIds.length} users`);
+    } else {
+      // Normal mode: collect all user IDs associated with this school
+      // 1. From user_roles
+      const { data: userRoles, error: rolesError } = await supabaseAdmin
+        .from('user_roles')
+        .select('user_id')
+        .eq('school_id', school_id);
+
+      if (rolesError) {
+        console.error('Error fetching user_roles:', rolesError);
+        throw rolesError;
+      }
+
+      // 2. From guardians (those with user_id set)
+      const { data: guardians, error: guardiansError } = await supabaseAdmin
+        .from('guardians')
+        .select('user_id')
+        .eq('school_id', school_id)
+        .not('user_id', 'is', null);
+
+      if (guardiansError) {
+        console.error('Error fetching guardians:', guardiansError);
+        throw guardiansError;
+      }
+
+      // Combine and deduplicate user IDs
+      const userIdsFromRoles = userRoles?.map(r => r.user_id).filter(Boolean) || [];
+      const userIdsFromGuardians = guardians?.map(g => g.user_id).filter(Boolean) || [];
+      allUserIds = [...new Set([...userIdsFromRoles, ...userIdsFromGuardians])];
     }
 
-    // 2. From guardians (those with user_id set)
-    const { data: guardians, error: guardiansError } = await supabaseAdmin
-      .from('guardians')
-      .select('user_id')
-      .eq('school_id', school_id)
-      .not('user_id', 'is', null);
-
-    if (guardiansError) {
-      console.error('Error fetching guardians:', guardiansError);
-      throw guardiansError;
-    }
-
-    // Combine and deduplicate user IDs
-    const userIdsFromRoles = userRoles?.map(r => r.user_id).filter(Boolean) || [];
-    const userIdsFromGuardians = guardians?.map(g => g.user_id).filter(Boolean) || [];
-    const allUserIds = [...new Set([...userIdsFromRoles, ...userIdsFromGuardians])];
-
-    console.log(`Found ${allUserIds.length} unique users associated with school`);
+    console.log(`Found ${allUserIds.length} unique users to process`);
 
     const result: DeleteResult = {
       deleted_count: 0,
@@ -143,44 +152,48 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Check if user has roles in OTHER schools
-        const { data: otherRoles, error: otherRolesError } = await supabaseAdmin
-          .from('user_roles')
-          .select('school_id')
-          .eq('user_id', userId)
-          .neq('school_id', school_id);
+        // For orphaned user cleanup (user_ids_override mode), skip the school association check
+        // since these users have NO associations at all
+        if (!user_ids_override) {
+          // Check if user has roles in OTHER schools
+          const { data: otherRoles, error: otherRolesError } = await supabaseAdmin
+            .from('user_roles')
+            .select('school_id')
+            .eq('user_id', userId)
+            .neq('school_id', school_id);
 
-        if (otherRolesError) {
-          console.error(`Error checking other roles for ${userId}:`, otherRolesError);
-          result.errors.push({ user_id: userId, error: otherRolesError.message });
-          continue;
-        }
+          if (otherRolesError) {
+            console.error(`Error checking other roles for ${userId}:`, otherRolesError);
+            result.errors.push({ user_id: userId, error: otherRolesError.message });
+            continue;
+          }
 
-        // Also check if user is guardian in other schools
-        const { data: otherGuardians, error: otherGuardiansError } = await supabaseAdmin
-          .from('guardians')
-          .select('school_id')
-          .eq('user_id', userId)
-          .neq('school_id', school_id);
+          // Also check if user is guardian in other schools
+          const { data: otherGuardians, error: otherGuardiansError } = await supabaseAdmin
+            .from('guardians')
+            .select('school_id')
+            .eq('user_id', userId)
+            .neq('school_id', school_id);
 
-        if (otherGuardiansError) {
-          console.error(`Error checking other guardians for ${userId}:`, otherGuardiansError);
-          result.errors.push({ user_id: userId, error: otherGuardiansError.message });
-          continue;
-        }
+          if (otherGuardiansError) {
+            console.error(`Error checking other guardians for ${userId}:`, otherGuardiansError);
+            result.errors.push({ user_id: userId, error: otherGuardiansError.message });
+            continue;
+          }
 
-        const hasOtherSchoolAssociations = 
-          (otherRoles && otherRoles.length > 0) || 
-          (otherGuardians && otherGuardians.length > 0);
+          const hasOtherSchoolAssociations = 
+            (otherRoles && otherRoles.length > 0) || 
+            (otherGuardians && otherGuardians.length > 0);
 
-        if (hasOtherSchoolAssociations) {
-          console.log(`User ${userId} (${user.email}) has associations with other schools, skipping auth deletion`);
-          result.skipped_count++;
-          result.skipped_users.push({ 
-            user_id: userId, 
-            reason: 'User has roles/guardian links in other schools' 
-          });
-          continue;
+          if (hasOtherSchoolAssociations) {
+            console.log(`User ${userId} (${user.email}) has associations with other schools, skipping auth deletion`);
+            result.skipped_count++;
+            result.skipped_users.push({ 
+              user_id: userId, 
+              reason: 'User has roles/guardian links in other schools' 
+            });
+            continue;
+          }
         }
 
         // Delete the auth user
