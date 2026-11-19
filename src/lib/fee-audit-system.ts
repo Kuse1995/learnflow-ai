@@ -458,7 +458,7 @@ export async function reviewCorrectionRequest(
 
     const { error } = await supabase
       .from('fee_correction_requests')
-      .update(updateData)
+      .update(updateData as never)
       .eq('id', requestId);
 
     if (error) throw error;

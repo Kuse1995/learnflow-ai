@@ -303,7 +303,7 @@ export function useUpdatePaymentPlanStatus() {
 
       const { error } = await supabase
         .from('payment_plans')
-        .update(updateData)
+        .update(updateData as never)
         .eq('id', planId);
 
       if (error) throw error;

@@ -212,7 +212,7 @@ export function useUpdateTermReport() {
 
       const { error } = await supabase
         .from("term_reports")
-        .update(updateData)
+        .update(updateData as never)
         .eq("id", reportId);
 
       if (error) throw error;

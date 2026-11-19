@@ -409,7 +409,7 @@ export async function executeTransition(
     // Execute the update
     const { error: updateError } = await supabase
       .from('payment_plans')
-      .update(updatePayload)
+      .update(updatePayload as never)
       .eq('id', planId)
       .eq('status', currentStatus); // Optimistic locking
     

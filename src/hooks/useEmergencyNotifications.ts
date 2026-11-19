@@ -411,7 +411,7 @@ export function useAcknowledgments(emergencyId: string) {
 export function useEscalation(emergencyId: string) {
   const queryClient = useQueryClient();
   const { emergency } = useEmergencyState(emergencyId);
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<ReturnType<typeof setInterval>>();
   
   const checkAndEscalate = useCallback(async () => {
     if (!emergency || emergency.state === 'resolved' || emergency.state === 'cancelled') {

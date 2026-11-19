@@ -196,7 +196,7 @@ export function useUpdatePreferences() {
       // Update preferences
       const { data, error } = await supabase
         .from("parent_contacts")
-        .update(updateData)
+        .update(updateData as never)
         .eq("id", parentContactId)
         .select()
         .single();

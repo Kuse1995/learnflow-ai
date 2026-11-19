@@ -152,7 +152,7 @@ export function useUpdateOnboardingStep() {
 
       const { error } = await supabase
         .from('teacher_onboarding')
-        .update(updates)
+        .update(updates as never)
         .eq('teacher_id', teacherId);
 
       if (error) throw error;
